@@ -247,12 +247,17 @@ export class XSSPrevention {
       .replace(/\//g, '&#x2F;')
     
     // Remove any remaining dangerous patterns
-    sanitized = sanitized
-      .replace(/javascript:/gi, '')
-      .replace(/vbscript:/gi, '')
-      .replace(/data:/gi, '')
-      .replace(/on\w+\s*=/gi, '')
-    
+    // Remove dangerous protocol and attribute patterns until stable
+    let previous;
+    do {
+      previous = sanitized;
+      sanitized = sanitized
+        .replace(/javascript:/gi, '')
+        .replace(/vbscript:/gi, '')
+        .replace(/data:/gi, '')
+        .replace(/on\w+\s*=/gi, '');
+    } while (sanitized !== previous);
+
     return sanitized
   }
 }

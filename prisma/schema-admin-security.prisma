@@ -1,0 +1,516 @@
+// Enhanced Prisma schema with admin security and audit trails
+// This extends your existing schema with security and admin features
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Existing models (keeping your current structure)
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String?
+  avatar           String?
+  phone            String?
+  country          String?
+  timezone         String?
+  emailVerified    Boolean           @default(false)
+  twoFactorEnabled Boolean           @default(false)
+  status           UserStatus        @default(ACTIVE)
+  subscription     SubscriptionPlan  @default(PERSONAL)
+  lastLoginAt      DateTime?
+  loginCount       Int               @default(0)
+  storageUsed      Float             @default(0.0)
+  storageLimit     Float             @default(1.0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  // Security fields
+  passwordHash     String?           // For local auth fallback
+  salt             String?           // Password salt
+  lockoutUntil     DateTime?         // Account lockout
+  failedLoginCount Int               @default(0)
+  lastPasswordChange DateTime?
+
+  // Preferences (encrypted)
+  preferences      Json?             // Encrypted user preferences
+  
+  // Relations
+  projects         Project[]
+  tasks            Task[]
+  goals            Goal[]
+  adminRoles       AdminRole[]
+  activityLogs     ActivityLog[]
+  subscriptions    Subscription[]
+  payments         Payment[]
+  sessions         UserSession[]
+  dataExports      DataExport[]
+  
+  @@map("users")
+}
+
+// Admin Security Models
+model AdminRole {
+  id          String        @id @default(cuid())
+  userId      String
+  role        AdminRoleType @default(VIEWER)
+  permissions Json          // Granular permissions object
+  grantedBy   String        // Admin who granted this role
+  grantedAt   DateTime      @default(now())
+  expiresAt   DateTime?     // Optional expiration
+  isActive    Boolean       @default(true)
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, role])
+  @@map("admin_roles")
+}
+
+model AdminAudit {
+  id          String   @id @default(cuid())
+  adminUserId String
+  action      String   // Action performed
+  resource    String   // Resource affected
+  resourceId  String?  // ID of affected resource
+  oldValues   Json?    // Previous values (encrypted)
+  newValues   Json?    // New values (encrypted)
+  ipAddress   String
+  userAgent   String
+  location    Json?    // Geographic location
+  timestamp   DateTime @default(now())
+  severity    AuditSeverity @default(LOW)
+  
+  @@map("admin_audits")
+}
+
+model ActivityLog {
+  id          String         @id @default(cuid())
+  userId      String
+  sessionId   String?
+  action      String         // Action identifier
+  category    ActivityCategory
+  description String         // Human readable description
+  details     Json           // Additional structured data (encrypted for sensitive info)
+  ipAddress   String
+  userAgent   String
+  location    Json?          // Geographic and device info
+  timestamp   DateTime       @default(now())
+  severity    AuditSeverity  @default(LOW)
+  status      ActivityStatus @default(SUCCESS)
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, timestamp])
+  @@index([category, timestamp])
+  @@index([severity, timestamp])
+  @@map("activity_logs")
+}
+
+model UserSession {
+  id          String    @id @default(cuid())
+  userId      String
+  sessionToken String   @unique
+  ipAddress   String
+  userAgent   String
+  location    Json?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  isActive    Boolean   @default(true)
+  lastActivity DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isActive])
+  @@index([sessionToken])
+  @@map("user_sessions")
+}
+
+// Payment and Subscription Models
+model Subscription {
+  id                  String             @id @default(cuid())
+  userId              String
+  plan                SubscriptionPlan
+  status              SubscriptionStatus @default(TRIALING)
+  billingCycle        BillingCycle       @default(MONTHLY)
+  amount              Decimal
+  currency            String             @default("USD")
+  paymentMethod       String?
+  stripeCustomerId    String?            @unique
+  stripeSubscriptionId String?           @unique
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean            @default(false)
+  trialEnd            DateTime?
+  billingAddress      Json?              // Encrypted billing address
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+  
+  @@index([userId, status])
+  @@index([stripeSubscriptionId])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  userId         String
+  subscriptionId String?
+  amount         Decimal
+  currency       String        @default("USD")
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  String
+  stripePaymentId String?      @unique
+  invoiceId      String?
+  description    String?
+  refundAmount   Decimal?
+  refundReason   String?
+  processedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, status])
+  @@index([stripePaymentId])
+  @@map("payments")
+}
+
+// Admin Configuration Models
+model AdminSetting {
+  id          String      @id @default(cuid())
+  category    String      // e.g., "authentication", "email", "api"
+  key         String      // Setting key
+  value       String      // Encrypted value for sensitive settings
+  type        SettingType
+  isSensitive Boolean     @default(false)
+  isEncrypted Boolean     @default(false)
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  updatedBy   String      // Admin user who made the change
+  
+  @@unique([category, key])
+  @@index([category])
+  @@map("admin_settings")
+}
+
+model FeatureFlag {
+  id           String            @id @default(cuid())
+  name         String            @unique
+  description  String
+  enabled      Boolean           @default(false)
+  category     FeatureFlagCategory
+  environment  Environment       @default(PRODUCTION)
+  rolloutPercentage Int           @default(0) // For gradual rollouts
+  conditions   Json?             // Conditions for flag activation
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  updatedBy    String            // Admin user who made the change
+  
+  @@index([category, enabled])
+  @@map("feature_flags")
+}
+
+model SystemAlert {
+  id          String      @id @default(cuid())
+  type        AlertType
+  title       String
+  description String
+  source      String      // System component that generated the alert
+  severity    AuditSeverity
+  status      AlertStatus @default(ACTIVE)
+  metadata    Json?       // Additional alert data
+  resolvedBy  String?     // Admin who resolved the alert
+  resolvedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  
+  @@index([status, severity])
+  @@index([createdAt])
+  @@map("system_alerts")
+}
+
+model MaintenanceWindow {
+  id               String              @id @default(cuid())
+  title            String
+  description      String
+  startTime        DateTime
+  endTime          DateTime
+  status           MaintenanceStatus   @default(SCHEDULED)
+  affectedServices String[]            // Array of affected services
+  notificationsSent Boolean           @default(false)
+  createdBy        String             // Admin who scheduled
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  @@index([status, startTime])
+  @@map("maintenance_windows")
+}
+
+model DataExport {
+  id          String       @id @default(cuid())
+  userId      String?      // User who requested export (if user-initiated)
+  adminId     String?      // Admin who initiated export
+  type        ExportType
+  status      ExportStatus @default(PENDING)
+  fileName    String?
+  fileSize    Int?
+  downloadUrl String?      // Temporary signed URL
+  expiresAt   DateTime?
+  filters     Json?        // Export filters applied
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+  
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, status])
+  @@index([type, createdAt])
+  @@map("data_exports")
+}
+
+// Security and Compliance Models
+model SecurityEvent {
+  id          String               @id @default(cuid())
+  type        SecurityEventType
+  userId      String?
+  ipAddress   String
+  userAgent   String?
+  details     Json                 // Encrypted event details
+  risk_score  Int                  @default(0) // Risk assessment score
+  blocked     Boolean              @default(false)
+  timestamp   DateTime             @default(now())
+  
+  @@index([type, timestamp])
+  @@index([userId, timestamp])
+  @@index([risk_score])
+  @@map("security_events")
+}
+
+model EncryptedData {
+  id          String   @id @default(cuid())
+  entityType  String   // Table name
+  entityId    String   // Record ID
+  fieldName   String   // Field name
+  encryptedValue String // Encrypted field value
+  keyVersion  Int      @default(1) // Encryption key version for rotation
+  createdAt   DateTime @default(now())
+  
+  @@unique([entityType, entityId, fieldName])
+  @@index([entityType, entityId])
+  @@map("encrypted_data")
+}
+
+// Keep existing models
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#0ea5e9")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@map("projects")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(UPCOMING)
+  priority    Priority   @default(LOW)
+  progress    Int        @default(0)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  projectId   String?
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("tasks")
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  target      Int      @default(100)
+  current     Int      @default(0)
+  type        GoalType @default(TASK)
+  deadline    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+// Enums
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+  DEACTIVATED
+}
+
+enum SubscriptionPlan {
+  PERSONAL
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  UNPAID
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum AdminRoleType {
+  SUPER_ADMIN     // Full access
+  USER_ADMIN      // User management only
+  BILLING_ADMIN   // Payment and subscription management
+  SUPPORT_ADMIN   // Read-only + user support actions
+  VIEWER          // Read-only access
+}
+
+enum ActivityCategory {
+  AUTHENTICATION
+  PROFILE
+  SECURITY
+  DATA
+  PAYMENT
+  SYSTEM
+  ADMIN
+}
+
+enum ActivityStatus {
+  SUCCESS
+  FAILED
+  WARNING
+  INFO
+}
+
+enum AuditSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SettingType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+  ENCRYPTED
+}
+
+enum FeatureFlagCategory {
+  UI
+  API
+  EXPERIMENTAL
+  SECURITY
+  PERFORMANCE
+}
+
+enum Environment {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+  ALL
+}
+
+enum AlertType {
+  ERROR
+  WARNING
+  INFO
+  SECURITY
+}
+
+enum AlertStatus {
+  ACTIVE
+  RESOLVED
+  SUPPRESSED
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ExportType {
+  USER_DATA
+  ACTIVITY_LOGS
+  PAYMENT_HISTORY
+  ANALYTICS_REPORT
+  SYSTEM_METRICS
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum SecurityEventType {
+  SUSPICIOUS_LOGIN
+  MULTIPLE_FAILED_LOGINS
+  UNUSUAL_ACTIVITY
+  PRIVILEGE_ESCALATION
+  DATA_ACCESS_VIOLATION
+  RATE_LIMIT_EXCEEDED
+  SQL_INJECTION_ATTEMPT
+  XSS_ATTEMPT
+  CSRF_ATTEMPT
+}
+
+enum TaskStatus {
+  UPCOMING
+  OVERDUE
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum GoalType {
+  TASK
+  PROJECT
+  CUSTOM
+}

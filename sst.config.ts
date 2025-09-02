@@ -44,7 +44,6 @@ export default $config({
     // Next.js App with AWS Lambda
     const web = new sst.aws.Nextjs("TaskworkWeb", {
       vpc: {
-        securityGroups: [database.securityGroups[0]],
         subnets: vpc.privateSubnets,
       },
       link: [
@@ -109,7 +108,6 @@ export default $config({
       timeout: "15 minutes",
       link: [database],
       vpc: {
-        securityGroups: [database.securityGroups[0]],
         subnets: vpc.privateSubnets,
       },
     });

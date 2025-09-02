@@ -49,10 +49,10 @@ export default $config({
           ? "taskwork.io" 
           : "dev.taskwork.io",
       },
-      domain: {
-        name: $app.stage === "production" ? "taskwork.io" : "dev.taskwork.io",
-        redirects: $app.stage === "production" ? ["www.taskwork.io"] : [],
-      },
+      // domain: {
+      //   name: $app.stage === "production" ? "taskwork.io" : "dev.taskwork.io",
+      //   redirects: $app.stage === "production" ? ["www.taskwork.io"] : [],
+      // },
     });
 
     // S3 Bucket for File Storage

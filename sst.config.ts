@@ -26,7 +26,7 @@ export default $config({
     const slackClientId = new sst.Secret("SlackClientId");
     const slackClientSecret = new sst.Secret("SlackClientSecret");
 
-    // Next.js App with AWS Lambda (simplified - no VPC)
+    // Next.js App with AWS Lambda (optimized for Windows deployment)
     const web = new sst.aws.Nextjs("TaskworkWeb", {
       link: [
         clerkPublishableKey,
@@ -49,6 +49,7 @@ export default $config({
           ? "taskwork.io" 
           : "dev.taskwork.io",
       },
+      buildCommand: "npm run build",
       domain: {
         name: $app.stage === "production" ? "taskwork.io" : "dev.taskwork.io",
         redirects: $app.stage === "production" ? ["www.taskwork.io"] : [],

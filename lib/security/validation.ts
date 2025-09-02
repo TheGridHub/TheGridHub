@@ -181,32 +181,31 @@ export class SqlInjectionPrevention {
   }
 }
 
-// XSS prevention with safe, non-vulnerable patterns
+// XSS prevention using safe string matching instead of regex
 export class XSSPrevention {
-  // Use safer, more specific patterns that don't cause catastrophic backtracking
-  private static dangerousPatterns = [
-    // Script tags - safer pattern without nested quantifiers
-    /<script[\s\S]*?<\/script>/gi,
-    /<script[^>]*>/gi,
-    /<\/script>/gi,
-    // JavaScript protocols and event handlers
-    /javascript:/gi,
-    /vbscript:/gi,
-    /data:/gi,
-    // Event handlers - more specific pattern
-    /\bon\w+\s*=/gi,
-    // Dangerous HTML elements
-    /<iframe[^>]*>/gi,
-    /<object[^>]*>/gi,
-    /<embed[^>]*>/gi,
-    /<link[^>]*>/gi,
-    /<meta[^>]*>/gi,
-    /<form[^>]*>/gi,
-    /<input[^>]*>/gi,
-    // Additional XSS vectors
-    /expression\s*\(/gi,
-    /url\s*\(/gi,
-    /@import/gi
+  // Use simple string matching to avoid regex vulnerabilities
+  private static dangerousStrings = [
+    '<script',
+    '</script>',
+    'javascript:',
+    'vbscript:',
+    'data:',
+    '<iframe',
+    '<object',
+    '<embed',
+    '<link',
+    '<meta',
+    '<form',
+    '<input',
+    'expression(',
+    'url(',
+    '@import',
+    'onclick=',
+    'onload=',
+    'onerror=',
+    'onmouseover=',
+    'onfocus=',
+    'onblur='
   ]
 
   static containsXSS(input: string): boolean {
@@ -214,7 +213,9 @@ export class XSSPrevention {
     if (input.length > 10000) {
       return true;
     }
-    return this.dangerousPatterns.some(pattern => pattern.test(input))
+    
+    const lowerInput = input.toLowerCase();
+    return this.dangerousStrings.some(dangerous => lowerInput.includes(dangerous))
   }
 
   static sanitizeInput(input: string): string {
@@ -232,26 +233,51 @@ export class XSSPrevention {
     return this.performDeepSanitization(input)
   }
 
-  // More thorough sanitization without vulnerable regex patterns
+  // More thorough sanitization using safe string operations
   private static performDeepSanitization(input: string): string {
-    // Remove null bytes and control characters
-    let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    // Remove null bytes and control characters using safe character codes
+    let sanitized = input
     
-    // Encode HTML entities
-    sanitized = sanitized
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;')
-      .replace(/\//g, '&#x2F;')
+    // Remove control characters by filtering character codes
+    sanitized = Array.from(sanitized)
+      .filter(char => {
+        const code = char.charCodeAt(0)
+        return !(code >= 0x00 && code <= 0x08) && 
+               code !== 0x0B && 
+               code !== 0x0C &&
+               !(code >= 0x0E && code <= 0x1F) &&
+               code !== 0x7F
+      })
+      .join('')
     
-    // Remove any remaining dangerous patterns
-    sanitized = sanitized
-      .replace(/javascript:/gi, '')
-      .replace(/vbscript:/gi, '')
-      .replace(/data:/gi, '')
-      .replace(/on\w+\s*=/gi, '')
+    // Encode HTML entities using safe replacements
+    const htmlEntities: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      '/': '&#x2F;'
+    }
+    
+    // Replace each entity safely
+    Object.entries(htmlEntities).forEach(([char, entity]) => {
+      sanitized = sanitized.split(char).join(entity)
+    })
+    
+    // Remove dangerous strings using safe string replacement
+    this.dangerousStrings.forEach(dangerous => {
+      // Use case-insensitive replacement
+      const lowerSanitized = sanitized.toLowerCase()
+      const lowerDangerous = dangerous.toLowerCase()
+      let index = lowerSanitized.indexOf(lowerDangerous)
+      
+      while (index !== -1) {
+        sanitized = sanitized.substring(0, index) + 
+                   sanitized.substring(index + dangerous.length)
+        index = sanitized.toLowerCase().indexOf(lowerDangerous)
+      }
+    })
     
     return sanitized
   }

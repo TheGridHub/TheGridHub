@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing dependencies...
+      - npm ci
+
+  pre_build:
+    commands:
+      - echo Pre-build phase started on `date`
+      - echo Checking environment...
+      - node --version
+      - npm --version
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the application...
+      - npm run build
+      - echo Deploying to AWS with SST...
+      - npx sst deploy --stage $DEPLOY_STAGE
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Deployment successful!
+
+artifacts:
+  files:
+    - '**/*'

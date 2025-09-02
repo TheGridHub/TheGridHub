@@ -37,6 +37,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "TaskworkUploads": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
     "TaskworkWeb": {
       "type": "sst.aws.Nextjs"
       "url": string

@@ -181,31 +181,79 @@ export class SqlInjectionPrevention {
   }
 }
 
-// XSS prevention
+// XSS prevention with safe, non-vulnerable patterns
 export class XSSPrevention {
+  // Use safer, more specific patterns that don't cause catastrophic backtracking
   private static dangerousPatterns = [
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    // Script tags - safer pattern without nested quantifiers
+    /<script[\s\S]*?<\/script>/gi,
+    /<script[^>]*>/gi,
+    /<\/script>/gi,
+    // JavaScript protocols and event handlers
     /javascript:/gi,
-    /on\w+\s*=/gi,
-    /<iframe\b[^>]*>/gi,
-    /<object\b[^>]*>/gi,
-    /<embed\b[^>]*>/gi,
-    /<link\b[^>]*>/gi,
-    /<meta\b[^>]*>/gi
+    /vbscript:/gi,
+    /data:/gi,
+    // Event handlers - more specific pattern
+    /\bon\w+\s*=/gi,
+    // Dangerous HTML elements
+    /<iframe[^>]*>/gi,
+    /<object[^>]*>/gi,
+    /<embed[^>]*>/gi,
+    /<link[^>]*>/gi,
+    /<meta[^>]*>/gi,
+    /<form[^>]*>/gi,
+    /<input[^>]*>/gi,
+    // Additional XSS vectors
+    /expression\s*\(/gi,
+    /url\s*\(/gi,
+    /@import/gi
   ]
 
   static containsXSS(input: string): boolean {
+    // Limit input size to prevent DoS attacks
+    if (input.length > 10000) {
+      return true;
+    }
     return this.dangerousPatterns.some(pattern => pattern.test(input))
   }
 
   static sanitizeInput(input: string): string {
+    // Input length validation to prevent DoS
+    if (input.length > 10000) {
+      throw new Error('Input too long')
+    }
+
     // First check for XSS patterns
     if (this.containsXSS(input)) {
       throw new Error('Potentially malicious content detected')
     }
     
-    // Sanitize HTML
-    return InputSanitizer.sanitizeHtml(input)
+    // Additional sanitization steps
+    return this.performDeepSanitization(input)
+  }
+
+  // More thorough sanitization without vulnerable regex patterns
+  private static performDeepSanitization(input: string): string {
+    // Remove null bytes and control characters
+    let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    
+    // Encode HTML entities
+    sanitized = sanitized
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;')
+    
+    // Remove any remaining dangerous patterns
+    sanitized = sanitized
+      .replace(/javascript:/gi, '')
+      .replace(/vbscript:/gi, '')
+      .replace(/data:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+    
+    return sanitized
   }
 }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { generateTaskSuggestions } from '@/lib/ai'
 import prisma from '@/lib/prisma'
 

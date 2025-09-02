@@ -1,11 +1,11 @@
 import Stripe from 'stripe'
 import { SUBSCRIPTION_PLANS, ANNUAL_PRICING, PlanId } from './pricing'
 
-// Initialize Stripe
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Initialize Stripe with build-time safety
+export const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
   typescript: true
-})
+}) : null
 
 // Stripe customer management
 export class StripeCustomerManager {
@@ -15,6 +15,7 @@ export class StripeCustomerManager {
     userId: string,
     metadata: Record<string, string> = {}
   ): Promise<Stripe.Customer> {
+    if (!stripe) throw new Error('Stripe not initialized')
     return await stripe.customers.create({
       email,
       name,
@@ -770,6 +771,35 @@ export class StripePromotionManager {
       console.error('Trial creation failed:', error)
       return { success: false }
     }
+  }
+}
+
+// Main StripeManager class combining all functionality
+export class StripeManager {
+  static stripe = stripe
+  static customers = StripeCustomerManager
+  static subscriptions = StripeSubscriptionManager
+  static payments = StripePaymentManager
+  static checkout = StripeCheckoutManager
+  static usage = StripeUsageManager
+  static webhooks = StripeWebhookManager
+  static pricing = StripePricingManager
+  static analytics = StripeAnalyticsManager
+  static promotions = StripePromotionManager
+  static helpers = StripeHelpers
+  static enforcement = PlanEnforcement
+
+  // Convenience methods
+  static async createCustomer(...args: Parameters<typeof StripeCustomerManager.createCustomer>) {
+    return StripeCustomerManager.createCustomer(...args)
+  }
+
+  static async createCheckoutSession(...args: Parameters<typeof StripeCheckoutManager.createCheckoutSession>) {
+    return StripeCheckoutManager.createCheckoutSession(...args)
+  }
+
+  static async createBillingPortalSession(...args: Parameters<typeof StripeCheckoutManager.createBillingPortalSession>) {
+    return StripeCheckoutManager.createBillingPortalSession(...args)
   }
 }
 

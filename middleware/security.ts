@@ -438,7 +438,7 @@ function getSeverityForEvent(eventType: string): 'LOW' | 'MEDIUM' | 'HIGH' | 'CR
 }
 
 // IP-based security checks
-export class IPSecurityManager {
+class IPSecurityManager {
   private static blockedIPs = new Set<string>()
   private static trustedIPs = new Set(['127.0.0.1', '::1'])
 
@@ -509,7 +509,7 @@ export class IPSecurityManager {
 }
 
 // Session security management
-export class SessionSecurityManager {
+class SessionSecurityManager {
   private static activeSessions = new Map<string, {
     userId: string
     ipAddress: string
@@ -629,7 +629,7 @@ export class SessionSecurityManager {
 }
 
 // Request validation for specific admin operations
-export class AdminOperationValidator {
+class AdminOperationValidator {
   static async validateUserOperation(
     request: NextRequest,
     operation: 'create' | 'update' | 'delete' | 'suspend',
@@ -725,7 +725,7 @@ async function getUserById(userId: string): Promise<{ isAdmin: boolean } | null>
 }
 
 // Security monitoring dashboard data
-export class SecurityDashboard {
+class SecurityDashboard {
   static async getSecurityMetrics(): Promise<{
     requests: {
       total: number

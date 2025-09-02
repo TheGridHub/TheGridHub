@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs'
+import { currentUser } from '@clerk/nextjs/server'
 import { StripeCheckoutManager, StripeCustomerManager } from '@/lib/stripe'
 import { SUBSCRIPTION_PLANS, ANNUAL_PRICING, PlanUtils } from '@/lib/pricing'
 

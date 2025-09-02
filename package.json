@@ -38,7 +38,7 @@
     "pre-commit": "npm run lint && npm run type-check && npm run security:check",
     "sst:dev": "sst dev",
     "sst:deploy": "sst deploy --stage production",
-    "sst:deploy:dev": "sst deploy --stage dev", 
+    "sst:deploy:dev": "sst deploy --stage dev",
     "sst:remove": "sst remove",
     "aws:setup": "aws configure",
     "aws:check": "aws sts get-caller-identity",
@@ -46,7 +46,7 @@
     "quick-start": "node scripts/quick-start.js"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^0.0.67",
+    "@ai-sdk/openai": "^2.0.23",
     "@clerk/nextjs": "^6.15.2",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^6.3.0",
@@ -56,6 +56,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.469.0",
+    "nanoid": "^3.3.11",
     "next": "^15.2.4",
     "openai": "^4.68.4",
     "postcss": "^8.4.49",
@@ -69,7 +70,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@aws-cdk/aws-lambda": "^1.203.0",
     "@types/aws-lambda": "^8.10.152",
     "@types/node": "^22.8.7",
     "@types/react": "^18.3.12",

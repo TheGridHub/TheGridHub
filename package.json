@@ -36,6 +36,7 @@
     "db:generate": "prisma generate",
     "postinstall": "prisma generate",
     "pre-commit": "npm run lint && npm run type-check && npm run security:check",
+    "security:validate": "echo 'Running security validation...' && npm audit && npm run lint && npm run type-check",
     "sst:dev": "sst dev",
     "sst:deploy": "sst deploy --stage production",
     "sst:deploy:dev": "sst deploy --stage dev",

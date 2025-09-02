@@ -11,16 +11,27 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  clerkId              String   @unique
+  email                String   @unique
+  name                 String?
+  avatar               String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Subscription fields
+  stripeCustomerId     String?
+  aiSuggestionsUsed    Int      @default(0)
+  storageUsed          Int      @default(0) // in MB
 
-  projects Project[]
-  tasks    Task[]
-  goals    Goal[]
+  projects             Project[]
+  tasks                Task[]
+  goals                Goal[]
+  subscription         Subscription?
+  payments             Payment[]
+  notifications        Notification[]
+  integrations         Integration[]
+  teamMemberships      TeamMembership[]
 
   @@map("users")
 }
@@ -92,4 +103,85 @@ enum GoalType {
   TASK
   PROJECT
   CUSTOM
+}
+
+model Subscription {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  stripeSubscriptionId  String?   @unique
+  plan                  String    @default("FREE")
+  status                String    @default("active")
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  cancelAtPeriodEnd     Boolean   @default(false)
+  trialEnd              DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id               String    @id @default(cuid())
+  userId           String
+  stripeInvoiceId  String    @unique
+  amount           Int
+  currency         String    @default("usd")
+  status           String
+  paidAt           DateTime?
+  createdAt        DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  data      String?  @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Integration {
+  id           String   @id @default(cuid())
+  userId       String
+  type         String   // 'office365' or 'google'
+  name         String
+  status       String   @default("connected") // 'connected', 'disconnected', 'error'
+  accessToken  String   @db.Text
+  refreshToken String?  @db.Text
+  userEmail    String
+  expiresAt    DateTime?
+  connectedAt  DateTime @default(now())
+  lastSync     DateTime?
+  features     Json     @default("{}") // Feature toggles
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, userEmail])
+  @@map("integrations")
+}
+
+model TeamMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String   @default("member") // 'owner', 'admin', 'member'
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("team_memberships")
 }

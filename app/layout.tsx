@@ -7,8 +7,8 @@ import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'TaskGrid - AI-Powered Task Management',
-  description: 'Comprehensive task management platform with free AI capabilities for optimized productivity and team collaboration',
+  title: 'TaskWork - The Modern Task Management Platform',
+  description: 'Enterprise task management with powerful integrations - Office 365, Google Workspace, Slack, and Jira at startup pricing',
 }
 
 export default function RootLayout({

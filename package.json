@@ -1,6 +1,15 @@
 {
-  "name": "taskgrid",
-  "version": "0.1.0",
+  "name": "taskwork",
+  "version": "1.0.0",
+  "description": "The Modern Task Management Platform for Growing Teams - Enterprise integrations at startup pricing",
+  "homepage": "https://taskwork.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/taskwork.git"
+  },
+  "keywords": ["task management", "project management", "team collaboration", "enterprise", "productivity", "slack", "jira", "microsoft teams", "google workspace"],
+  "author": "TaskWork Team",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev",

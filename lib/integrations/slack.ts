@@ -4,7 +4,7 @@ interface SlackConfig {
   signingSecret: string
 }
 
-interface TaskWorkTask {
+interface TheGridHubTask {
   id: string
   title: string
   description?: string
@@ -29,7 +29,7 @@ export class SlackIntegration {
   // Send task notification to Slack channel
   async sendTaskNotification(
     channel: string,
-    task: TaskWorkTask,
+    task: TheGridHubTask,
     action: 'created' | 'updated' | 'completed',
     userName?: string
   ): Promise<void> {
@@ -94,7 +94,7 @@ export class SlackIntegration {
             type: 'button',
             text: {
               type: 'plain_text',
-            text: 'View in TaskWork'
+            text: 'View in TheGridHub'
             },
             url: `${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`,
             style: 'primary'
@@ -119,7 +119,7 @@ export class SlackIntegration {
   // Send task assignment message
   async sendTaskAssignment(
     userId: string,
-    task: TaskWorkTask,
+    task: TheGridHubTask,
     assignerName?: string
   ): Promise<void> {
     try {
@@ -218,7 +218,7 @@ export class SlackIntegration {
       // Send setup message to channel
       await this.makeRequest('chat.postMessage', {
         channel: channelId,
-        text: `🔄 TaskWork project workflow activated! I'll notify this channel about project updates.`,
+        text: `🔄 TheGridHub project workflow activated! I'll notify this channel about project updates.`,
         blocks: [
           {
             type: 'section',
@@ -254,7 +254,7 @@ export class SlackIntegration {
    * SLACK SLASH COMMANDS
    */
 
-  // Handle /taskwork slash commands
+  // Handle /thegridhub slash commands
   async handleSlashCommand(command: string, args: string[], userId: string): Promise<any> {
     try {
       const [action, ...params] = args
@@ -287,13 +287,13 @@ export class SlackIntegration {
   private async handleCreateTaskCommand(taskTitle: string, userId: string) {
     if (!taskTitle.trim()) {
       return {
-        text: '❌ Please provide a task title. Example: `/taskwork create Fix login bug`',
+        text: '❌ Please provide a task title. Example: `/thegridhub create Fix login bug`',
         response_type: 'ephemeral'
       }
     }
 
     return {
-      text: `✅ Task "${taskTitle}" created! View it in TaskWork.`,
+      text: `✅ Task "${taskTitle}" created! View it in TheGridHub.`,
       response_type: 'ephemeral',
       attachments: [{
         color: 'good',
@@ -313,7 +313,7 @@ export class SlackIntegration {
       response_type: 'ephemeral',
       attachments: [{
         color: 'good',
-        text: 'Click below to view all your tasks in TaskWork',
+        text: 'Click below to view all your tasks in TheGridHub',
         actions: [{
           type: 'button',
           text: 'View All Tasks',
@@ -326,41 +326,41 @@ export class SlackIntegration {
   private async handleStatusCommand(taskId: string, userId: string) {
     if (!taskId) {
       return {
-        text: '❌ Please provide a task ID. Example: `/taskwork status task-123`',
+        text: '❌ Please provide a task ID. Example: `/thegridhub status task-123`',
         response_type: 'ephemeral'
       }
     }
 
     return {
-      text: `📊 Task status updated! View details in TaskWork.`,
+      text: `📊 Task status updated! View details in TheGridHub.`,
       response_type: 'ephemeral'
     }
   }
 
   private getHelpMessage() {
     return {
-      text: '🤖 *TaskWork Slack Commands*',
+      text: '🤖 *TheGridHub Slack Commands*',
       response_type: 'ephemeral',
       attachments: [{
         color: 'good',
         fields: [
           {
-            title: '/taskwork create [task title]',
+            title: '/thegridhub create [task title]',
             value: 'Create a new task',
             short: true
           },
           {
-            title: '/taskwork list',
+            title: '/thegridhub list',
             value: 'List your tasks',
             short: true
           },
           {
-            title: '/taskwork status [task-id]',
+            title: '/thegridhub status [task-id]',
             value: 'Update task status',
             short: true
           },
           {
-            title: '/taskwork help',
+            title: '/thegridhub help',
             value: 'Show this help message',
             short: true
           }

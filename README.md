@@ -1,8 +1,8 @@
-# TaskWork
+# TheGridHub
 
 **The Modern Task Management Platform for Growing Teams**
 
-TaskWork is a comprehensive productivity platform that helps teams organize projects, track progress, and achieve their goals. With intelligent features, enterprise-grade integrations, and a beautiful interface, TaskWork makes team collaboration effortless.
+TheGridHub is a comprehensive productivity platform that helps teams organize projects, track progress, and achieve their goals. With intelligent features, enterprise-grade integrations, and a beautiful interface, TheGridHub makes team collaboration effortless.
 
 ## ✨ Key Features
 
@@ -21,7 +21,7 @@ TaskWork is a comprehensive productivity platform that helps teams organize proj
 ### 🔗 **Enterprise Integrations**
 - **Microsoft Office 365** - Teams notifications, Outlook calendar sync, OneDrive file management, Power Automate workflows
 - **Google Workspace** - Gmail task emails, Calendar events, Drive exports, Meet scheduling, Tasks sync
-- **Slack** - Rich channel notifications, `/taskwork` slash commands, workflow automation, direct messaging
+- **Slack** - Rich channel notifications, `/thegridhub` slash commands, workflow automation, direct messaging
 - **Jira** - Bidirectional task/issue sync, agile board integration, sprint velocity tracking, burndown charts
 - **40+ other integrations** - CRM systems, development tools, design platforms, and more
 
@@ -74,8 +74,8 @@ TaskWork is a comprehensive productivity platform that helps teams organize proj
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/taskwork.git
-cd taskwork
+git clone https://github.com/yourusername/thegridhub.git
+cd thegridhub
 
 # 2. Install dependencies
 npm install
@@ -119,7 +119,7 @@ npm run dev
 npm run db:studio
 ```
 
-## 🌟 Why Choose TaskWork?
+## 🌟 Why Choose TheGridHub?
 
 ### **Built for Modern Teams**
 - Clean, intuitive interface that your team will love
@@ -130,7 +130,7 @@ npm run db:studio
 ### **Enterprise-Grade Integrations**
 - **Microsoft Teams & Office 365** - Adaptive card notifications, calendar sync, OneDrive file management, Power Automate workflows
 - **Google Workspace** - Professional task emails via Gmail, calendar event creation, Drive exports, Meet scheduling
-- **Slack** - Rich channel notifications, `/taskwork` slash commands, direct task assignments, workflow triggers
+- **Slack** - Rich channel notifications, `/thegridhub` slash commands, direct task assignments, workflow triggers
 - **Jira** - Create issues from tasks, sync status changes, agile board integration, velocity and burndown reporting
 - **40+ other tools** - Comprehensive ecosystem connecting your entire tech stack
 
@@ -174,19 +174,19 @@ npm run db:studio
 ## 📞 Get In Touch
 
 ### **Sales & Enterprise**
-- 📧 **Email:** sales@taskwork.io
-- 📞 **Phone:** 1-800-TASKWORK
-- 💬 **Schedule a Demo:** [taskwork.io/demo](https://taskwork.io/demo)
+- 📧 **Email:** sales@thegridhub.co
+- 📞 **Phone:** 1-800-GRIDHUB
+- 💬 **Schedule a Demo:** [thegridhub.co/demo](https://thegridhub.co/demo)
 
 ### **Support & Help**
 - 💬 **Live Chat:** Available 24/7 in-app
-- 📚 **Help Center:** [help.taskwork.io](https://help.taskwork.io)
-- 🎥 **Video Tutorials:** [taskwork.io/tutorials](https://taskwork.io/tutorials)
+- 📚 **Help Center:** [help.thegridhub.co](https://help.thegridhub.co)
+- 🎥 **Video Tutorials:** [thegridhub.co/tutorials](https://thegridhub.co/tutorials)
 
 ### **Community**
-- 🐦 **Twitter:** [@TaskWorkApp](https://twitter.com/TaskWorkApp)
-- 💼 **LinkedIn:** [TaskWork Company](https://linkedin.com/company/taskwork)
-- 📖 **Blog:** [blog.taskwork.io](https://blog.taskwork.io)
+- 🐦 **Twitter:** [@TheGridHubApp](https://twitter.com/TheGridHubApp)
+- 💼 **LinkedIn:** [TheGridHub Company](https://linkedin.com/company/thegridhub)
+- 📖 **Blog:** [blog.thegridhub.co](https://blog.thegridhub.co)
 
 ---
 
@@ -194,11 +194,11 @@ npm run db:studio
 
 **Start your free trial today - no credit card required!**
 
-[**🎯 Get Started Free**](https://taskwork.io/sign-up) | [**📅 Schedule Demo**](https://taskwork.io/demo) | [**💰 View Pricing**](https://taskwork.io/pricing)
+[**🎯 Get Started Free**](https://thegridhub.co/sign-up) | [**📅 Schedule Demo**](https://thegridhub.co/demo) | [**💰 View Pricing**](https://thegridhub.co/pricing)
 
 ---
 
-*TaskWork - Where productivity meets simplicity*
+*TheGridHub - Where productivity meets simplicity*
 
 **🌍 Trusted by teams worldwide • 🔗 Enterprise integrations • 📊 Data-driven insights • 🔒 SOC 2 compliant**
 

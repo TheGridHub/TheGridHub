@@ -135,7 +135,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <CheckSquare className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">TaskWork</span>
+              <span className="text-xl font-bold text-gray-900">TheGridHub</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -161,7 +161,7 @@ export default function LandingPage() {
               <span className="text-blue-600">That Actually Works</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Stop juggling spreadsheets and sticky notes. TaskWork combines intelligent AI with beautiful design 
+              Stop juggling spreadsheets and sticky notes. TheGridHub combines intelligent AI with beautiful design 
               to help teams get more done with less stress.
             </p>
             
@@ -324,7 +324,7 @@ export default function LandingPage() {
             Ready to supercharge your productivity?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join thousands of teams already using TaskWork to get more done.
+            Join thousands of teams already using TheGridHub to get more done.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Link href="/sign-up" className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 flex items-center">
@@ -347,7 +347,7 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <CheckSquare className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-white">TaskWork</span>
+                <span className="text-xl font-bold text-white">TheGridHub</span>
               </div>
               <p className="text-gray-400 max-w-md">
                 AI-powered task management that helps teams stay organized and productive. 
@@ -378,7 +378,7 @@ export default function LandingPage() {
           
           <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 TaskWork. All rights reserved.
+              © 2025 TheGridHub. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="/privacy" className="text-gray-400 hover:text-white text-sm">Privacy</a>

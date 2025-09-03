@@ -1,11 +1,11 @@
 {
-  "name": "taskwork",
+  "name": "thegridhub",
   "version": "1.0.0",
   "description": "The Modern Task Management Platform for Growing Teams - Enterprise integrations at startup pricing",
-  "homepage": "https://taskwork.io",
+  "homepage": "https://thegridhub.co",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/taskwork.git"
+    "url": "https://github.com/yourusername/thegridhub.git"
   },
   "keywords": [
     "task management",
@@ -18,7 +18,7 @@
     "microsoft teams",
     "google workspace"
   ],
-  "author": "TaskWork Team",
+  "author": "TheGridHub Team",
   "license": "MIT",
   "private": true,
   "scripts": {

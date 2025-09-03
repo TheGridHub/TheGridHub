@@ -53,7 +53,21 @@ STRIPE_WEBHOOK_SECRET=              # whsec_...
 4. **Get API Keys:** Dashboard → Developers → API Keys
 5. **Create Webhook:** Dashboard → Developers → Webhooks
    - Endpoint: `https://thegridhub.co/api/webhooks/stripe`
-   - Events: `payment_intent.succeeded`, `customer.subscription.created`
+   - Events: Select these 14 events:
+     - `customer.subscription.created`
+     - `customer.subscription.deleted`
+     - `customer.subscription.paused`
+     - `customer.subscription.resumed` 
+     - `customer.subscription.trial_will_end`
+     - `customer.subscription.updated`
+     - `invoice.created`
+     - `invoice.payment_succeeded`
+     - `invoice.sent`
+     - `invoice.upcoming`
+     - `invoice.payment_failed`
+     - `customer.created`
+     - `customer.updated`
+     - `customer.deleted`
 6. **Copy webhook signing secret**
 
 ---

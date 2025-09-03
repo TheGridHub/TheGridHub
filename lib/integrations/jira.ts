@@ -149,7 +149,7 @@ export class JiraIntegration {
   }
 
   // Get Jira issues and convert to TaskWork tasks
-  async getIssuesAsTaskGridTasks(projectKey: string): Promise<TaskWorkTask[]> {
+  async getIssuesAsTaskWorkTasks(projectKey: string): Promise<TaskWorkTask[]> {
     try {
       const jql = `project = ${projectKey} ORDER BY created DESC`
       const response = await this.makeRequest('POST', '/search', {
@@ -163,8 +163,8 @@ export class JiraIntegration {
         title: issue.fields.summary,
         description: this.extractDescriptionText(issue.fields.description),
         dueDate: issue.fields.duedate ? new Date(issue.fields.duedate) : undefined,
-        priority: this.mapJiraPriorityToTaskGrid(issue.fields.priority?.name || 'Medium'),
-        status: this.mapJiraStatusToTaskGrid(issue.fields.status?.name || 'To Do'),
+        priority: this.mapJiraPriorityToTaskWork(issue.fields.priority?.name || 'Medium'),
+        status: this.mapJiraStatusToTaskWork(issue.fields.status?.name || 'To Do'),
         assigneeEmail: issue.fields.assignee?.emailAddress
       }))
 
@@ -497,7 +497,7 @@ export class JiraIntegration {
     return mapping[priority] || 'Medium'
   }
 
-  private mapJiraPriorityToTaskGrid(jiraPriority: string): 'High' | 'Medium' | 'Low' {
+  private mapJiraPriorityToTaskWork(jiraPriority: string): 'High' | 'Medium' | 'Low' {
     const priority = jiraPriority.toLowerCase()
     if (priority.includes('high') || priority.includes('critical') || priority.includes('blocker')) {
       return 'High'
@@ -517,7 +517,7 @@ export class JiraIntegration {
     return mapping[status] || null
   }
 
-  private mapJiraStatusToTaskGrid(jiraStatus: string): 'pending' | 'in_progress' | 'completed' {
+  private mapJiraStatusToTaskWork(jiraStatus: string): 'pending' | 'in_progress' | 'completed' {
     const status = jiraStatus.toLowerCase()
     if (status.includes('progress') || status.includes('review')) {
       return 'in_progress'
@@ -594,3 +594,4 @@ export class JiraIntegration {
     }
   }
 }
+

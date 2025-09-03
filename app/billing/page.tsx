@@ -695,3 +695,4 @@ function UpgradeSuggestionsCard({
     </div>
   )
 }
+

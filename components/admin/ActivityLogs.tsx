@@ -167,7 +167,7 @@ export default function ActivityLogs({ onExportLogs, onViewDetails }: ActivityLo
     {
       id: '4',
       userId: 'user_012',
-      userEmail: 'admin@taskgrid.com',
+      userEmail: 'admin@TaskWork.com',
       userName: 'Admin User',
       action: 'SYSTEM_CONFIG_CHANGE',
       category: 'system',
@@ -768,3 +768,4 @@ export default function ActivityLogs({ onExportLogs, onViewDetails }: ActivityLo
     </div>
   )
 }
+

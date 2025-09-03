@@ -146,7 +146,7 @@ function PricingCard({
   const isEnterprise = planKey === 'enterprise'
 
   const handleContactSales = () => {
-    window.location.href = 'mailto:sales@taskgrid.com?subject=Enterprise Plan Inquiry'
+    window.location.href = 'mailto:sales@TaskWork.com?subject=Enterprise Plan Inquiry'
   }
 
   return (
@@ -537,7 +537,7 @@ function CompetitiveComparison() {
     { name: 'Notion', personal: '$8.00', business: '$15.00', features: 'Wiki + tasks' },
     { name: 'ClickUp', personal: '$7.00', business: '$12.00', features: 'All-in-one workspace' },
     { name: 'Monday.com', personal: '$8.00', business: '$16.00', features: 'Visual project management' },
-    { name: 'TaskGrid', personal: '$6.99', business: '$12.99', features: 'AI-powered + security' }
+    { name: 'TaskWork', personal: '$6.99', business: '$12.99', features: 'AI-powered + security' }
   ]
 
   return (
@@ -545,7 +545,7 @@ function CompetitiveComparison() {
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold mb-4">How We Compare</h2>
         <p className="text-slate-300">
-          TaskGrid offers the best value with enterprise-grade security and AI features
+          TaskWork offers the best value with enterprise-grade security and AI features
         </p>
       </div>
 
@@ -564,11 +564,11 @@ function CompetitiveComparison() {
               <tr 
                 key={competitor.name} 
                 className={`border-b border-slate-700 ${
-                  competitor.name === 'TaskGrid' ? 'bg-slate-700/50' : ''
+                  competitor.name === 'TaskWork' ? 'bg-slate-700/50' : ''
                 }`}
               >
                 <td className="py-3 px-4 font-medium">
-                  {competitor.name === 'TaskGrid' && (
+                  {competitor.name === 'TaskWork' && (
                     <span className="inline-flex items-center gap-1">
                       <Crown className="w-4 h-4 text-yellow-400" />
                     </span>
@@ -596,3 +596,4 @@ function CompetitiveComparison() {
 function getPlanOrder(): string[] {
   return ['free', 'personal', 'pro', 'business', 'enterprise']
 }
+

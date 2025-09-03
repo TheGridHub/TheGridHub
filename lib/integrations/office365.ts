@@ -8,7 +8,7 @@ interface Office365Config {
   redirectUri: string
 }
 
-interface TaskGridTask {
+interface TaskWorkTask {
   id: string
   title: string
   description?: string
@@ -56,8 +56,8 @@ export class Office365Integration {
    * OUTLOOK CALENDAR INTEGRATION
    */
   
-  // Create calendar event from TaskGrid task
-  async createCalendarEventFromTask(task: TaskGridTask, userEmail: string): Promise<string> {
+  // Create calendar event from TaskWork task
+  async createCalendarEventFromTask(task: TaskWorkTask, userEmail: string): Promise<string> {
     try {
       const event = {
         subject: `📋 ${task.title}`,
@@ -65,11 +65,11 @@ export class Office365Integration {
           contentType: 'HTML',
           content: `
             <div>
-              <h3>TaskGrid Task: ${task.title}</h3>
+              <h3>TaskWork Task: ${task.title}</h3>
               <p><strong>Description:</strong> ${task.description || 'No description'}</p>
               <p><strong>Priority:</strong> ${task.priority}</p>
               <p><strong>Status:</strong> ${task.status}</p>
-              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TaskGrid</a></p>
+              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TaskWork</a></p>
             </div>
           `
         },
@@ -89,7 +89,7 @@ export class Office365Integration {
             name: task.assigneeEmail
           }
         }] : [],
-        categories: ['TaskGrid', `Priority-${task.priority}`],
+        categories: ['TaskWork', `Priority-${task.priority}`],
         isReminderOn: true,
         reminderMinutesBeforeStart: 15
       }
@@ -102,7 +102,7 @@ export class Office365Integration {
     }
   }
 
-  // Sync upcoming calendar events to TaskGrid
+  // Sync upcoming calendar events to TaskWork
   async getUpcomingEvents(userEmail: string, days: number = 7): Promise<CalendarEvent[]> {
     try {
       const startTime = new Date().toISOString()
@@ -140,7 +140,7 @@ export class Office365Integration {
   async sendTaskNotificationToTeams(
     teamId: string, 
     channelId: string, 
-    task: TaskGridTask,
+    task: TaskWorkTask,
     action: 'created' | 'updated' | 'completed'
   ): Promise<void> {
     try {
@@ -170,7 +170,7 @@ export class Office365Integration {
                 ${task.dueDate ? `<p><strong>Due:</strong> ${task.dueDate.toLocaleDateString()}</p>` : ''}
                 ${task.assigneeEmail ? `<p><strong>Assigned to:</strong> ${task.assigneeEmail}</p>` : ''}
               </div>
-              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TaskGrid →</a></p>
+              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TaskWork →</a></p>
             </div>
           `
         }
@@ -208,7 +208,7 @@ export class Office365Integration {
    * ONEDRIVE INTEGRATION
    */
 
-  // Upload TaskGrid export to OneDrive
+  // Upload TaskWork export to OneDrive
   async uploadProjectExportToOneDrive(
     userEmail: string,
     projectData: any,
@@ -252,7 +252,7 @@ export class Office365Integration {
   async sendTaskAssignmentEmail(
     senderEmail: string,
     recipientEmail: string,
-    task: TaskGridTask
+    task: TaskWorkTask
   ): Promise<void> {
     try {
       const message = {
@@ -287,12 +287,12 @@ export class Office365Integration {
                 <div style="margin-top: 20px; text-align: center;">
                   <a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}" 
                      style="background: #007acc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                    View Task in TaskGrid
+                    View Task in TaskWork
                   </a>
                 </div>
                 
                 <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                  This task was assigned to you via TaskGrid. 
+                  This task was assigned to you via TaskWork. 
                   <a href="${process.env.NEXT_PUBLIC_APP_URL}/settings/notifications">Manage notification preferences</a>
                 </p>
               </div>
@@ -321,22 +321,22 @@ export class Office365Integration {
    * TO-DO INTEGRATION
    */
 
-  // Sync TaskGrid tasks to Microsoft To-Do
-  async syncTaskToMicrosoftToDo(userEmail: string, task: TaskGridTask, listId?: string): Promise<string> {
+  // Sync TaskWork tasks to Microsoft To-Do
+  async syncTaskToMicrosoftToDo(userEmail: string, task: TaskWorkTask, listId?: string): Promise<string> {
     try {
-      // Get or create TaskGrid task list
+      // Get or create TaskWork task list
       let taskListId = listId
       if (!taskListId) {
         const lists = await this.client.api(`/users/${userEmail}/todo/lists`).get()
-        let taskGridList = lists.value.find((list: any) => list.displayName === 'TaskGrid Tasks')
+        let TaskWorkList = lists.value.find((list: any) => list.displayName === 'TaskWork Tasks')
         
-        if (!taskGridList) {
-          taskGridList = await this.client.api(`/users/${userEmail}/todo/lists`).post({
-            displayName: 'TaskGrid Tasks'
+        if (!TaskWorkList) {
+          TaskWorkList = await this.client.api(`/users/${userEmail}/todo/lists`).post({
+            displayName: 'TaskWork Tasks'
           })
         }
         
-        taskListId = taskGridList.id
+        taskListId = TaskWorkList.id
       }
 
       const todoTask = {
@@ -371,7 +371,7 @@ export class Office365Integration {
   // Trigger Power Automate flow for task events
   async triggerPowerAutomateFlow(
     flowUrl: string,
-    task: TaskGridTask,
+    task: TaskWorkTask,
     action: string,
     userEmail: string
   ): Promise<void> {
@@ -517,3 +517,4 @@ export class Office365Auth {
     }
   }
 }
+

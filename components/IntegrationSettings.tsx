@@ -158,7 +158,7 @@ export default function IntegrationSettings() {
       <div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Integrations</h2>
         <p className="text-slate-600">
-          Connect TaskGrid with your favorite productivity tools to streamline your workflow.
+          Connect TaskWork with your favorite productivity tools to streamline your workflow.
         </p>
       </div>
 
@@ -346,12 +346,12 @@ export default function IntegrationSettings() {
           <p>• <strong>Email Notifications:</strong> Team members receive professional emails when assigned tasks</p>
           <p>• <strong>File Exports:</strong> Project data can be exported to Drive/OneDrive for backup</p>
           <p>• <strong>Chat Integration:</strong> Get real-time task updates in Teams or Google Chat</p>
-          <p>• <strong>Task Sync:</strong> Keep TaskGrid tasks in sync with Microsoft To-Do or Google Tasks</p>
+          <p>• <strong>Task Sync:</strong> Keep TaskWork tasks in sync with Microsoft To-Do or Google Tasks</p>
         </div>
         
         <div className="mt-4">
           <a
-            href="https://help.taskgrid.io/integrations"
+            href="https://help.TaskWork.io/integrations"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
@@ -364,3 +364,4 @@ export default function IntegrationSettings() {
     </div>
   )
 }
+

@@ -5,7 +5,7 @@ interface TeamsConfig {
   accessToken?: string
 }
 
-interface TaskGridTask {
+interface TaskWorkTask {
   id: string
   title: string
   description?: string
@@ -46,7 +46,7 @@ export class TeamsIntegration {
   async sendTaskNotification(
     teamId: string,
     channelId: string,
-    task: TaskGridTask,
+    task: TaskWorkTask,
     action: 'created' | 'updated' | 'completed',
     userName?: string
   ): Promise<void> {
@@ -131,7 +131,7 @@ export class TeamsIntegration {
   // Send private task assignment message
   async sendTaskAssignment(
     userId: string,
-    task: TaskGridTask,
+    task: TaskWorkTask,
     assignerName?: string
   ): Promise<void> {
     try {
@@ -613,3 +613,4 @@ export class TeamsIntegration {
     }
   }
 }
+

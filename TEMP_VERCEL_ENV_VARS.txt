@@ -1,0 +1,145 @@
+# 🔐 TaskWork Vercel Environment Variables Template
+# ⚠️  DELETE THIS FILE AFTER COPYING TO VERCEL! ⚠️
+# This file contains sensitive information - never commit to Git!
+
+# =============================================================================
+# 🚨 CRITICAL - REQUIRED FOR APP TO WORK
+# =============================================================================
+
+# 🗄️ Database (Supabase)
+DATABASE_URL=
+DIRECT_URL=
+
+# 🔐 Authentication (Clerk)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
+
+# 🌍 Application Settings
+NEXT_PUBLIC_APP_URL=https://taskwork.io
+NEXT_PUBLIC_APP_NAME=TaskWork
+NEXT_PUBLIC_COMPANY_NAME=TaskWork
+NEXT_PUBLIC_DOMAIN=taskwork.io
+NODE_ENV=production
+
+# =============================================================================
+# 🔗 ENTERPRISE INTEGRATIONS (Add when ready)
+# =============================================================================
+
+# 🏢 Microsoft Office 365
+MICROSOFT_CLIENT_ID=
+MICROSOFT_CLIENT_SECRET=
+MICROSOFT_TENANT_ID=common
+MICROSOFT_REDIRECT_URI=https://taskwork.io/api/auth/callback/microsoft
+
+# 📱 Slack Integration
+SLACK_CLIENT_ID=
+SLACK_CLIENT_SECRET=
+SLACK_SIGNING_SECRET=
+SLACK_BOT_TOKEN=
+
+# 🌟 Google Workspace
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=https://taskwork.io/api/auth/callback/google
+
+# 🎯 Jira Integration
+JIRA_CLIENT_ID=
+JIRA_CLIENT_SECRET=
+
+# 👥 Microsoft Teams
+TEAMS_APP_ID=
+TEAMS_APP_PASSWORD=
+
+# =============================================================================
+# 💳 PAYMENTS & BILLING (Add when setting up Stripe)
+# =============================================================================
+
+# Stripe
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# =============================================================================
+# 📧 EMAIL SETTINGS (Add when setting up transactional emails)
+# =============================================================================
+
+# SendGrid
+SENDGRID_API_KEY=
+FROM_EMAIL=noreply@taskwork.io
+
+# SMTP (Alternative to SendGrid)
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+
+# =============================================================================
+# 🔒 SECURITY & ENCRYPTION (Advanced)
+# =============================================================================
+
+# JWT & Auth
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=https://taskwork.io
+
+# Encryption
+ENCRYPTION_MASTER_KEY=
+
+# CSRF Protection
+CSRF_SECRET=
+
+# =============================================================================
+# 🤖 AI & OPTIONAL SERVICES
+# =============================================================================
+
+# Hugging Face (Optional)
+HF_API_TOKEN=
+
+# OpenAI (Optional)
+OPENAI_API_KEY=
+
+# =============================================================================
+# 📊 MONITORING & ANALYTICS (Optional)
+# =============================================================================
+
+# Sentry (Error tracking)
+SENTRY_DSN=
+
+# PostHog (Analytics)
+NEXT_PUBLIC_POSTHOG_KEY=
+
+# LogTail (Logging)
+LOGTAIL_TOKEN=
+
+# =============================================================================
+# 📝 INSTRUCTIONS FOR USE:
+# =============================================================================
+
+# 1. Fill in the values for each variable you have
+# 2. Copy each line to Vercel → Settings → Environment Variables
+# 3. Set environment to: Production, Preview, Development (all three)
+# 4. DELETE THIS FILE immediately after copying!
+# 5. Never commit this file to Git!
+
+# =============================================================================
+# 🎯 START WITH THESE ESSENTIAL ONES FIRST:
+# =============================================================================
+# DATABASE_URL
+# DIRECT_URL
+# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+# CLERK_SECRET_KEY
+# NEXT_PUBLIC_APP_URL
+# NEXT_PUBLIC_APP_NAME
+
+# =============================================================================
+# 📋 COPY-PASTE FORMAT FOR VERCEL:
+# =============================================================================
+# Copy each line in this format:
+# Variable Name: DATABASE_URL
+# Value: your_actual_value_here
+# Environment: Production, Preview, Development
+
+# ⚠️  REMEMBER TO DELETE THIS FILE AFTER USE! ⚠️

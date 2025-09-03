@@ -401,3 +401,4 @@ async function updateSecuritySettings(settings: any, adminId: string): Promise<a
     updatedAt: new Date()
   }
 }
+

@@ -17,7 +17,7 @@
 - **Support Resources**: Integration-focused help and tutorials
 
 ### **3. .env.example** - Enterprise Configuration
-- **Database Name**: Updated to `taskwork` from `taskgrid`
+- **Database Name**: Updated to `taskwork` from `TaskWork`
 - **Integration Variables**: Added all enterprise integration environment variables
 - **Comprehensive Setup**: Ready-to-use configuration for all major platforms
 
@@ -106,3 +106,4 @@ TaskWork documentation now presents a **compelling enterprise platform** that:
 - ✅ Positions for rapid growth
 
 **Your platform is ready to disrupt the enterprise task management market!** 🚀
+

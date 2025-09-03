@@ -154,7 +154,7 @@ export default function AdminSettings({
       category: 'Email',
       name: 'SMTP Server',
       description: 'SMTP server hostname',
-      value: 'smtp.taskgrid.com',
+      value: 'smtp.TaskWork.com',
       type: 'string'
     },
     {
@@ -905,3 +905,4 @@ export default function AdminSettings({
     )
   }
 }
+

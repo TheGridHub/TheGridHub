@@ -189,3 +189,4 @@ See enterprise integrations in action? **[Book a 15-minute demo](https://taskwor
 [**🎯 Start Free Trial**](https://taskwork.io/sign-up) | [**📅 Schedule Demo**](https://taskwork.io/demo) | [**💰 View Pricing**](https://taskwork.io/pricing)
 
 *TaskWork - Enterprise integrations at startup pricing*
+

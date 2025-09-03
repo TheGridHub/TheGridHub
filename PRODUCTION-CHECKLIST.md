@@ -129,3 +129,4 @@ npm run db:studio
 2. **Supabase Docs**: https://supabase.com/docs
 3. **Vercel Dashboard**: Real-time logs and metrics
 4. **Clerk Dashboard**: Authentication issues and user management
+

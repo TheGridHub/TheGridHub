@@ -343,9 +343,9 @@ export class SecurityValidator {
   static validateOrigin(request: NextRequest): boolean {
     const origin = request.headers.get('origin')
     const allowedOrigins = [
-      'https://taskgrid.com',
-      'https://www.taskgrid.com',
-      'https://admin.taskgrid.com',
+      'https://taskwork.io',
+      'https://www.taskwork.io',
+      'https://admin.taskwork.io',
       process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''
     ].filter(Boolean)
 
@@ -822,3 +822,4 @@ export class SecurityLogger {
     // await prisma.adminAudit.create({ data: action })
   }
 }
+

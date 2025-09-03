@@ -201,3 +201,4 @@ npm run db:studio
 *TaskWork - Where productivity meets simplicity*
 
 **🌍 Trusted by teams worldwide • 🔗 Enterprise integrations • 📊 Data-driven insights • 🔒 SOC 2 compliant**
+

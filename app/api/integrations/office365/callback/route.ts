@@ -77,3 +77,4 @@ export async function GET(req: NextRequest) {
     return redirect('/settings/integrations?error=callback_failed')
   }
 }
+

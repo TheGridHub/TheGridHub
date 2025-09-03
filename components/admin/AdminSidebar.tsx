@@ -73,7 +73,7 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
             <Shield className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-red-900">TaskGrid Admin</h1>
+            <h1 className="text-lg font-bold text-red-900">TaskWork Admin</h1>
             <p className="text-sm text-red-700">Administrative Panel</p>
           </div>
         </div>

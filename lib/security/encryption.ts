@@ -824,3 +824,4 @@ export const EncryptionHelpers = {
     rotationInterval: ENCRYPTION_CONFIG.KEY_ROTATION_INTERVAL
   })
 }
+

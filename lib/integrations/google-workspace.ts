@@ -7,7 +7,7 @@ interface GoogleWorkspaceConfig {
   redirectUri: string
 }
 
-interface TaskGridTask {
+interface TaskWorkTask {
   id: string
   title: string
   description?: string
@@ -56,21 +56,21 @@ export class GoogleWorkspaceIntegration {
    * GOOGLE CALENDAR INTEGRATION
    */
 
-  // Create calendar event from TaskGrid task
-  async createCalendarEventFromTask(task: TaskGridTask, calendarId: string = 'primary'): Promise<string> {
+  // Create calendar event from TaskWork task
+  async createCalendarEventFromTask(task: TaskWorkTask, calendarId: string = 'primary'): Promise<string> {
     try {
       const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client })
 
       const event = {
         summary: `📋 ${task.title}`,
         description: `
-TaskGrid Task: ${task.title}
+TaskWork Task: ${task.title}
 
 Description: ${task.description || 'No description'}
 Priority: ${task.priority}
 Status: ${task.status}
 
-View in TaskGrid: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
+View in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
         `.trim(),
         start: {
           dateTime: task.dueDate?.toISOString() || new Date().toISOString(),
@@ -93,8 +93,8 @@ View in TaskGrid: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
         },
         extendedProperties: {
           private: {
-            taskGridId: task.id,
-            taskGridPriority: task.priority
+            TaskWorkId: task.id,
+            TaskWorkPriority: task.priority
           }
         }
       }
@@ -146,7 +146,7 @@ View in TaskGrid: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
   // Send task assignment email via Gmail
   async sendTaskAssignmentEmail(
     recipientEmail: string,
-    task: TaskGridTask
+    task: TaskWorkTask
   ): Promise<void> {
     try {
       const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client })
@@ -182,12 +182,12 @@ View in TaskGrid: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
             <div style="text-align: center; margin: 24px 0;">
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}" 
                  style="background: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: 500; display: inline-block;">
-                View Task in TaskGrid
+                View Task in TaskWork
               </a>
             </div>
             
             <p style="color: #5f6368; font-size: 12px; margin-top: 24px; border-top: 1px solid #dadce0; padding-top: 16px;">
-              This task was assigned to you via TaskGrid. 
+              This task was assigned to you via TaskWork. 
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/settings/notifications" style="color: #4285f4;">Manage notification preferences</a>
             </p>
           </div>
@@ -202,9 +202,9 @@ Status: ${task.status}
 ${task.description ? `Description: ${task.description}` : ''}
 ${task.dueDate ? `Due Date: ${task.dueDate.toLocaleDateString()}` : ''}
 
-View in TaskGrid: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
+View in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
 
-This task was assigned to you via TaskGrid.
+This task was assigned to you via TaskWork.
       `.trim()
 
       // Create the email message
@@ -246,32 +246,32 @@ This task was assigned to you via TaskGrid.
    * GOOGLE TASKS INTEGRATION
    */
 
-  // Sync TaskGrid task to Google Tasks
-  async syncTaskToGoogleTasks(task: TaskGridTask, taskListId?: string): Promise<string> {
+  // Sync TaskWork task to Google Tasks
+  async syncTaskToGoogleTasks(task: TaskWorkTask, taskListId?: string): Promise<string> {
     try {
       const tasks = google.tasks({ version: 'v1', auth: this.oauth2Client })
 
-      // Get or create TaskGrid task list
+      // Get or create TaskWork task list
       let listId = taskListId
       if (!listId) {
         const taskLists = await tasks.tasklists.list()
-        let taskGridList = taskLists.data.items?.find(list => list.title === 'TaskGrid Tasks')
+        let TaskWorkList = taskLists.data.items?.find(list => list.title === 'TaskWork Tasks')
         
-        if (!taskGridList) {
+        if (!TaskWorkList) {
           const newList = await tasks.tasklists.insert({
             requestBody: {
-              title: 'TaskGrid Tasks'
+              title: 'TaskWork Tasks'
             }
           })
-          taskGridList = newList.data
+          TaskWorkList = newList.data
         }
         
-        listId = taskGridList.id!
+        listId = TaskWorkList.id!
       }
 
       const googleTask = {
         title: task.title,
-        notes: `${task.description || ''}\n\nPriority: ${task.priority}\nView in TaskGrid: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`,
+        notes: `${task.description || ''}\n\nPriority: ${task.priority}\nView in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`,
         due: task.dueDate?.toISOString(),
         status: task.status === 'completed' ? 'completed' : 'needsAction'
       }
@@ -292,7 +292,7 @@ This task was assigned to you via TaskGrid.
    * GOOGLE DRIVE INTEGRATION
    */
 
-  // Upload TaskGrid project export to Google Drive
+  // Upload TaskWork project export to Google Drive
   async uploadProjectExportToDrive(
     projectData: any,
     fileName: string,
@@ -304,7 +304,7 @@ This task was assigned to you via TaskGrid.
       const fileMetadata = {
         name: fileName,
         parents: folderId ? [folderId] : undefined,
-        description: 'TaskGrid project export'
+        description: 'TaskWork project export'
       }
 
       const media = {
@@ -332,9 +332,9 @@ This task was assigned to you via TaskGrid.
 
       // Create folder
       const folderMetadata = {
-        name: `TaskGrid - ${projectName}`,
+        name: `TaskWork - ${projectName}`,
         mimeType: 'application/vnd.google-apps.folder',
-        description: `Shared folder for TaskGrid project: ${projectName}`
+        description: `Shared folder for TaskWork project: ${projectName}`
       }
 
       const folder = await drive.files.create({
@@ -371,7 +371,7 @@ This task was assigned to you via TaskGrid.
   // Send task notification to Google Chat space
   async sendTaskNotificationToChat(
     spaceName: string,
-    task: TaskGridTask,
+    task: TaskWorkTask,
     action: 'created' | 'updated' | 'completed'
   ): Promise<void> {
     try {
@@ -394,7 +394,7 @@ This task was assigned to you via TaskGrid.
           header: {
             title: `${actionEmoji[action]} Task ${action.charAt(0).toUpperCase() + action.slice(1)}`,
             subtitle: task.title,
-            imageUrl: 'https://taskgrid.io/icon-192.png'
+            imageUrl: 'https://TaskWork.io/icon-192.png'
           },
           sections: [{
             widgets: [
@@ -433,7 +433,7 @@ This task was assigned to you via TaskGrid.
               {
                 buttons: [{
                   textButton: {
-                    text: 'VIEW IN TASKGRID',
+                    text: 'VIEW IN TaskWork',
                     onClick: {
                       openLink: {
                         url: `${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`
@@ -476,7 +476,7 @@ This task was assigned to you via TaskGrid.
       const spreadsheet = await sheets.spreadsheets.create({
         requestBody: {
           properties: {
-            title: `TaskGrid - ${spreadsheetTitle}`,
+            title: `TaskWork - ${spreadsheetTitle}`,
             locale: 'en_US',
             timeZone: 'UTC'
           },
@@ -630,3 +630,4 @@ export class GoogleWorkspaceAuth {
     }
   }
 }
+

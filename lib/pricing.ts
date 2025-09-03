@@ -1,4 +1,4 @@
-// TaskGrid Competitive Pricing Strategy
+// TaskWork Competitive Pricing Strategy
 // Based on analysis of Asana, Notion, ClickUp, Monday.com, Trello pricing
 
 export const SUBSCRIPTION_PLANS = {
@@ -347,3 +347,4 @@ export const PLAN_CHANGE_RULES = {
 
 export type PlanId = keyof typeof SUBSCRIPTION_PLANS
 export type PlanFeatures = typeof SUBSCRIPTION_PLANS[PlanId]['features']
+

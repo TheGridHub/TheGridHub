@@ -21,7 +21,7 @@ export class StripeCustomerManager {
       name,
       metadata: {
         userId,
-        source: 'taskgrid',
+        source: 'TaskWork',
         ...metadata
       }
     })
@@ -167,7 +167,7 @@ export class StripePaymentManager {
       currency,
       customer: customerId,
       metadata: {
-        source: 'taskgrid',
+        source: 'TaskWork',
         ...metadata
       },
       automatic_payment_methods: {
@@ -428,7 +428,7 @@ export class StripePricingManager {
       name,
       description,
       metadata: {
-        source: 'taskgrid',
+        source: 'TaskWork',
         ...metadata
       }
     })
@@ -906,3 +906,4 @@ export const StripeHelpers = {
     }
   }
 }
+

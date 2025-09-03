@@ -196,7 +196,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
             <CheckCircle className="w-12 h-12 text-emerald-600" />
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
-            Welcome to TaskGrid {planName}!
+            Welcome to TaskWork {planName}!
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
             Your subscription has been activated successfully. You now have access to all {planName} plan features.
@@ -304,7 +304,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
             Ready to Get Started?
           </h2>
           <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
-            Your TaskGrid {planName} subscription is now active. Start creating projects, 
+            Your TaskWork {planName} subscription is now active. Start creating projects, 
             managing tasks, and boosting your productivity with AI-powered suggestions.
           </p>
           
@@ -342,3 +342,4 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
     </div>
   )
 }
+

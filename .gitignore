@@ -26,11 +26,6 @@ yarn-error.log*
 .env*.local
 .env
 
-# AWS and SST
-.sst/
-.aws/
-aws-credentials.json
-
 # Security files (never commit these!)
 *.key
 *.p12

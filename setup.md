@@ -1,37 +1,37 @@
-# 🚀 TaskWork AWS Serverless Setup Guide
+# 🚀 TaskWork Vercel + Supabase Setup Guide
 
 ## Prerequisites ✅
 - [x] Node.js 18+ (you have v22.18.0) ✅
 - [x] npm (you have v10.9.3) ✅
 - [x] Dependencies installed ✅
-- [x] AWS infrastructure ready ✅
+- [x] Vercel CLI installed ✅
 
-## AWS Serverless Architecture
+## Modern Architecture
 
-**🏗️ Your TaskWork app uses enterprise-grade AWS infrastructure:**
-- **🖥️ Frontend**: Next.js on Lambda + CloudFront CDN
-- **🗄️ Database**: AWS RDS PostgreSQL (Aurora Serverless v2)
-- **📁 Storage**: S3 bucket for file uploads
-- **⚡ Background Jobs**: Scheduled Lambda functions
-- **🌐 Domain**: Route53 DNS + SSL certificates
-- **🔒 Security**: VPC, Security Groups, encrypted secrets
+**🏗️ Your TaskWork app uses modern, scalable infrastructure:**
+- **🖥️ Frontend**: Next.js on Vercel Edge Network
+- **🗄️ Database**: Supabase PostgreSQL (globally distributed)
+- **📁 Storage**: Supabase Storage for file uploads
+- **⚡ Background Jobs**: Vercel Cron Jobs
+- **🌐 Domain**: Vercel custom domains + SSL
+- **🔒 Security**: Vercel security headers + Supabase RLS
 
 ## Choose Your Deployment Method
 
-### 🚀 AWS Serverless (Recommended for Production)
+### 🚀 Vercel + Supabase (Recommended for Production)
 **Perfect for:**
 - Production applications
-- Enterprise customers
+- Startups and enterprises
 - Auto-scaling requirements
-- High availability needs
+- Global performance
 
 **Benefits:**
 - ✅ Scales automatically (0 to millions of users)
 - ✅ Pay only for what you use
 - ✅ Enterprise-grade security and compliance
 - ✅ 99.99% uptime SLA
-- ✅ Global CDN for fast performance
-- ✅ Automated backups and disaster recovery
+- ✅ Global CDN and edge functions
+- ✅ Automated backups and point-in-time recovery
 
 ### 🏠 Local Development (For Testing)
 **Perfect for:**
@@ -39,51 +39,54 @@
 - Learning the codebase
 - Quick prototyping
 
-## 🚀 AWS Serverless Deployment
+## 🚀 Vercel + Supabase Deployment
 
-### 1. Install AWS CLI
+### 1. Install Vercel CLI
 ```bash
-# Download from: https://aws.amazon.com/cli/
-# Or using chocolatey on Windows:
-choco install awscli
+# Install Vercel CLI globally
+npm install -g vercel
 ```
 
-### 2. Configure AWS Account
-```bash
-aws configure
-# Enter your AWS credentials
-```
+### 2. Create Supabase Project
+1. Go to https://supabase.com
+2. Sign up with GitHub
+3. Create new project
+4. Wait for database to be ready (~2 minutes)
+5. Go to Settings → Database
+6. Copy the connection string (URI)
 
-### 3. Verify AWS Setup
-```bash
-npm run aws:check
-```
-
-### 4. Set up Clerk Authentication
+### 3. Set up Clerk Authentication
 1. Go to https://clerk.com
 2. Create account and application
 3. Copy your keys
 
-### 5. Configure AWS Secrets
+### 4. Configure Environment Variables
 ```bash
-# Interactive setup for Clerk + enterprise integrations
-npm run aws:secrets dev
+# Copy environment template
+cp .env.example .env.local
+
+# Edit with your actual values
+# - Supabase DATABASE_URL
+# - Clerk keys
 ```
 
-### 6. Deploy to AWS
+### 5. Deploy to Vercel
 ```bash
-# Deploy development environment
-npm run sst:deploy:dev
+# Deploy to Vercel
+vercel
+
+# Add environment variables in Vercel dashboard
+# Settings → Environment Variables
 ```
 
-### 7. Set up Database
+### 6. Set up Database
 ```bash
-# Database URL is auto-configured by AWS
+# Push database schema
 npm run db:push
 ```
 
-### 8. Access Your App
-Your app will be live at: **https://dev.taskwork.io**
+### 7. Access Your App
+Your app will be live at your Vercel URL
 
 ---
 

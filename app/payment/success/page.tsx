@@ -1,11 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { CheckCircle, Loader2, ArrowRight, Crown, Gift, Calendar } from 'lucide-react'
 import Link from 'next/link'
-import { StripeHelpers } from '@/lib/stripe'
+// import { StripeHelpers } from '@/lib/stripe'
+
+// Temporary helper function
+const formatPrice = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase()
+  }).format(amount)
+}
 
 interface SessionData {
   id: string
@@ -21,7 +29,7 @@ interface SessionData {
   }
 }
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessPageContent() {
   const { user } = useUser()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -71,6 +79,14 @@ export default function PaymentSuccessPage() {
   }
 
   return <SuccessState sessionData={sessionData} user={user} />
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <PaymentSuccessPageContent />
+    </Suspense>
+  )
 }
 
 function LoadingState() {
@@ -206,7 +222,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
               <div className="flex items-center justify-between py-3 border-b border-slate-100">
                 <span className="text-slate-600">Billing</span>
                 <span className="font-medium text-slate-900">
-                  {StripeHelpers.formatPrice(amount)} {isYearly ? 'yearly' : 'monthly'}
+                  {formatPrice(amount)} {isYearly ? 'yearly' : 'monthly'}
                 </span>
               </div>
               
@@ -273,7 +289,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
                     </h3>
                     <p className="text-emerald-700 text-sm">
                       You're saving 20% with the annual plan. That's{' '}
-                      {StripeHelpers.formatPrice(amount * 0.2)} saved per year!
+                      {formatPrice(amount * 0.2)} saved per year!
                     </p>
                   </div>
                 </div>

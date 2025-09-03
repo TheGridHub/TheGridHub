@@ -32,18 +32,17 @@ async function quickStart() {
 ==============================
 
 This script will help you get TaskWork up and running quickly.
-You can choose between AWS serverless deployment or local development.
 `);
 
   // Choose deployment method
   console.log('Choose your deployment method:');
-  console.log('1. 🚀 AWS Serverless (Production-ready, scales automatically)');
-  console.log('2. 🏠 Local Development (Quick testing, local database)');
+  console.log('1. ☁️  Vercel + Supabase (Recommended - Free, scalable)');
+  console.log('2. 🏠 Local Development (Quick testing)');
   
   const choice = await question('\nEnter your choice (1 or 2): ');
   
   if (choice === '1') {
-    await setupAWS();
+    await setupVercelSupabase();
   } else if (choice === '2') {
     await setupLocal();
   } else {
@@ -54,58 +53,63 @@ You can choose between AWS serverless deployment or local development.
   rl.close();
 }
 
-async function setupAWS() {
-  console.log('\n🚀 Setting up AWS Serverless Deployment\n');
+async function setupVercelSupabase() {
+  console.log('\n☁️  Setting up Vercel + Supabase Deployment\n');
 
-  // Check prerequisites
-  console.log('Checking prerequisites...');
+  // Supabase setup
+  console.log('📊 Step 1: Create Supabase Database');
+  console.log('1. Go to https://supabase.com');
+  console.log('2. Sign up (use GitHub for easy auth)');
+  console.log('3. Create new project with a strong password');
+  console.log('4. Wait for database to be ready (~2 minutes)');
+  console.log('5. Go to Settings → Database');
+  console.log('6. Copy the "Connection string" (URI)');
   
-  // Check AWS CLI
-  try {
-    execSync('aws --version', { stdio: 'pipe' });
-    console.log('✅ AWS CLI is installed');
-  } catch (error) {
-    console.log('❌ AWS CLI not found. Please install it from: https://aws.amazon.com/cli/');
-    console.log('Or run: choco install awscli');
-    process.exit(1);
-  }
-
-  // Check AWS configuration
-  try {
-    execSync('aws sts get-caller-identity', { stdio: 'pipe' });
-    console.log('✅ AWS CLI is configured');
-  } catch (error) {
-    console.log('❌ AWS CLI not configured. Please run: aws configure');
-    process.exit(1);
-  }
-
-  // Set up Clerk
-  console.log('\n📋 Setting up Authentication');
-  console.log('1. Go to https://clerk.com');
-  console.log('2. Create account and new application');  
-  console.log('3. Copy your keys from the dashboard');
+  const dbUrl = await question('\nPaste your Supabase DATABASE_URL: ');
+  const directUrl = dbUrl.replace('?pgbouncer=true&connection_limit=1', '');
   
-  await question('\nPress Enter when you have your Clerk keys ready...');
+  // Update .env.local file
+  const envContent = `# Supabase Database
+DATABASE_URL="${dbUrl}"
+DIRECT_URL="${directUrl}"
 
-  // Run secrets setup
-  console.log('\n🔐 Setting up secrets...');
-  exec('npm run aws:secrets dev');
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_...'}
+CLERK_SECRET_KEY=${process.env.CLERK_SECRET_KEY || 'sk_test_...'}
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 
-  // Deploy to AWS
-  console.log('\n🚀 Deploying to AWS...');
-  exec('npm run sst:deploy:dev');
+# Application URLs
+NEXT_PUBLIC_APP_URL=https://taskwork.vercel.app
+NEXT_PUBLIC_APP_NAME=TaskWork
+NEXT_PUBLIC_COMPANY_NAME=TaskWork
+NEXT_PUBLIC_DOMAIN=taskwork.io
+`;
+  
+  fs.writeFileSync('.env.local', envContent);
+  console.log('✅ Created .env.local with Supabase configuration');
 
-  // Set up database
-  console.log('\n🗄️ Setting up database...');
+  // Push database schema
+  console.log('\n🗄️ Creating database tables...');
   exec('npm run db:push');
 
-  console.log('\n🎉 AWS Deployment Complete!');
-  console.log('Your app is live at: https://dev.taskwork.io');
+  // Vercel setup
+  console.log('\n🚀 Step 2: Deploy to Vercel');
+  console.log('\nRunning: vercel');
+  console.log('Follow the prompts to deploy your app.');
+  console.log('\nIMPORTANT: After deployment, add environment variables in Vercel dashboard!');
+  
+  exec('vercel');
+
+  console.log('\n🎉 Deployment Complete!');
   console.log('\nNext steps:');
-  console.log('1. Visit your app and sign up');
-  console.log('2. Create your first project');
-  console.log('3. Invite team members');
-  console.log('4. Set up enterprise integrations (optional)');
+  console.log('1. Go to your Vercel dashboard');
+  console.log('2. Add all environment variables from .env.local');
+  console.log('3. Redeploy for changes to take effect');
+  console.log('4. Visit your app and create an account');
+  console.log('5. Set up custom domain (optional)');
 }
 
 async function setupLocal() {
@@ -113,28 +117,33 @@ async function setupLocal() {
 
   // Database choice
   console.log('Choose your database:');
-  console.log('1. 🚂 Railway (Free, cloud-hosted)');
+  console.log('1. 🚀 Supabase (Recommended - same as production)');
   console.log('2. 💾 Local PostgreSQL');
   
   const dbChoice = await question('Enter your choice (1 or 2): ');
   
   if (dbChoice === '1') {
-    console.log('\n🚂 Setting up Railway database:');
-    console.log('1. Go to https://railway.app');
+    console.log('\n🚀 Setting up Supabase database:');
+    console.log('1. Go to https://supabase.com');
     console.log('2. Sign up with GitHub');
-    console.log('3. Create new project → Provision PostgreSQL');
-    console.log('4. Copy the DATABASE_URL from settings');
+    console.log('3. Create new project with a strong password');
+    console.log('4. Wait for database to be ready (~2 minutes)');
+    console.log('5. Go to Settings → Database');
+    console.log('6. Copy the "Connection string" (URI)');
     
-    const dbUrl = await question('\nPaste your Railway DATABASE_URL: ');
+    const dbUrl = await question('\nPaste your Supabase DATABASE_URL: ');
     
-    // Update .env file
-    let envContent = fs.readFileSync('.env', 'utf8');
-    envContent = envContent.replace(
-      /DATABASE_URL="postgresql:\/\/.*"/,
-      `DATABASE_URL="${dbUrl}"`
-    );
-    fs.writeFileSync('.env', envContent);
-    console.log('✅ Database URL updated in .env');
+    // Create .env.local file
+    const directUrl = dbUrl.replace('?pgbouncer=true&connection_limit=1', '');
+    const envContent = `DATABASE_URL="${dbUrl}"
+DIRECT_URL="${directUrl}"
+
+# Add your Clerk keys below
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+`;
+    fs.writeFileSync('.env.local', envContent);
+    console.log('✅ Database URL updated in .env.local');
     
   } else if (dbChoice === '2') {
     console.log('\n💾 Local PostgreSQL setup:');

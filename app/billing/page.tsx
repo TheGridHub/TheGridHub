@@ -18,8 +18,16 @@ import {
   BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
-import { StripeHelpers } from '@/lib/stripe'
+// import { StripeHelpers } from '@/lib/stripe'
 import { SUBSCRIPTION_PLANS, PlanUtils } from '@/lib/pricing'
+
+// Temporary helper function
+const formatPrice = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase()
+  }).format(amount)
+}
 
 interface BillingData {
   subscription: {
@@ -217,7 +225,7 @@ function CurrentPlanCard({
           {subscription ? (
             <>
               <div className="text-2xl font-bold text-slate-900">
-                {StripeHelpers.formatPrice(subscription.amount)}
+                {formatPrice(subscription.amount)}
               </div>
               <div className="text-sm text-slate-600">per month</div>
             </>
@@ -475,7 +483,7 @@ function PaymentHistoryCard({ billingData }: { billingData: BillingData | null }
                 }`} />
                 <div>
                   <div className="font-medium text-slate-900">
-                    {StripeHelpers.formatPrice(invoice.amount)}
+                    {formatPrice(invoice.amount)}
                   </div>
                   <div className="text-sm text-slate-600">
                     {new Date(invoice.date).toLocaleDateString()}
@@ -669,7 +677,7 @@ function UpgradeSuggestionsCard({
           {targetPlan.name} Plan
         </div>
         <div className="text-2xl font-bold text-emerald-600">
-          {StripeHelpers.formatPrice(targetPlan.price)}/month
+          {formatPrice(targetPlan.price)}/month
         </div>
         <ul className="space-y-1 text-sm text-slate-700">
           <li>• {targetPlan.features.maxProjects === -1 ? 'Unlimited' : targetPlan.features.maxProjects} projects</li>

@@ -16,8 +16,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // During SST build, Clerk keys might not be available yet
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={publishableKey}>
       <html lang="en">
         <head>
           {/* Load Puter.js for free AI capabilities */}

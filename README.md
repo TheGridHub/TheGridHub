@@ -70,22 +70,54 @@ TaskWork is a comprehensive productivity platform that helps teams organize proj
 
 ## 🚀 Get Started
 
-Ready to transform your team's productivity?
+### Quick Deploy (Recommended)
 
-1. **[Sign Up Free](https://taskwork.io/sign-up)** - No credit card required
-2. **Create Your First Project** - Set up your workspace in minutes
-3. **Connect Your Tools** - Integrate with Office 365, Google Workspace, Slack, and Jira
-4. **Invite Your Team** - Up to 10 members free, then just $5/user/month
-5. **Track Progress** - Watch your productivity soar with enterprise-grade analytics
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/taskwork.git
+cd taskwork
 
-### Quick Start Guide
+# 2. Install dependencies
+npm install
 
-1. **Create Account** - Sign up with email or Google
-2. **Set Up Profile** - Customize your workspace preferences
-3. **Add Projects** - Organize your work into manageable projects
-4. **Create Tasks** - Break down projects into actionable tasks
-5. **Invite Team** - Add colleagues and assign responsibilities
-6. **Monitor Progress** - Use dashboards to track team performance
+# 3. Run quick start script
+npm run quick-start
+```
+
+The quick start script will guide you through:
+- Setting up Supabase database (free)
+- Deploying to Vercel (free)
+- Configuring authentication
+
+### Manual Setup
+
+1. **Create Supabase Project**
+   - Go to [supabase.com](https://supabase.com)
+   - Create new project
+   - Copy database URL
+
+2. **Configure Environment**
+   - Copy `.env.example` to `.env.local`
+   - Add your Supabase and Clerk keys
+
+3. **Deploy to Vercel**
+   ```bash
+   npm install -g vercel
+   vercel
+   ```
+
+4. **Set Environment Variables**
+   - Add all variables from `.env.local` to Vercel dashboard
+
+### Development
+
+```bash
+# Run locally
+npm run dev
+
+# Open Prisma Studio
+npm run db:studio
+```
 
 ## 🌟 Why Choose TaskWork?
 

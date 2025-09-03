@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Check, Star, Zap, Shield, Users, BarChart3, Crown } from 'lucide-react'
 import { SUBSCRIPTION_PLANS, ANNUAL_PRICING, FEATURE_DESCRIPTIONS } from '@/lib/pricing'
-import { StripeHelpers } from '@/lib/stripe'
+// import { StripeHelpers } from '@/lib/stripe'
+
+// Temporary helper function
+const formatPrice = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase()
+  }).format(amount)
+}
 
 export default function PricingPage() {
   const { user } = useUser()
@@ -185,7 +193,7 @@ function PricingCard({
             <>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-slate-900">
-                  {StripeHelpers.formatPrice(plan.price)}
+                  {formatPrice(plan.price)}
                 </span>
                 <span className="text-slate-600">
                   /{billingPeriod === 'yearly' ? 'year' : 'month'}
@@ -195,7 +203,7 @@ function PricingCard({
               {plan.originalPrice && (
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm text-slate-500 line-through">
-                    {StripeHelpers.formatPrice(plan.originalPrice)}
+                    {formatPrice(plan.originalPrice)}
                   </span>
                   <span className="text-sm text-emerald-600 font-medium">
                     Save {Math.round(((plan.originalPrice - plan.price) / plan.originalPrice) * 100)}%
@@ -205,7 +213,7 @@ function PricingCard({
 
               {billingPeriod === 'yearly' && plan.annualSavings && (
                 <div className="text-sm text-emerald-600 font-medium mt-1">
-                  Save {StripeHelpers.formatPrice(plan.annualSavings)} annually
+                  Save {formatPrice(plan.annualSavings)} annually
                 </div>
               )}
             </>
@@ -410,7 +418,7 @@ function FeatureComparisonTable({ plans }: { plans: any }) {
                   <div className="flex flex-col">
                     <span>{plan.name}</span>
                     <span className="text-sm font-normal text-slate-600">
-                      {plan.price === 0 ? 'Free' : StripeHelpers.formatPrice(plan.price)}
+                      {plan.price === 0 ? 'Free' : formatPrice(plan.price)}
                     </span>
                   </div>
                 </th>

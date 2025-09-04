@@ -3,6 +3,9 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 import { CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'

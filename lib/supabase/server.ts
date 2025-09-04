@@ -4,10 +4,22 @@ import { cookies } from 'next/headers'
 
 export function createClient() {
   const cookieStore = cookies()
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    // During build time, return a mock client to avoid errors
+    return {
+      auth: {
+        getUser: async () => ({ data: { user: null }, error: new Error('No Supabase config') })
+      }
+    } as any
+  }
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {

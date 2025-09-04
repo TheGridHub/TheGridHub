@@ -1,3 +1,6 @@
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function AccountSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { ArrowRight, Users, DollarSign, TrendingUp, Shield } from 'lucide-react'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function WhyTheGridHubPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">

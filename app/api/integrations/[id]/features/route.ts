@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const userId = user.id
 
     const { feature, enabled } = await req.json()
     if (!feature || typeof enabled !== 'boolean') {

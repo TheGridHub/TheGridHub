@@ -7,6 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()

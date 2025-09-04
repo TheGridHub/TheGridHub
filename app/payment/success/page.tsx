@@ -3,6 +3,9 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 import { CheckCircle, Loader2, ArrowRight, Crown, Gift, Calendar } from 'lucide-react'
 import Link from 'next/link'
 // import { StripeHelpers } from '@/lib/stripe'

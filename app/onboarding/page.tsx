@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 import { 
   Briefcase, 
   Users, 

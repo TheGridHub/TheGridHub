@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useUser } from '@clerk/nextjs'
+import { useUser } from '@/hooks/useUser'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 import { 
   CreditCard, 
   Calendar, 

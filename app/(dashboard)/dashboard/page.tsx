@@ -2,6 +2,9 @@
 
 import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 import { 
   LayoutDashboard, 
   CheckSquare, 

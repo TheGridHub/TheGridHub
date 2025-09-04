@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { CheckSquare, Mail, Phone, MapPin, Send } from 'lucide-react'
 import Link from 'next/link'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',

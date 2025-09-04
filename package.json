@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.23",
+    "@clerk/nextjs": "^6.31.8",
     "@hookform/resolvers": "^3.9.1",
     "@lottiefiles/dotlottie-react": "^0.15.2",
     "@microsoft/microsoft-graph-client": "^3.0.7",

@@ -5,6 +5,9 @@ import { useState } from 'react'
 import { Plus, Trash2, Edit, RefreshCw } from 'lucide-react'
 import CreateTaskModal from '@/components/CreateTaskModal'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function TasksPage() {

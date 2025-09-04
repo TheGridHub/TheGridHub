@@ -1,5 +1,8 @@
 import IntegrationSettings from '@/components/IntegrationSettings'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function IntegrationsSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">

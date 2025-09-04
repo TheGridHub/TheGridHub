@@ -2,13 +2,20 @@
 
 import useSWR from 'swr'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function BillingSettingsPage() {
-  const { data } = useSWR('/api/profile', (url)=>fetch(url).then(r=>r.json()))
+  const { data } = useSWR('/api/profile', (url)=>fetch(url).then(r=>r.json()).catch(()=>null))
 
   const openPortal = async () => {
-    const res = await fetch('/api/billing/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerId: data?.stripeCustomerId }) })
-    const json = await res.json()
-    if (json.url) window.location.href = json.url
+    try {
+      const res = await fetch('/api/billing/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerId: data?.stripeCustomerId }) })
+      const json = await res.json()
+      if (json.url) window.location.href = json.url
+    } catch (error) {
+      console.error('Failed to open billing portal:', error)
+    }
   }
 
   return (

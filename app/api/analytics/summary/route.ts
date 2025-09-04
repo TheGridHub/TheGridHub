@@ -1,19 +1,22 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const user = await db.user.findUnique({ where: { clerkId: userId } })
-    if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const supabase = createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const userId = user.id
 
     const [taskCount, projectCount, teamCount] = await Promise.all([
-      db.task.count({ where: { userId: user.id } }),
-      db.project.count({ where: { userId: user.id } }),
-      db.teamMembership.count({ where: { userId: user.id } })
+      prisma.task.count({ where: { userId } }),
+      prisma.project.count({ where: { userId } }),
+      prisma.teamMembership.count({ where: { userId } })
     ])
 
     // Mock completion rate (could compute from tasks)

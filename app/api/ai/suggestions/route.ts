@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { generateTaskSuggestions } from '@/lib/ai'
 import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth()
+    const supabase = createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
     
-    if (!userId) {
+    if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    
+    const userId = user.id
 
     const body = await request.json()
     const { projectId, projectDescription } = body

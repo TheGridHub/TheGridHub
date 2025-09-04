@@ -5,6 +5,9 @@ import { Check, Star, ArrowRight, Users, Zap, Shield, Brain, BarChart3, Clock, C
 import Link from 'next/link'
 import Image from 'next/image'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function LandingPage() {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [selectedCurrency, setSelectedCurrency] = useState('USD')
@@ -472,12 +475,12 @@ export default function LandingPage() {
           </div>
 
           {/* Currency Converter */}
-          <div className="flex justify-center mb-8">
+          {/* <div className="flex justify-center mb-8">
             <CurrencyConverter
               basePrices={basePrices}
               onCurrencyChange={setSelectedCurrency}
             />
-          </div>
+          </div> */}
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {plans.map((plan, index) => (

@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { Check, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 

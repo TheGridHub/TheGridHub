@@ -4,6 +4,9 @@ import useSWR from 'swr'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 function SlackChannelPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {

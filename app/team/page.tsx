@@ -4,6 +4,9 @@ import useSWR from 'swr'
 import { useState } from 'react'
 import { UserPlus, RefreshCw, Trash2 } from 'lucide-react'
 
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
+
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function TeamPage() {

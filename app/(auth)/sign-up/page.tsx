@@ -31,6 +31,10 @@ export default function Page() {
                 card: 'shadow-none',
                 headerTitle: 'hidden',
                 headerSubtitle: 'hidden',
+                formFieldInput: 'border border-gray-300 rounded-lg px-3 py-2',
+                formFieldLabel: 'text-sm font-medium text-gray-700',
+                identityPreviewText: 'text-sm text-gray-600',
+                identityPreviewEditButton: 'text-blue-600 hover:text-blue-700'
               }
             }}
           />

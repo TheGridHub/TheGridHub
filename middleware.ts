@@ -9,7 +9,12 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook(.*)',
   '/api/currency',
   '/contact',
-  '/pricing'
+  '/pricing',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/why-thegridhub',
+  '/careers',
+  '/about'
 ])
 
 export default clerkMiddleware((auth, req) => {

@@ -89,9 +89,14 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-3">
@@ -100,16 +105,16 @@ export default function PricingPage() {
                 alt="TheGridHub" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">TheGridHub</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">TheGridHub</span>
             </Link>
             
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/#features" className="text-gray-600 hover:text-gray-900">Features</Link>
-              <Link href="/pricing" className="text-blue-600 font-medium">Pricing</Link>
-              <Link href="/why-thegridhub" className="text-gray-600 hover:text-gray-900">Why TheGridHub?</Link>
-              <Link href="/sign-in" className="text-gray-600 hover:text-gray-900">Sign In</Link>
-              <Link href="/sign-up" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                Start Free
+              <Link href="/#features" className="text-gray-600 hover:text-purple-600 transition-colors">Features</Link>
+              <Link href="/pricing" className="text-purple-600 font-medium">Pricing</Link>
+              <Link href="/why-thegridhub" className="text-gray-600 hover:text-purple-600 transition-colors">Why TheGridHub?</Link>
+              <Link href="/login" className="text-gray-600 hover:text-purple-600 transition-colors">Sign In</Link>
+              <Link href="/login" className="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-6 py-2 rounded-xl hover:from-purple-700 hover:to-purple-600 transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30">
+                Start for Free
               </Link>
             </nav>
           </div>
@@ -117,7 +122,7 @@ export default function PricingPage() {
       </header>
 
       {/* Pricing Section */}
-      <section className="py-20">
+      <section className="py-20 bg-white/70 backdrop-blur-lg relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -133,7 +138,7 @@ export default function PricingPage() {
               </span>
               <button
                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600"
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-purple-600"
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
@@ -152,13 +157,13 @@ export default function PricingPage() {
             {plans.map((plan, index) => (
               <div
                 key={index}
-                className={`relative bg-white rounded-2xl shadow-sm border-2 p-8 ${
-                  plan.popular ? 'border-blue-500' : 'border-gray-200'
+                className={`relative bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border-2 p-8 border border-white/20 ${
+                  plan.popular ? 'border-purple-500' : 'border-white/30'
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg">
                       Most Popular
                     </span>
                   </div>
@@ -187,21 +192,21 @@ export default function PricingPage() {
                 {plan.name === 'Pro' ? (
                   <button
                     onClick={() => handleCheckout('PRO')}
-                    className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors bg-primary-600 text-white hover:bg-primary-700`}
+                    className={`block w-full text-center py-3 px-4 rounded-xl font-semibold transition-colors bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 shadow-lg shadow-purple-500/25`}
                   >
                     {billingCycle === 'monthly' ? 'Upgrade to Pro (Monthly)' : 'Upgrade to Pro (Yearly)'}
                   </button>
                 ) : plan.name === 'Enterprise' ? (
                   <button
                     onClick={() => handleCheckout('ENTERPRISE')}
-                    className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors bg-primary-600 text-white hover:bg-primary-700`}
+                    className={`block w-full text-center py-3 px-4 rounded-xl font-semibold transition-colors bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600 shadow-lg shadow-purple-500/25`}
                   >
                     {billingCycle === 'monthly' ? 'Upgrade to Enterprise (Monthly)' : 'Upgrade to Enterprise (Yearly)'}
                   </button>
                 ) : (
                   <Link
                     href={plan.href}
-                    className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors bg-gray-100 text-gray-900 hover:bg-gray-200`}
+                    className={`block w-full text-center py-3 px-4 rounded-xl font-semibold transition-colors bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200`}
                   >
                     {plan.cta}
                   </Link>
@@ -256,20 +261,20 @@ export default function PricingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
+      <section className="py-20 bg-gradient-to-r from-purple-600 to-purple-500 relative z-10">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to transform your productivity?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-purple-100 mb-8">
             Join thousands of teams already using TheGridHub to achieve more.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link href="/sign-up" className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 flex items-center">
+            <Link href="/login" className="bg-white text-purple-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 flex items-center shadow-lg hover:shadow-xl transition-all">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <Link href="/contact" className="text-white px-8 py-4 rounded-lg text-lg font-semibold hover:text-blue-100 border border-white/20 hover:border-white/40">
+            <Link href="/contact" className="text-white px-8 py-4 rounded-xl text-lg font-semibold hover:text-purple-100 border border-white/20 hover:border-white/40 transition-all">
               Talk to Sales
             </Link>
           </div>

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { useUser } from '@/hooks/useUser'
 import { CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'

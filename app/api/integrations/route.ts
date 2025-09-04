@@ -1,21 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 import { db } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = auth()
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
     
-    if (!userId) {
+    if (!supabaseUser) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
+    const user = await getOrCreateUser(supabaseUser)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
     // Fetch user's integrations
     const integrations = await db.integration.findMany({
-      where: { userId },
+      where: { userId: user.id },
       select: {
         id: true,
         name: true,
@@ -41,12 +51,21 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = auth()
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
     
-    if (!userId) {
+    if (!supabaseUser) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    const user = await getOrCreateUser(supabaseUser)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
       )
     }
 
@@ -63,7 +82,7 @@ export async function POST(req: NextRequest) {
     // Check if integration already exists
     const existingIntegration = await db.integration.findFirst({
       where: {
-        userId,
+        userId: user.id,
         type,
         userEmail
       }
@@ -97,7 +116,7 @@ export async function POST(req: NextRequest) {
     // Create new integration
     const integration = await db.integration.create({
       data: {
-        userId,
+        userId: user.id,
         type,
         name,
         accessToken,

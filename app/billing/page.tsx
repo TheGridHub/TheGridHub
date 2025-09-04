@@ -166,7 +166,7 @@ function LoadingState() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-slate-600">Loading billing information...</p>
       </div>
     </div>
@@ -300,7 +300,7 @@ function CurrentPlanCard({
             
             <button
               onClick={() => onUpgrade('pro')}
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
             >
               <TrendingUp className="w-4 h-4" />
               Upgrade Plan
@@ -309,7 +309,7 @@ function CurrentPlanCard({
         ) : (
           <Link
             href="/pricing"
-            className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
             <Crown className="w-4 h-4" />
             Upgrade to Pro
@@ -603,7 +603,7 @@ function PaymentMethodCard({
           <p className="text-sm text-slate-600 mb-3">No payment method on file</p>
           <button
             onClick={onManage}
-            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+            className="text-sm text-purple-600 hover:text-purple-700 font-medium"
           >
             Add Payment Method
           </button>
@@ -659,14 +659,14 @@ function UpgradeSuggestionsCard({
   const targetPlan = SUBSCRIPTION_PLANS[recommendedPlan]
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-2xl border border-emerald-200 p-6">
+    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200 p-6">
       <div className="flex items-start gap-3 mb-4">
-        <TrendingUp className="w-5 h-5 text-emerald-600 mt-0.5" />
+        <TrendingUp className="w-5 h-5 text-purple-600 mt-0.5" />
         <div>
-          <h3 className="font-semibold text-emerald-900 mb-1">
+          <h3 className="font-semibold text-purple-900 mb-1">
             Upgrade Recommended
           </h3>
-          <p className="text-emerald-700 text-sm">
+          <p className="text-purple-700 text-sm">
             You're approaching limits for {nearLimits.join(', ')}
           </p>
         </div>
@@ -676,7 +676,7 @@ function UpgradeSuggestionsCard({
         <div className="text-lg font-bold text-slate-900">
           {targetPlan.name} Plan
         </div>
-        <div className="text-2xl font-bold text-emerald-600">
+        <div className="text-2xl font-bold text-purple-600">
           {formatPrice(targetPlan.price)}/month
         </div>
         <ul className="space-y-1 text-sm text-slate-700">
@@ -688,7 +688,7 @@ function UpgradeSuggestionsCard({
 
       <button
         onClick={() => onUpgrade(recommendedPlan.toLowerCase())}
-        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
       >
         Upgrade Now
       </button>

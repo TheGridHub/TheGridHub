@@ -1,26 +1,27 @@
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-// List of admin user IDs (in production, store this in database)
-const ADMIN_USER_IDS = [
-  'user_2abc123def456', // Replace with actual admin Clerk user IDs
-  'user_2xyz789ghi012',
+// List of admin user emails (in production, store this in database with role)
+const ADMIN_EMAILS = [
+  'admin@thegridhub.co', // Replace with actual admin emails
+  'support@thegridhub.co',
 ]
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { userId } = auth()
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
 
   // Check if user is authenticated
-  if (!userId) {
-    redirect('/sign-in?redirect=/admin')
+  if (!session) {
+    redirect('/login?redirect=/admin')
   }
 
   // Check if user is admin
-  if (!ADMIN_USER_IDS.includes(userId)) {
+  if (!ADMIN_EMAILS.includes(session.user.email || '')) {
     redirect('/')
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useUser } from '@clerk/nextjs'
+import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { 
   LayoutDashboard, 
@@ -18,18 +18,27 @@ import Link from 'next/link'
 export default function DashboardPage() {
   const { user, isLoaded } = useUser()
   const [greeting, setGreeting] = useState('')
+  const [summary, setSummary] = useState<{ taskCount: number; projectCount: number; teamCount: number; completionRate: number } | null>(null)
 
   useEffect(() => {
     const hour = new Date().getHours()
     if (hour < 12) setGreeting('Good morning')
     else if (hour < 18) setGreeting('Good afternoon')
     else setGreeting('Good evening')
+
+    // Fetch analytics summary
+    ;(async () => {
+      try {
+        const res = await fetch('/api/analytics/summary', { cache: 'no-store' })
+        if (res.ok) setSummary(await res.json())
+      } catch {}
+    })()
   }, [])
 
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     )
   }
@@ -39,10 +48,10 @@ export default function DashboardPage() {
   
   // Empty state data for new users
   const stats = [
-    { name: 'Active Tasks', value: '0', icon: CheckSquare, change: '-', changeType: 'neutral' },
-    { name: 'Projects', value: '0', icon: LayoutDashboard, change: '-', changeType: 'neutral' },
-    { name: 'Team Members', value: '1', icon: Users, change: '-', changeType: 'neutral' },
-    { name: 'Completion Rate', value: '0%', icon: TrendingUp, change: '-', changeType: 'neutral' },
+    { name: 'Active Tasks', value: summary ? String(summary.taskCount) : '0', icon: CheckSquare, change: '-', changeType: 'neutral' },
+    { name: 'Projects', value: summary ? String(summary.projectCount) : '0', icon: LayoutDashboard, change: '-', changeType: 'neutral' },
+    { name: 'Team Members', value: summary ? String(summary.teamCount) : '1', icon: Users, change: '-', changeType: 'neutral' },
+    { name: 'Completion Rate', value: summary ? `${summary.completionRate}%` : '0%', icon: TrendingUp, change: '-', changeType: 'neutral' },
   ]
 
   // Empty tasks array for new users
@@ -93,7 +102,7 @@ export default function DashboardPage() {
             <div key={stat.name} className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" />
+                  <stat.icon className="h-6 w-6 text-purple-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -121,7 +130,7 @@ export default function DashboardPage() {
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-gray-900">Recent Tasks</h3>
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                  <button className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
                     <Plus className="h-4 w-4 mr-1" />
                     New Task
                   </button>
@@ -136,7 +145,7 @@ export default function DashboardPage() {
                     <div className="mt-6">
                       <Link
                         href="/tasks/new"
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Create Task
@@ -172,7 +181,7 @@ export default function DashboardPage() {
                       ))}
                     </div>
                     <div className="mt-4">
-                      <Link href="/tasks" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                      <Link href="/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                         View all tasks →
                       </Link>
                     </div>
@@ -187,7 +196,7 @@ export default function DashboardPage() {
             <div className="bg-white shadow rounded-lg p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full text-left px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center">
+                <button className="w-full text-left px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center">
                   <Plus className="h-5 w-5 mr-3" />
                   Create New Task
                 </button>
@@ -202,10 +211,10 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg p-6 text-white">
               <h3 className="text-lg font-medium mb-2">Upgrade to Pro</h3>
               <p className="text-sm mb-4 opacity-90">Get unlimited projects, advanced analytics, and priority support.</p>
-              <Link href="/pricing" className="inline-flex items-center text-sm font-medium bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/pricing" className="inline-flex items-center text-sm font-medium bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
                 Upgrade Now
                 <Plus className="h-4 w-4 ml-1" />
               </Link>

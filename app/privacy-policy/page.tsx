@@ -2,9 +2,14 @@ import Link from 'next/link'
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-3">
@@ -13,16 +18,16 @@ export default function PrivacyPolicyPage() {
                 alt="TheGridHub" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">TheGridHub</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">TheGridHub</span>
             </Link>
             
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/#features" className="text-gray-600 hover:text-gray-900">Features</Link>
-              <Link href="/#pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
-              <Link href="/why-thegridhub" className="text-gray-600 hover:text-gray-900">Why TheGridHub?</Link>
-              <Link href="/sign-in" className="text-gray-600 hover:text-gray-900">Sign In</Link>
-              <Link href="/sign-up" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                Start Free
+              <Link href="/#features" className="text-gray-600 hover:text-purple-600 transition-colors">Features</Link>
+              <Link href="/#pricing" className="text-gray-600 hover:text-purple-600 transition-colors">Pricing</Link>
+              <Link href="/why-thegridhub" className="text-gray-600 hover:text-purple-600 transition-colors">Why TheGridHub?</Link>
+              <Link href="/login" className="text-gray-600 hover:text-purple-600 transition-colors">Sign In</Link>
+              <Link href="/login" className="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-6 py-2 rounded-xl hover:from-purple-700 hover:to-purple-600 transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30">
+                Start for Free
               </Link>
             </nav>
           </div>
@@ -30,8 +35,8 @@ export default function PrivacyPolicyPage() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm p-8 lg:p-12">
+      <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 lg:p-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
           
           <div className="prose prose-lg max-w-none">
@@ -153,7 +158,7 @@ export default function PrivacyPolicyPage() {
               <p className="text-gray-700 mb-4">
                 If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
               </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-purple-50/80 backdrop-blur-sm p-4 rounded-xl border border-purple-200">
                 <p className="text-gray-700">
                   Email: privacy@thegridhub.co<br />
                   Address: TheGridHub Privacy Team<br />

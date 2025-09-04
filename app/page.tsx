@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, Star, ArrowRight, Users, Zap, Shield, Brain, BarChart3, Clock, CheckSquare } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Check, Star, ArrowRight, Users, Zap, Shield, Brain, BarChart3, Clock, CheckSquare, Briefcase, Home, TrendingUp, MessageSquare, Timer, Layers, GitBranch, Slack, Chrome, Figma, Calendar, CreditCard } from 'lucide-react'
 import Link from 'next/link'
-import CurrencyConverter from '@/components/CurrencyConverter'
+import Image from 'next/image'
 
 export default function LandingPage() {
   const [billingCycle, setBillingCycle] = useState('monthly')
@@ -96,7 +96,7 @@ export default function LandingPage() {
       ],
       cta: 'Start Free',
       popular: false,
-      href: '/sign-up'
+      href: '/login'
     },
     {
       name: 'Pro',
@@ -115,7 +115,7 @@ export default function LandingPage() {
       ],
       cta: 'Start Pro Trial',
       popular: true,
-      href: '/sign-up'
+      href: '/login'
     },
     {
       name: 'Enterprise',
@@ -139,9 +139,14 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -150,16 +155,16 @@ export default function LandingPage() {
                 alt="TheGridHub" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">TheGridHub</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">TheGridHub</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
-              <Link href="/why-thegridhub" className="text-gray-600 hover:text-gray-900">Why TheGridHub?</Link>
-              <Link href="/sign-in" className="text-gray-600 hover:text-gray-900">Sign In</Link>
-              <Link href="/sign-up" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
-                Start Free
+              <a href="#features" className="text-gray-600 hover:text-purple-600 transition-colors">Features</a>
+              <a href="#pricing" className="text-gray-600 hover:text-purple-600 transition-colors">Pricing</a>
+              <Link href="/why-thegridhub" className="text-gray-600 hover:text-purple-600 transition-colors">Why TheGridHub?</Link>
+              <Link href="/login" className="text-gray-600 hover:text-purple-600 transition-colors">Sign In</Link>
+              <Link href="/login" className="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-6 py-2 rounded-xl hover:from-purple-700 hover:to-purple-600 transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30">
+                Start for Free
               </Link>
             </nav>
           </div>
@@ -167,44 +172,238 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-50 via-white to-primary-100 py-20">
+      <section className="relative py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              AI-Powered Task Management
-              <br />
-              <span className="text-primary-600">That Actually Works</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Stop juggling spreadsheets and sticky notes. TheGridHub combines intelligent AI with beautiful design 
-              to help teams get more done with less stress.
-            </p>
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left side - Content */}
+            <div>
+              <div className="inline-flex items-center px-4 py-2 bg-purple-100/80 backdrop-blur-sm rounded-full text-sm font-medium text-purple-700 mb-6">
+                👑 FREE for 10 Users • Unlimited Everything
+              </div>
+              
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Empowering teams to 
+                <span className="block text-gray-800">grow without limits.</span>
+              </h1>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start space-x-3">
+                  <CheckSquare className="h-5 w-5 text-purple-600 mt-1" />
+                  <span className="text-lg text-gray-600">Task & Project Management</span>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Timer className="h-5 w-5 text-purple-600 mt-1" />
+                  <span className="text-lg text-purple-600 font-medium">Built-in Time Tracking</span>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Users className="h-5 w-5 text-purple-600 mt-1" />
+                  <span className="text-lg text-gray-600">Real-time Team Collaboration and More.</span>
+                </div>
+              </div>
+              
+              <p className="text-gray-500 italic mb-8">
+                Loved by 100+ agencies, remote teams & startups.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <div className="flex">
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    className="flex-1 px-4 py-3 bg-white/70 backdrop-blur-sm border border-purple-200 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <Link 
+                    href="/login"
+                    className="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-8 py-3 rounded-r-xl hover:from-purple-700 hover:to-purple-600 transition-all font-semibold shadow-lg shadow-purple-500/25"
+                  >
+                    Start for Free
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  No credit card
+                </div>
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  No time limit
+                </div>
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  Full API access
+                </div>
+              </div>
+            </div>
             
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-              <Link href="/sign-up" className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 flex items-center">
-                Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-              <button className="text-gray-600 px-8 py-4 rounded-lg text-lg font-semibold hover:text-gray-900 flex items-center">
-                Watch Demo
-                <svg className="ml-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-              </button>
+            {/* Right side - Illustration */}
+            <div className="relative lg:block hidden">
+              <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
+                {/* Octopus-like illustration placeholder */}
+                <div className="w-full h-96 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-32 h-32 bg-purple-300/50 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <Layers className="w-16 h-16 text-purple-600" />
+                    </div>
+                    <p className="text-purple-600 font-medium">Interactive Dashboard</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bottom text */}
+          <div className="text-center mt-20">
+            <p className="text-gray-600 text-lg">
+              Teams around the world are switching to <span className="font-semibold text-purple-600">TheGridHub</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Turn Chaos Into Clarity Section */}
+      <section className="py-20 bg-white/60 backdrop-blur-lg relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Your Workflow, Reimagined
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transform how your team works with intuitive tools designed for the modern workplace.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-12 mb-16">
+            {/* Streamlined Task Creation */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Streamlined Task Creation</h3>
+              <p className="text-gray-600 mb-6">
+                From idea to action in seconds. Our intelligent grid system adapts to your unique workflow patterns.
+              </p>
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200 shadow-lg">
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-500 font-medium mb-4">Intuitive boards</div>
+                  <div className="grid grid-cols-3 gap-4 text-xs">
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <div className="font-medium text-purple-800 mb-2">To Do</div>
+                      <div className="space-y-2">
+                        <div className="bg-white p-2 rounded border border-purple-200">
+                          <div className="text-purple-600 text-xs">WEBSITE</div>
+                          <div className="font-medium">Performance Audit for the pricing page...</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="font-medium text-blue-800 mb-2">In Progress</div>
+                      <div className="bg-white p-2 rounded border border-blue-200">
+                        <div className="text-blue-600 text-xs">TO DESIGN</div>
+                        <div className="font-medium">Design hero section for users page...</div>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <div className="font-medium text-green-800 mb-2">Done</div>
+                      <div className="bg-white p-2 rounded border border-green-200">
+                        <div className="text-green-600 text-xs">TO SALES</div>
+                        <div className="font-medium">Connect Sales CRM with new website...</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
-              <div className="flex items-center">
-                <Check className="h-4 w-4 text-green-500 mr-2" />
-                Free forever plan
+            {/* Team-Centric Collaboration */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Team-Centric Collaboration</h3>
+              <p className="text-gray-600 mb-6">
+                Bridge the gap between remote and in-office teams with integrated communication and instant sync.
+              </p>
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200 shadow-lg">
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-500 font-medium mb-4">Built-in chat & comments</div>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-purple-600">A</span>
+                      </div>
+                      <div className="flex-1 bg-purple-50 p-3 rounded-lg">
+                        <div className="font-medium text-sm">Comments · Activity</div>
+                        <div className="text-sm text-gray-600 mt-1">Keep all communication contextual with task-specific discussions and file sharing.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-sm font-medium text-purple-600 mb-2">Track every minute</div>
+                    <div className="text-sm text-gray-600">Built-in time tracking helps you understand where time goes and bill clients accurately.</div>
+                    <div className="mt-3 bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">Time tracking</div>
+                      <div className="font-medium">2h 30m</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center">
-                <Check className="h-4 w-4 text-green-500 mr-2" />
-                No credit card required
+            </div>
+
+            {/* Smart Integrations */}
+            <div>
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Data-Driven Performance</h3>
+                <p className="text-gray-600 mb-6">
+                  Turn your productivity data into actionable insights that help your team perform at its best.
+                </p>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200 shadow-lg">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Team Performance</span>
+                      <span className="text-sm text-green-600">+12%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full w-3/4"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center">
-                <Check className="h-4 w-4 text-green-500 mr-2" />
-                Free AI features
+              
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Smart Integrations</h3>
+                <p className="text-gray-600 mb-6">
+                  Connect your favorite tools, set up automated workflows, and keep everything in sync — no more switching tabs.
+                </p>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200 shadow-lg">
+                  <div className="grid grid-cols-5 gap-4 items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <Chrome className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <span className="text-xs text-gray-600">Google</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <Slack className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <span className="text-xs text-gray-600">Slack</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <Figma className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <span className="text-xs text-gray-600">Figma</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <Calendar className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <span className="text-xs text-gray-600">Outlook</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <CreditCard className="w-6 h-6 text-green-600" />
+                      </div>
+                      <span className="text-xs text-gray-600">Stripe</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -342,11 +541,11 @@ export default function LandingPage() {
             Join thousands of teams already using TheGridHub to get more done.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link href="/sign-up" className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 flex items-center">
+            <Link href="/login" className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 flex items-center">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <Link href="/sign-in" className="text-white px-8 py-4 rounded-lg text-lg font-semibold hover:text-primary-100 border border-white/20 hover:border-white/40">
+            <Link href="/login" className="text-white px-8 py-4 rounded-lg text-lg font-semibold hover:text-primary-100 border border-white/20 hover:border-white/40">
               Sign In
             </Link>
           </div>
@@ -377,7 +576,7 @@ export default function LandingPage() {
               <ul className="space-y-2">
                 <li><a href="#features" className="text-gray-400 hover:text-white">Features</a></li>
                 <li><a href="#pricing" className="text-gray-400 hover:text-white">Pricing</a></li>
-                <li><a href="/sign-up" className="text-gray-400 hover:text-white">Free Trial</a></li>
+                <li><a href="/login" className="text-gray-400 hover:text-white">Free Trial</a></li>
                 <li><a href="/api" className="text-gray-400 hover:text-white">API</a></li>
               </ul>
             </div>

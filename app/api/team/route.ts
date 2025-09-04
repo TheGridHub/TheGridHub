@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const team = await prisma.teamMembership.findMany({ where: { userId } })
+    const user = await getOrCreateUser(supabaseUser)
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    const team = await prisma.teamMembership.findMany({ where: { userId: user.id } })
     return NextResponse.json(team)
   } catch (error) {
     console.error('Error fetching team:', error)
@@ -17,8 +22,12 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const currentUser = await getOrCreateUser(supabaseUser)
+    if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     const body = await req.json()
     // Find user by email

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { useUser } from '@/hooks/useUser'
 import { CheckCircle, Loader2, ArrowRight, Crown, Gift, Calendar } from 'lucide-react'
 import Link from 'next/link'
 // import { StripeHelpers } from '@/lib/stripe'
@@ -91,10 +91,15 @@ export default function PaymentSuccessPage() {
 
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden flex items-center justify-center p-4">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      
+      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md w-full text-center relative z-10">
         <div className="flex justify-center mb-6">
-          <Loader2 className="w-12 h-12 text-emerald-600 animate-spin" />
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-4">
           Processing Your Payment
@@ -109,8 +114,13 @@ function LoadingState() {
 
 function ErrorState({ error }: { error: string }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden flex items-center justify-center p-4">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      
+      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md w-full text-center relative z-10">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <span className="text-red-600 text-2xl">×</span>
         </div>
@@ -123,7 +133,7 @@ function ErrorState({ error }: { error: string }) {
         <div className="space-y-3">
           <Link
             href="/pricing"
-            className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            className="block w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
             Back to Pricing
           </Link>
@@ -188,15 +198,20 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
   const planBenefits = benefits[planId as keyof typeof benefits] || []
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden py-12">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Success Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
-            <CheckCircle className="w-12 h-12 text-emerald-600" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-100 rounded-full mb-6">
+            <CheckCircle className="w-12 h-12 text-purple-600" />
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
-            Welcome to TaskWork {planName}!
+            Welcome to TheGridHub {planName}!
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
             Your subscription has been activated successfully. You now have access to all {planName} plan features.
@@ -205,7 +220,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Subscription Details */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Subscription Details
             </h2>
@@ -238,22 +253,22 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
               
               <div className="flex items-center justify-between py-3">
                 <span className="text-slate-600">Status</span>
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                   Active
                 </span>
               </div>
             </div>
 
             {/* Trial Information */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
               <div className="flex items-start gap-3">
-                <Gift className="w-5 h-5 text-blue-600 mt-0.5" />
+                <Gift className="w-5 h-5 text-purple-600 mt-0.5" />
                 <div>
-                  <h3 className="font-medium text-blue-900 mb-1">
+                  <h3 className="font-medium text-purple-900 mb-1">
                     14-Day Free Trial
                   </h3>
-                  <p className="text-blue-700 text-sm">
+                  <p className="text-purple-700 text-sm">
                     You're currently in your free trial period. Your first charge will be on{' '}
                     {new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()}.
                   </p>
@@ -263,7 +278,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
           </div>
 
           {/* Plan Benefits */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               What's Included
             </h2>
@@ -271,8 +286,8 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
             <div className="space-y-4">
               {planBenefits.map((benefit, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
-                    <CheckCircle className="w-3 h-3 text-emerald-600" />
+                  <div className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center mt-0.5">
+                    <CheckCircle className="w-3 h-3 text-purple-600" />
                   </div>
                   <span className="text-slate-700">{benefit}</span>
                 </div>
@@ -280,14 +295,14 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
             </div>
 
             {isYearly && (
-              <div className="mt-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+              <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-emerald-600 mt-0.5" />
+                  <Calendar className="w-5 h-5 text-purple-600 mt-0.5" />
                   <div>
-                    <h3 className="font-medium text-emerald-900 mb-1">
+                    <h3 className="font-medium text-purple-900 mb-1">
                       Annual Savings
                     </h3>
-                    <p className="text-emerald-700 text-sm">
+                    <p className="text-purple-700 text-sm">
                       You're saving 20% with the annual plan. That's{' '}
                       {formatPrice(amount * 0.2)} saved per year!
                     </p>
@@ -299,19 +314,19 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
         </div>
 
         {/* Next Steps */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8 text-center">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">
             Ready to Get Started?
           </h2>
           <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
-            Your TaskWork {planName} subscription is now active. Start creating projects, 
+            Your TheGridHub {planName} subscription is now active. Start creating projects, 
             managing tasks, and boosting your productivity with AI-powered suggestions.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
             >
               Go to Dashboard
               <ArrowRight className="w-4 h-4" />
@@ -333,7 +348,7 @@ function SuccessState({ sessionData, user }: { sessionData: SessionData; user: a
           </p>
           <Link
             href="/contact"
-            className="text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+            className="text-purple-600 hover:text-purple-700 font-medium text-sm"
           >
             Contact Support →
           </Link>

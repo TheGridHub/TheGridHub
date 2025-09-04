@@ -1,8 +1,8 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
-import { ClerkProvider } from '@clerk/nextjs'
 import { Metadata } from 'next'
 import Script from 'next/script'
+import SupabaseProvider from '@/components/providers/SupabaseProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,20 +21,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // During SST build, Clerk keys might not be available yet
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  
   return (
-    <ClerkProvider publishableKey={publishableKey}>
-      <html lang="en">
-        <head>
-          {/* Removed Puter.js - causing authentication conflicts */}
-        </head>
-        <body className={inter.className}>
+    <html lang="en">
+      <head>
+        {/* Removed Puter.js - causing authentication conflicts */}
+      </head>
+      <body className={inter.className}>
+        <SupabaseProvider>
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </SupabaseProvider>
+      </body>
+    </html>
   )
 }
 

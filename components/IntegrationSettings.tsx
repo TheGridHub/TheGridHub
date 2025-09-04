@@ -59,6 +59,22 @@ const INTEGRATION_CONFIGS = {
       { id: 'tasks', name: 'Google Tasks', icon: CheckCircle, description: 'Sync with Google Tasks app' },
       { id: 'sheets', name: 'Google Sheets', icon: FileText, description: 'Export project data to Sheets' }
     ]
+  },
+  slack: {
+    name: 'Slack',
+    icon: '💬',
+    color: 'purple',
+    features: [
+      { id: 'chat', name: 'Channel Notifications', icon: Users, description: 'Post task updates to Slack channels' }
+    ]
+  },
+  jira: {
+    name: 'Jira',
+    icon: '🧩',
+    color: 'amber',
+    features: [
+      { id: 'tasks', name: 'Issue Sync', icon: CheckCircle, description: 'Sync tasks to Jira issues' }
+    ]
   }
 }
 
@@ -86,9 +102,14 @@ export default function IntegrationSettings() {
     }
   }
 
-  const handleConnect = async (type: 'office365' | 'google') => {
+  const handleConnect = async (type: 'office365' | 'google' | 'slack' | 'jira') => {
     setActionLoading(`connect-${type}`)
     try {
+      if (type === 'jira') {
+        window.location.href = '/settings/integrations/jira'
+        return
+      }
+
       const response = await fetch(`/api/integrations/${type}/auth`, {
         method: 'POST'
       })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
+import prisma from '@/lib/prisma'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16'
@@ -107,21 +108,33 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log('🎉 New subscription created:', subscription.id)
   
   try {
-    // Update user's subscription status in your database
     const customerId = subscription.customer as string
     const priceId = subscription.items.data[0]?.price?.id
     const status = subscription.status
     
-    // TODO: Update user record in database
-    // Example: await updateUserSubscription(customerId, { 
-    //   subscriptionId: subscription.id,
-    //   priceId,
-    //   status,
-    //   currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-    // })
-    
-    // Send welcome email to customer
-    // TODO: await sendWelcomeEmail(customerId)
+    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+    const userId = customer.metadata?.userId
+
+    if (userId) {
+      await prisma.subscription.upsert({
+        where: { userId },
+        update: {
+          stripeSubscriptionId: subscription.id,
+          plan: priceId || 'UNKNOWN',
+          status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        },
+        create: {
+          userId,
+          stripeSubscriptionId: subscription.id,
+          plan: priceId || 'UNKNOWN',
+          status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        }
+      })
+    }
     
     console.log(`✅ Subscription activated for customer ${customerId}`)
   } catch (error) {
@@ -136,12 +149,23 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const customerId = subscription.customer as string
     const priceId = subscription.items.data[0]?.price?.id
     const status = subscription.status
+
+    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+    const userId = customer.metadata?.userId
+
+    if (userId) {
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          plan: priceId || 'UNKNOWN',
+          status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        }
+      })
+    }
     
-    // TODO: Update user record in database
-    // Check if this is a plan change or status change
-    const isActive = ['active', 'trialing'].includes(status)
-    
-    console.log(`✅ Subscription updated for customer ${customerId}, active: ${isActive}`)
+    console.log(`✅ Subscription updated for customer ${customerId}`)
   } catch (error) {
     console.error('Error handling subscription updated:', error)
   }
@@ -152,9 +176,15 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   
   try {
     const customerId = subscription.customer as string
-    
-    // TODO: Update user to free plan in database
-    // TODO: Send cancellation email
+    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+    const userId = customer.metadata?.userId
+
+    if (userId) {
+      await prisma.subscription.update({
+        where: { userId },
+        data: { status: 'canceled' }
+      })
+    }
     
     console.log(`✅ Subscription cancelled for customer ${customerId}`)
   } catch (error) {
@@ -226,12 +256,25 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   
   try {
     const customerId = invoice.customer as string
-    const amount = invoice.amount_paid / 100 // Convert cents to dollars
+    const amount = invoice.amount_paid // cents
+
+    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+    const userId = customer.metadata?.userId
+
+    if (userId) {
+      await prisma.payment.create({
+        data: {
+          userId,
+          stripeInvoiceId: invoice.id,
+          amount: amount,
+          currency: (invoice.currency || 'usd').toLowerCase(),
+          status: 'SUCCESS',
+          paidAt: new Date()
+        }
+      })
+    }
     
-    // TODO: Send payment receipt
-    // TODO: Update user's billing history
-    
-    console.log(`✅ Payment of $${amount} processed for customer ${customerId}`)
+    console.log(`✅ Payment of $${amount / 100} processed for customer ${customerId}`)
   } catch (error) {
     console.error('Error handling invoice payment succeeded:', error)
   }

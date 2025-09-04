@@ -51,7 +51,7 @@ function PaymentSuccessPageContent() {
 
   const fetchSessionData = async () => {
     try {
-      const response = await fetch(`/api/stripe/create-checkout?session_id=${sessionId}`)
+      const response = await fetch(`/api/stripe/session?session_id=${sessionId}`)
       const data = await response.json()
 
       if (response.ok) {

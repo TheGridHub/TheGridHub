@@ -19,16 +19,16 @@ import {
 interface Integration {
   id: string
   name: string
-  type: 'office365' | 'google'
+  type: 'office365' | 'google' | 'slack' | 'jira'
   status: 'connected' | 'disconnected' | 'error'
   connectedAt?: string
   userEmail?: string
   features: {
-    calendar: boolean
-    email: boolean
-    storage: boolean
-    chat: boolean
-    tasks: boolean
+    calendar?: boolean
+    email?: boolean
+    storage?: boolean
+    chat?: boolean
+    tasks?: boolean
     sheets?: boolean
   }
   lastSync?: string
@@ -83,6 +83,8 @@ export default function IntegrationSettings() {
   const [integrations, setIntegrations] = useState<Integration[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [slackChannels, setSlackChannels] = useState<Array<{id: string, name: string}>>([])
+  const [selectedSlackChannel, setSelectedSlackChannel] = useState<string>("")
 
   useEffect(() => {
     if (user) {
@@ -91,6 +93,8 @@ export default function IntegrationSettings() {
   }, [user])
 
   const fetchIntegrations = async () => {
+    setSlackChannels([])
+    setSelectedSlackChannel("")
     try {
       const response = await fetch('/api/integrations')
       const data = await response.json()
@@ -138,11 +142,13 @@ export default function IntegrationSettings() {
     }
   }
 
-  const handleSync = async (integrationId: string) => {
+  const handleSync = async (integrationId: string, action?: 'test' | 'syncIssues') => {
     setActionLoading(`sync-${integrationId}`)
     try {
       await fetch(`/api/integrations/${integrationId}/sync`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action || 'sync' })
       })
       await fetchIntegrations()
     } catch (error) {
@@ -234,8 +240,80 @@ export default function IntegrationSettings() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
+                    {/* Slack-specific actions */}
+                    {type === 'slack' && isConnected && (
+                      <>
+                        <button
+                          onClick={async () => {
+                            setActionLoading('slack-channels')
+                            try {
+                              const res = await fetch('/api/integrations/slack/channels')
+                              const data = await res.json()
+                              setSlackChannels(data.channels || [])
+                              if ((data.channels || []).length > 0) setSelectedSlackChannel(data.channels[0].id)
+                            } finally {
+                              setActionLoading(null)
+                            }
+                          }}
+                          className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                          title="Load channels"
+                        >
+                          Load Channels
+                        </button>
+                        <select
+                          value={selectedSlackChannel}
+                          onChange={(e) => setSelectedSlackChannel(e.target.value)}
+                          className="border border-slate-300 rounded-lg px-2 py-1 text-sm"
+                        >
+                          {slackChannels.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={async () => {
+                            if (!selectedSlackChannel) return
+                            setActionLoading('slack-test')
+                            try {
+                              await fetch('/api/integrations/slack/test-message', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ channelId: selectedSlackChannel })
+                              })
+                            } finally {
+                              setActionLoading(null)
+                            }
+                          }}
+                          disabled={!selectedSlackChannel}
+                          className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600 disabled:opacity-50`}
+                          title="Post test message"
+                        >
+                          Test Message
+                        </button>
+                      </>
+                    )}
                     {isConnected ? (
                       <>
+                        {/* Jira specific actions */}
+                        {type === 'jira' && integration && (
+                          <>
+                            <button
+                              onClick={() => handleSync(integration.id, 'test')}
+                              disabled={actionLoading === `sync-${integration.id}`}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600 disabled:opacity-50`}
+                              title="Test connection"
+                            >
+                              Test
+                            </button>
+                            <button
+                              onClick={() => handleSync(integration.id, 'syncIssues')}
+                              disabled={actionLoading === `sync-${integration.id}`}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600 disabled:opacity-50`}
+                              title="Sync issues"
+                            >
+                              Sync
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => handleSync(integration.id)}
                           disabled={actionLoading === `sync-${integration.id}`}

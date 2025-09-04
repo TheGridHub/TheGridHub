@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/user';
-import prisma from '@/lib/prisma';
 import { createJiraIssue } from '@/lib/integrations/jira';
 
 export async function POST(request: NextRequest) {
@@ -25,26 +24,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the task details
-    const task = await prisma.task.findFirst({
-      where: {
-        id: taskId,
-        userId: user.id
-      }
-    });
+    const supa = createClient();
+    const { data: task, error: taskErr } = await supa
+      .from('tasks')
+      .select('*')
+      .eq('id', taskId)
+      .eq('userId', user.id)
+      .single()
 
-    if (!task) {
+    if (taskErr || !task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
     // Get the project with Jira configuration
-    const project = await prisma.project.findFirst({
-      where: {
-        id: projectId,
-        userId: user.id
-      }
-    });
+    const { data: project, error: projErr } = await supa
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .eq('userId', user.id)
+      .single()
 
-    if (!project) {
+    if (projErr || !project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
@@ -66,16 +66,13 @@ export async function POST(request: NextRequest) {
       dueDate: task.dueDate?.toISOString().split('T')[0],
     });
 
-    // Update the task with Jira issue link
+    // Update the task with Jira issue link (best-effort; ignore if columns don't exist)
     if (jiraIssue.key) {
-      await prisma.task.update({
-        where: { id: taskId },
-        data: {
-          jiraIssueKey: jiraIssue.key,
-          jiraIssueUrl: jiraIssue.self,
-          updatedAt: new Date()
-        }
-      });
+      await supa
+        .from('tasks')
+        .update({ jiraIssueKey: jiraIssue.key, jiraIssueUrl: jiraIssue.self })
+        .eq('id', taskId)
+        .eq('userId', user.id)
     }
 
     return NextResponse.json({

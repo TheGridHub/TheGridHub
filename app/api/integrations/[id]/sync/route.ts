@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { action } = await req.json().catch(() => ({ action: 'sync' }))
 
-    const integration = await db.integration.findFirst({ where: { id: params.id, userId } })
+    const dbUser = await getOrCreateUser(supabaseUser)
+    const { data: integration } = await supabase
+      .from('integrations')
+      .select('*')
+      .eq('id', params.id)
+      .eq('userId', dbUser?.id)
+      .single()
     if (!integration) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     let ok = true
@@ -62,7 +69,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     if (ok) {
-      await db.integration.update({ where: { id: integration.id }, data: { lastSync: new Date() } })
+      await supabase
+        .from('integrations')
+        .update({ lastSync: new Date().toISOString() })
+        .eq('id', integration.id)
     }
 
     return NextResponse.json({ success: ok })

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateUser } from '@/lib/user'
-import { db } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,21 +23,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch user's integrations
-    const integrations = await db.integration.findMany({
-      where: { userId: user.id },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        status: true,
-        connectedAt: true,
-        lastSync: true,
-        userEmail: true,
-        features: true
-      }
-    })
+    const supa = createClient()
+    const { data, error } = await supa
+      .from('integrations')
+      .select('id, name, type, status, connectedAt, lastSync, userEmail, features')
+      .eq('userId', user.id)
+    if (error) throw error
 
-    return NextResponse.json(integrations)
+    return NextResponse.json(data || [])
 
   } catch (error) {
     console.error('Error fetching integrations:', error)
@@ -80,63 +72,55 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if integration already exists
-    const existingIntegration = await db.integration.findFirst({
-      where: {
-        userId: user.id,
-        type,
-        userEmail
+    const supa = createClient()
+    const { data: existingIntegration } = await supa
+      .from('integrations')
+      .select('id')
+      .eq('userId', user.id)
+      .eq('type', type)
+      .eq('userEmail', userEmail)
+      .maybeSingle()
+
+    const baseData: any = {
+      userId: user.id,
+      type,
+      name,
+      accessToken,
+      refreshToken: refreshToken || null,
+      userEmail,
+      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+      status: 'connected',
+      connectedAt: new Date().toISOString(),
+      features: {
+        calendar: true,
+        email: true,
+        storage: false,
+        chat: false,
+        tasks: false,
+        ...(type === 'google' && { sheets: false })
       }
-    })
-
-    if (existingIntegration) {
-      // Update existing integration
-      const updatedIntegration = await db.integration.update({
-        where: { id: existingIntegration.id },
-        data: {
-          name,
-          accessToken,
-          refreshToken,
-          expiresAt: expiresAt ? new Date(expiresAt) : null,
-          status: 'connected',
-          connectedAt: new Date(),
-          features: {
-            calendar: true,
-            email: true,
-            storage: false,
-            chat: false,
-            tasks: false,
-            ...(type === 'google' && { sheets: false })
-          }
-        }
-      })
-
-      return NextResponse.json(updatedIntegration)
     }
 
-    // Create new integration
-    const integration = await db.integration.create({
-      data: {
-        userId: user.id,
-        type,
-        name,
-        accessToken,
-        refreshToken,
-        userEmail,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        status: 'connected',
-        connectedAt: new Date(),
-        features: {
-          calendar: true,
-          email: true,
-          storage: false,
-          chat: false,
-          tasks: false,
-          ...(type === 'google' && { sheets: false })
-        }
-      }
-    })
+    if (existingIntegration) {
+      const { data, error } = await supa
+        .from('integrations')
+        .update(baseData)
+        .eq('id', existingIntegration.id)
+        .select('*')
+        .single()
+      if (error) throw error
+      return NextResponse.json(data)
+    }
 
-    return NextResponse.json(integration)
+    const { data: created, error } = await supa
+      .from('integrations')
+      .insert(baseData)
+      .select('*')
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json(created)
 
   } catch (error) {
     console.error('Error creating integration:', error)

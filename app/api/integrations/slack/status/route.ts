@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/user';
-import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,17 +14,18 @@ export async function GET(request: NextRequest) {
     const user = await getOrCreateUser(supabaseUser);
     
     // Check if user has Slack integration connected
-    const integration = await prisma.integration.findFirst({
-      where: {
-        userId: user.id,
-        provider: 'slack',
-        active: true
-      }
-    });
+    const supa = createClient();
+    const { data: integration } = await supa
+      .from('integrations')
+      .select('*, features')
+      .eq('userId', user.id)
+      .eq('type', 'slack')
+      .eq('status', 'connected')
+      .maybeSingle()
 
     return NextResponse.json({
       connected: !!integration,
-      workspace: integration?.metadata?.workspace_name || null
+      workspace: (integration as any)?.metadata?.workspace_name || null
     });
   } catch (error) {
     console.error('Error checking Slack status:', error);

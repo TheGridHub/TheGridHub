@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { db } from '@/lib/db'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -18,13 +17,27 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ error: 'Missing feature or enabled' }, { status: 400 })
     }
 
-    const integration = await db.integration.findFirst({ where: { id: params.id, userId } })
+    const supa = createClient()
+    const { data: integration } = await supa
+      .from('integrations')
+      .select('id, features')
+      .eq('id', params.id)
+      .eq('userId', userId)
+      .single()
+
     if (!integration) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const current = (integration.features as any) || {}
     const updated = { ...current, [feature]: enabled }
 
-    const saved = await db.integration.update({ where: { id: integration.id }, data: { features: updated } })
+    const { data: saved, error } = await supa
+      .from('integrations')
+      .update({ features: updated })
+      .eq('id', integration.id)
+      .select('*')
+      .single()
+
+    if (error) throw error
     return NextResponse.json(saved)
   } catch (error) {
     console.error('Features update error:', error)

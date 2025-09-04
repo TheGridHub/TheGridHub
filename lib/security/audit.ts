@@ -1,5 +1,6 @@
-import { AdminRole } from '@prisma/client'
 import { PrivacyCompliance } from './validation'
+
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'BILLING_ADMIN' | 'SUPPORT_ADMIN' | 'SECURITY_ADMIN' | 'ANALYTICS_ADMIN' | 'READ_ONLY_ADMIN'
 
 // Audit event types and categories
 export const AUDIT_CATEGORIES = {

@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const integration = await db.integration.findFirst({ where: { userId, type: 'office365' } })
+    const dbUser = await getOrCreateUser(user)
+
+    const { data: integration } = await supabase
+      .from('integrations')
+      .select('accessToken, userEmail')
+      .eq('userId', dbUser?.id)
+      .eq('type', 'office365')
+      .eq('status', 'connected')
+      .maybeSingle()
     if (!integration) return NextResponse.json({ error: 'Office365 not connected' }, { status: 404 })
 
-    const accessToken = integration.accessToken as unknown as string
-    const recipient = integration.userEmail
+    const accessToken = (integration as any).accessToken as string
+    const recipient = (integration as any).userEmail
     if (!recipient) return NextResponse.json({ error: 'Missing userEmail on integration' }, { status: 400 })
 
     const start = new Date(Date.now() + 5 * 60 * 1000).toISOString()
@@ -38,7 +47,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create event', details: err }, { status: 500 })
     }
 
-    await db.integration.update({ where: { id: integration.id }, data: { lastSync: new Date() } })
+    await supabase
+      .from('integrations')
+      .update({ lastSync: new Date().toISOString() })
+      .eq('type', 'office365')
+      .eq('userEmail', recipient)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Office365 test calendar error:', error)

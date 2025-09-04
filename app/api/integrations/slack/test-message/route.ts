@@ -1,19 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const dbUser = await getOrCreateUser(user)
 
     const { channelId, text } = await req.json()
     if (!channelId) return NextResponse.json({ error: 'Missing channelId' }, { status: 400 })
 
-    const slack = await db.integration.findFirst({ where: { userId, type: 'slack' } })
+    const { data: slack } = await supabase
+      .from('integrations')
+      .select('*')
+      .eq('userId', dbUser?.id)
+      .eq('type', 'slack')
+      .eq('status', 'connected')
+      .maybeSingle()
     if (!slack) return NextResponse.json({ error: 'Slack not connected' }, { status: 404 })
 
-    const token = slack.accessToken as unknown as string
+    const token = (slack as any).accessToken as string
     const message = text || 'TheGridHub test message ✅'
 
     const res = await fetch('https://slack.com/api/chat.postMessage', {

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/user';
-import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -38,10 +37,11 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
       
       // Update user with Stripe customer ID
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { stripeCustomerId: customerId },
-      });
+      await supabase
+        .from('users')
+        .update({ stripeCustomerId: customerId })
+        .eq('id', user.id)
+      ;
     }
 
     // Create checkout session

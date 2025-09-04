@@ -1,6 +1,6 @@
-import { db } from '@/lib/db'
 import { SUBSCRIPTION_PLANS } from '@/lib/pricing'
 import { getStripe } from '@/lib/stripe'
+import { createClient } from '@/lib/supabase/server'
 
 export interface UserUsage {
   projects: number
@@ -25,16 +25,23 @@ export class SubscriptionManager {
    */
   static async getUserPlan(userId: string): Promise<string> {
     try {
-      const user = await db.user.findUnique({
-        where: { clerkId: userId },
-        include: { subscription: true }
-      })
+      const supa = createClient()
+      const { data: user } = await supa
+        .from('users')
+        .select('id')
+        .eq('clerkId', userId)
+        .maybeSingle()
 
-      if (!user?.subscription || user.subscription.status !== 'active') {
-        return 'FREE'
-      }
+      if (!user) return 'FREE'
 
-      return user.subscription.plan
+      const { data: sub } = await supa
+        .from('subscriptions')
+        .select('plan, status')
+        .eq('userId', user.id)
+        .maybeSingle()
+
+      if (!sub || sub.status !== 'active') return 'FREE'
+      return sub.plan || 'FREE'
     } catch (error) {
       console.error('Error getting user plan:', error)
       return 'FREE'
@@ -46,25 +53,27 @@ export class SubscriptionManager {
    */
   static async getUserUsage(userId: string): Promise<UserUsage> {
     try {
-      const user = await db.user.findUnique({
-        where: { clerkId: userId },
-        include: {
-          projects: true,
-          tasks: true,
-          teamMemberships: true
-        }
-      })
+      const supa = createClient()
+      const { data: user } = await supa
+        .from('users')
+        .select('id, aiSuggestionsUsed, storageUsed')
+        .eq('clerkId', userId)
+        .maybeSingle()
 
-      if (!user) {
-        throw new Error('User not found')
-      }
+      if (!user) throw new Error('User not found')
+
+      const [proj, tasks, team] = await Promise.all([
+        supa.from('projects').select('id', { count: 'exact', head: true }).eq('userId', user.id),
+        supa.from('tasks').select('id', { count: 'exact', head: true }).eq('userId', user.id),
+        supa.from('team_memberships').select('id', { count: 'exact', head: true }).eq('userId', user.id)
+      ])
 
       return {
-        projects: user.projects.length,
-        tasks: user.tasks.length,
-        teamMembers: user.teamMemberships.length,
-        aiSuggestions: user.aiSuggestionsUsed || 0,
-        storage: user.storageUsed || 0
+        projects: proj.count || 0,
+        tasks: tasks.count || 0,
+        teamMembers: team.count || 0,
+        aiSuggestions: (user as any).aiSuggestionsUsed || 0,
+        storage: (user as any).storageUsed || 0
       }
     } catch (error) {
       console.error('Error getting user usage:', error)
@@ -180,10 +189,7 @@ export class SubscriptionManager {
     try {
       const plan = await this.getUserPlan(userId)
       const planConfig = SUBSCRIPTION_PLANS[plan as keyof typeof SUBSCRIPTION_PLANS]
-      
       if (!planConfig) return false
-
-      // Check if feature is in the plan's feature list
       return planConfig.features.features?.includes(feature) || false
     } catch (error) {
       console.error('Error checking feature availability:', error)
@@ -200,14 +206,22 @@ export class SubscriptionManager {
     prorate: boolean = true
   ): Promise<{ success: boolean; error?: string; checkoutUrl?: string }> {
     try {
-      const user = await db.user.findUnique({
-        where: { clerkId: userId },
-        include: { subscription: true }
-      })
+      const supa = createClient()
+      const { data: user } = await supa
+        .from('users')
+        .select('id, stripeCustomerId')
+        .eq('clerkId', userId)
+        .maybeSingle()
 
       if (!user) {
         return { success: false, error: 'User not found' }
       }
+
+      const { data: subscription } = await supa
+        .from('subscriptions')
+        .select('stripeSubscriptionId, status')
+        .eq('userId', user.id)
+        .maybeSingle()
 
       const targetPlanConfig = SUBSCRIPTION_PLANS[targetPlan as keyof typeof SUBSCRIPTION_PLANS]
       if (!targetPlanConfig) {
@@ -215,10 +229,10 @@ export class SubscriptionManager {
       }
 
       // If user doesn't have an active subscription, create checkout session
-      if (!user.subscription || user.subscription.status !== 'active') {
+      if (!subscription || subscription.status !== 'active') {
         const stripe = await getStripe()
         const checkoutSession = await stripe.checkout.sessions.create({
-          customer: user.stripeCustomerId,
+          customer: (user as any).stripeCustomerId,
           mode: 'subscription',
           line_items: [{ price: targetPlanConfig.stripePriceId, quantity: 1 }],
           success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -232,17 +246,17 @@ export class SubscriptionManager {
       }
 
       // If user has active subscription, modify it
-      if (user.stripeCustomerId && user.subscription.stripeSubscriptionId) {
+      if ((user as any).stripeCustomerId && subscription.stripeSubscriptionId) {
         const stripe = await getStripe()
-        const subscription = await stripe.subscriptions.retrieve(
-          user.subscription.stripeSubscriptionId
+        const current = await stripe.subscriptions.retrieve(
+          subscription.stripeSubscriptionId
         )
 
         const updatedSubscription = await stripe.subscriptions.update(
-          user.subscription.stripeSubscriptionId,
+          subscription.stripeSubscriptionId,
           {
             items: [{
-              id: subscription.items.data[0].id,
+              id: current.items.data[0].id,
               price: targetPlanConfig.stripePriceId
             }],
             proration_behavior: prorate ? 'always_invoice' : 'none'
@@ -250,13 +264,13 @@ export class SubscriptionManager {
         )
 
         // Update local database
-        await db.subscription.update({
-          where: { userId: user.id },
-          data: {
+        await supa
+          .from('subscriptions')
+          .update({
             plan: targetPlan,
-            currentPeriodEnd: new Date(updatedSubscription.current_period_end * 1000)
-          }
-        })
+            currentPeriodEnd: new Date(updatedSubscription.current_period_end * 1000).toISOString()
+          })
+          .eq('userId', user.id)
 
         return { success: true }
       }
@@ -277,41 +291,38 @@ export class SubscriptionManager {
     immediate: boolean = false
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const user = await db.user.findUnique({
-        where: { clerkId: userId },
-        include: { subscription: true }
-      })
+      const supa = createClient()
+      const { data: user } = await supa
+        .from('users')
+        .select('id')
+        .eq('clerkId', userId)
+        .maybeSingle()
 
-      if (!user?.subscription?.stripeSubscriptionId) {
+      if (!user) return { success: false, error: 'User not found' }
+
+      const { data: sub } = await supa
+        .from('subscriptions')
+        .select('stripeSubscriptionId')
+        .eq('userId', user.id)
+        .maybeSingle()
+
+      if (!sub?.stripeSubscriptionId) {
         return { success: false, error: 'No active subscription found' }
       }
 
+      const stripe = await getStripe()
       if (immediate) {
-        // Cancel immediately
-        const stripe = await getStripe()
-        await stripe.subscriptions.cancel(
-          user.subscription.stripeSubscriptionId
-        )
-
-        await db.subscription.update({
-          where: { userId: user.id },
-          data: { 
-            status: 'canceled',
-            cancelAtPeriodEnd: false
-          }
-        })
+        await stripe.subscriptions.cancel(sub.stripeSubscriptionId)
+        await supa
+          .from('subscriptions')
+          .update({ status: 'canceled', cancelAtPeriodEnd: false })
+          .eq('userId', user.id)
       } else {
-        // Cancel at period end
-        const stripe = await getStripe()
-        await stripe.subscriptions.update(
-          user.subscription.stripeSubscriptionId,
-          { cancel_at_period_end: true }
-        )
-
-        await db.subscription.update({
-          where: { userId: user.id },
-          data: { cancelAtPeriodEnd: true }
-        })
+        await stripe.subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: true })
+        await supa
+          .from('subscriptions')
+          .update({ cancelAtPeriodEnd: true })
+          .eq('userId', user.id)
       }
 
       return { success: true }
@@ -327,8 +338,31 @@ export class SubscriptionManager {
    */
   static async reactivateSubscription(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const user = await db.user.findUnique({
-        where: { clerkId: userId },
+      const supa = createClient()
+      const { data: user } = await supa
+        .from('users')
+        .select('id')
+        .eq('clerkId', userId)
+        .maybeSingle()
+
+      if (!user) return { success: false, error: 'User not found' }
+
+      const { data: sub } = await supa
+        .from('subscriptions')
+        .select('stripeSubscriptionId')
+        .eq('userId', user.id)
+        .maybeSingle()
+
+      if (!sub?.stripeSubscriptionId) return { success: false, error: 'No subscription found' }
+
+      const stripe = await getStripe()
+      await stripe.subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: false })
+      await supa
+        .from('subscriptions')
+        .update({ cancelAtPeriodEnd: false, status: 'active' })
+        .eq('userId', user.id)
+
+      return { success: true }
         include: { subscription: true }
       })
 

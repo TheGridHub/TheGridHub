@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import type Stripe from 'stripe'
-import prisma from '@/lib/prisma'
 import { getStripe } from '@/lib/stripe'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
@@ -117,24 +117,17 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      await prisma.subscription.upsert({
-        where: { userId },
-        update: {
-          stripeSubscriptionId: subscription.id,
-          plan: priceId || 'UNKNOWN',
-          status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-        },
-        create: {
+      const supabase = createClient()
+      await supabase
+        .from('subscriptions')
+        .upsert({
           userId,
           stripeSubscriptionId: subscription.id,
           plan: priceId || 'UNKNOWN',
           status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-        }
-      })
+          currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
+        }, { onConflict: 'userId' })
     }
     
     console.log(`✅ Subscription activated for customer ${customerId}`)
@@ -156,15 +149,16 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      await prisma.subscription.update({
-        where: { userId },
-        data: {
+      const supabase = createClient()
+      await supabase
+        .from('subscriptions')
+        .update({
           plan: priceId || 'UNKNOWN',
           status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-        }
-      })
+          currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
+        })
+        .eq('userId', userId)
     }
     
     console.log(`✅ Subscription updated for customer ${customerId}`)
@@ -183,10 +177,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      await prisma.subscription.update({
-        where: { userId },
-        data: { status: 'canceled' }
-      })
+      const supabase = createClient()
+      await supabase
+        .from('subscriptions')
+        .update({ status: 'canceled' })
+        .eq('userId', userId)
     }
     
     console.log(`✅ Subscription cancelled for customer ${customerId}`)
@@ -266,16 +261,17 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      await prisma.payment.create({
-        data: {
+      const supabase = createClient()
+      await supabase
+        .from('payments')
+        .insert({
           userId,
           stripeInvoiceId: invoice.id,
           amount: amount,
           currency: (invoice.currency || 'usd').toLowerCase(),
           status: 'SUCCESS',
-          paidAt: new Date()
-        }
-      })
+          paidAt: new Date().toISOString()
+        })
     }
     
     console.log(`✅ Payment of $${amount / 100} processed for customer ${customerId}`)

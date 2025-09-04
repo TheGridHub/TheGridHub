@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateTaskSuggestions } from '@/lib/ai'
-import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,15 +17,14 @@ export async function POST(request: NextRequest) {
     const { projectId, projectDescription } = body
 
     // Get existing tasks for the project
-    const existingTasks = await prisma.task.findMany({
-      where: { 
-        userId,
-        projectId: projectId || null
-      },
-      select: { title: true }
-    })
+    const supa = createClient()
+    const { data: existingTasks } = await supa
+      .from('tasks')
+      .select('title, projectId, userId')
+      .eq('userId', userId)
+      .filter('projectId', projectId ? 'eq' : 'is', projectId || null)
 
-    const taskTitles = existingTasks.map(task => task.title)
+    const taskTitles = (existingTasks || []).map(task => task.title)
 
     // Generate AI suggestions
     const suggestions = await generateTaskSuggestions(

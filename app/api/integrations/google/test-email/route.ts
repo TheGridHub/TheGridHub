@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const integration = await db.integration.findFirst({ where: { userId, type: 'google' } })
+    const dbUser = await getOrCreateUser(user)
+
+    const { data: integration } = await supabase
+      .from('integrations')
+      .select('accessToken, userEmail')
+      .eq('userId', dbUser?.id)
+      .eq('type', 'google')
+      .eq('status', 'connected')
+      .maybeSingle()
     if (!integration) return NextResponse.json({ error: 'Google not connected' }, { status: 404 })
 
-    const accessToken = integration.accessToken as unknown as string
-    const to = integration.userEmail || 'me'
+    const accessToken = (integration as any).accessToken as string
+    const to = (integration as any).userEmail || 'me'
 
     const subject = 'TheGridHub: Test Email ✅'
     const textBody = 'This is a test email sent from TheGridHub via your Google integration.'
@@ -39,7 +48,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to send gmail', details: err }, { status: 500 })
     }
 
-    await db.integration.update({ where: { id: integration.id }, data: { lastSync: new Date() } })
+    await supabase
+      .from('integrations')
+      .update({ lastSync: new Date().toISOString() })
+      .eq('userEmail', (integration as any).userEmail)
+      .eq('type', 'google')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Google test email error:', error)

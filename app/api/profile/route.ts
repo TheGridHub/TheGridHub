@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import prisma from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 
 export async function GET() {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } })
-    return NextResponse.json(user)
+    const dbUser = await getOrCreateUser(supabaseUser)
+    if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    return NextResponse.json(dbUser)
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -17,27 +20,29 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
 
-    // Ensure a user record exists for the Clerk user
-    let user = await prisma.user.findUnique({ where: { clerkId: userId } })
-    if (!user) {
-      user = await prisma.user.create({ data: { clerkId: userId, email: body.email || `${userId}@placeholder.local` } })
-    }
+    const dbUser = await getOrCreateUser(supabaseUser)
+    if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        name: body.name,
-        email: body.email,
-        avatar: body.avatar
-      }
-    })
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        name: body.name ?? dbUser.name,
+        email: body.email ?? dbUser.email,
+        avatar: body.avatar ?? dbUser.avatar,
+      })
+      .eq('id', dbUser.id)
+      .select('*')
+      .single()
 
-    return NextResponse.json(updated)
+    if (error) throw error
+
+    return NextResponse.json(data)
   } catch (error) {
     console.error('Error updating profile:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

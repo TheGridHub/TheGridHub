@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -13,11 +12,15 @@ export async function GET() {
     
     const userId = user.id
 
-    const [taskCount, projectCount, teamCount] = await Promise.all([
-      prisma.task.count({ where: { userId } }),
-      prisma.project.count({ where: { userId } }),
-      prisma.teamMembership.count({ where: { userId } })
+    const supa = createClient()
+    const [tasks, projects, team] = await Promise.all([
+      supa.from('tasks').select('id', { count: 'exact', head: true }).eq('userId', userId),
+      supa.from('projects').select('id', { count: 'exact', head: true }).eq('userId', userId),
+      supa.from('team_memberships').select('id', { count: 'exact', head: true }).eq('userId', userId)
     ])
+    const taskCount = tasks.count || 0
+    const projectCount = projects.count || 0
+    const teamCount = team.count || 0
 
     // Mock completion rate (could compute from tasks)
     const completionRate = 0

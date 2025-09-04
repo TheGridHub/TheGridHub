@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/user';
-import prisma from '@/lib/prisma';
 import { getSlackChannels } from '@/lib/integrations/slack';
 
 export async function GET(request: NextRequest) {
@@ -16,13 +15,13 @@ export async function GET(request: NextRequest) {
     const user = await getOrCreateUser(supabaseUser);
     
     // Get user's Slack integration
-    const integration = await prisma.integration.findFirst({
-      where: {
-        userId: user.id,
-        provider: 'slack',
-        active: true
-      }
-    });
+    const { data: integration } = await supabase
+      .from('integrations')
+      .select('*')
+      .eq('userId', user.id)
+      .eq('type', 'slack')
+      .eq('status', 'connected')
+      .maybeSingle();
 
     if (!integration) {
       return NextResponse.json({ 

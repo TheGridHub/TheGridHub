@@ -1,5 +1,7 @@
-import { AdminRole, Permission } from '@prisma/client'
 import { NextRequest } from 'next/server'
+
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'BILLING_ADMIN' | 'SUPPORT_ADMIN' | 'SECURITY_ADMIN' | 'ANALYTICS_ADMIN' | 'READ_ONLY_ADMIN'
+export type Permission = string
 
 // Permission definitions
 export const PERMISSIONS = {

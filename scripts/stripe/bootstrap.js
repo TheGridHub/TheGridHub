@@ -21,17 +21,19 @@ const main = async () => {
   const stripe = require('stripe')(secret, { apiVersion: '2022-11-15' })
 
   // Define pricing in USD cents (aligns with lib/pricing.ts)
+  // Match home page product cards
+  // - Personal is free -> no Stripe subscription price created
   const plans = {
-    PERSONAL: { name: 'TheGridHub Personal', monthly: 699, yearly: 559 },
-    PRO: { name: 'TheGridHub Pro', monthly: 1299, yearly: 1039 },
-    BUSINESS: { name: 'TheGridHub Business', monthly: 2499, yearly: 1999 },
-    ENTERPRISE: { name: 'TheGridHub Enterprise', monthly: 4999, yearly: 3999 },
+    // PERSONAL: { name: 'TheGridHub Personal', monthly: 0, yearly: 0 }, // skipped ($0 recurring is not supported)
+    PRO: { name: 'TheGridHub Pro', monthly: 1200, yearly: 1000 },
+    ENTERPRISE: { name: 'TheGridHub Enterprise', monthly: 2500, yearly: 2000 },
+    // If you later add Business public pricing, add here:
+    // BUSINESS: { name: 'TheGridHub Business', monthly: 0, yearly: 0 },
   }
 
   const created = {
-    PERSONAL: { MONTHLY: '', YEARLY: '' },
+    // PERSONAL: { MONTHLY: '', YEARLY: '' },
     PRO: { MONTHLY: '', YEARLY: '' },
-    BUSINESS: { MONTHLY: '', YEARLY: '' },
     ENTERPRISE: { MONTHLY: '', YEARLY: '' },
   }
 
@@ -76,33 +78,32 @@ const main = async () => {
     const plan = plans[planKey]
     const product = await getOrCreateProduct(planKey, plan.name)
 
-    const monthly = await getOrCreatePrice(product.id, planKey, 'monthly', plan.monthly)
-    const yearly = await getOrCreatePrice(product.id, planKey, 'yearly', plan.yearly)
+    // Skip creating prices if amount is <= 0 (free tiers)
+    const monthly = plan.monthly > 0
+      ? await getOrCreatePrice(product.id, planKey, 'monthly', plan.monthly)
+      : null
+    const yearly = plan.yearly > 0
+      ? await getOrCreatePrice(product.id, planKey, 'yearly', plan.yearly)
+      : null
 
-    created[planKey].MONTHLY = monthly.id
-    created[planKey].YEARLY = yearly.id
+    if (monthly) created[planKey].MONTHLY = monthly.id
+    if (yearly) created[planKey].YEARLY = yearly.id
 
-    console.log(`  ✓ ${planKey} -> product=${product.id}, monthly=${monthly.id}, yearly=${yearly.id}`)
+    console.log(`  ✓ ${planKey} -> product=${product.id}, monthly=${monthly ? monthly.id : 'skipped'}, yearly=${yearly ? yearly.id : 'skipped'}`)
   }
 
   // Print summary and Vercel env add commands
   console.log('\nCreated/Found Price IDs:')
   console.table({
-    PERSONAL: created.PERSONAL,
     PRO: created.PRO,
-    BUSINESS: created.BUSINESS,
     ENTERPRISE: created.ENTERPRISE,
   })
 
   console.log('\nSet these public env vars in Vercel (Production and Preview):\n')
 
   const lines = [
-    `NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY=${created.PERSONAL.MONTHLY}`,
-    `NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY=${created.PERSONAL.YEARLY}`,
     `NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY=${created.PRO.MONTHLY}`,
     `NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY=${created.PRO.YEARLY}`,
-    `NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_MONTHLY=${created.BUSINESS.MONTHLY}`,
-    `NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_YEARLY=${created.BUSINESS.YEARLY}`,
     `NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY=${created.ENTERPRISE.MONTHLY}`,
     `NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY=${created.ENTERPRISE.YEARLY}`,
   ]
@@ -111,12 +112,8 @@ const main = async () => {
   console.log('\nVercel CLI (paste the value when prompted):\n')
   const cmd = (name) => `vercel env add ${name} production`
   const names = [
-    'NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY',
-    'NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY',
     'NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY',
     'NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY',
-    'NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_MONTHLY',
-    'NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_YEARLY',
     'NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY',
     'NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY',
   ]

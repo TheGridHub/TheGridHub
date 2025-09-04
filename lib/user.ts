@@ -1,41 +1,53 @@
-import prisma from '@/lib/prisma'
-import type { User } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 
-export async function getOrCreateUser(supabaseUser: User | null) {
-  if (!supabaseUser || !supabaseUser.email) {
-    return null
+// Returns a row from the `users` table. Creates it if missing.
+export async function getOrCreateUser(supabaseUser: SupabaseAuthUser | null) {
+  if (!supabaseUser || !supabaseUser.email) return null
+
+  const supabase = createClient()
+
+  // Try by supabaseId
+  let { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('supabaseId', supabaseUser.id)
+    .single()
+
+  if (user) return user
+
+  // Fallback: try by email (migration path)
+  const byEmail = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', supabaseUser.email)
+    .single()
+
+  if (byEmail.data) {
+    const updated = await supabase
+      .from('users')
+      .update({ supabaseId: supabaseUser.id })
+      .eq('id', byEmail.data.id)
+      .select('*')
+      .single()
+    return updated.data
   }
 
-  // Try to find user by supabaseId first
-  let user = await prisma.user.findUnique({
-    where: { supabaseId: supabaseUser.id }
-  })
+  // Create new user
+  const metadata: any = supabaseUser.user_metadata || {}
+  const name = metadata.full_name || metadata.first_name || supabaseUser.email.split('@')[0]
+  const avatar = metadata.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D9488&color=fff`
 
-  if (user) {
-    return user
-  }
-
-  // If not found by supabaseId, try by email (migration path)
-  user = await prisma.user.findUnique({
-    where: { email: supabaseUser.email }
-  })
-
-  if (user) {
-    // Update user with supabaseId if found by email
-    return await prisma.user.update({
-      where: { id: user.id },
-      data: { supabaseId: supabaseUser.id }
-    })
-  }
-
-  // Create new user if not found
-  const metadata = supabaseUser.user_metadata || {}
-  return await prisma.user.create({
-    data: {
+  const created = await supabase
+    .from('users')
+    .insert({
       supabaseId: supabaseUser.id,
       email: supabaseUser.email,
-      name: metadata.full_name || metadata.first_name || supabaseUser.email.split('@')[0],
-      avatar: metadata.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(metadata.full_name || supabaseUser.email)}&background=0D9488&color=fff`
-    }
-  })
+      name,
+      avatar,
+    })
+    .select('*')
+    .single()
+
+  return created.data
 }

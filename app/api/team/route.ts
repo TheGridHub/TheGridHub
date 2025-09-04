@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateUser } from '@/lib/user'
-import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -12,8 +11,13 @@ export async function GET() {
     const user = await getOrCreateUser(supabaseUser)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const team = await prisma.teamMembership.findMany({ where: { userId: user.id } })
-    return NextResponse.json(team)
+    const { data, error } = await supabase
+      .from('team_memberships')
+      .select('*')
+      .eq('userId', user.id)
+
+    if (error) throw error
+    return NextResponse.json(data || [])
   } catch (error) {
     console.error('Error fetching team:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -31,17 +35,25 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     // Find user by email
-    const user = await prisma.user.findUnique({ where: { email: body.email } })
-    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    const { data: foundUser, error: findError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', body.email)
+      .single()
+    if (findError || !foundUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const membership = await prisma.teamMembership.create({
-      data: {
-        userId: user.id,
+    const { data, error } = await supabase
+      .from('team_memberships')
+      .insert({
+        userId: foundUser.id,
         role: body.role || 'member'
-      }
-    })
+      })
+      .select()
+      .single()
 
-    return NextResponse.json(membership, { status: 201 })
+    if (error) throw error
+
+    return NextResponse.json(data, { status: 201 })
   } catch (error) {
     console.error('Error adding team member:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

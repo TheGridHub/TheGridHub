@@ -28,6 +28,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser()
@@ -58,19 +59,37 @@ export default function DashboardPage() {
       
       try {
         setLoading(true)
-        // Fetch via internal APIs (Prisma-backed)
-        const [tasksRes, goalsRes, projectsRes, notificationsRes] = await Promise.all([
-          fetch('/api/tasks'),
-          fetch('/api/goals'),
-          fetch('/api/projects'),
-          fetch('/api/notifications')
-        ])
+        const supabase = createClient()
 
-        const [tasksData, goalsData, projectsData, notificationsData] = await Promise.all([
-          tasksRes.ok ? tasksRes.json() : Promise.resolve([]),
-          goalsRes.ok ? goalsRes.json() : Promise.resolve([]),
-          projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
-          notificationsRes.ok ? notificationsRes.json() : Promise.resolve([])
+        const [
+          { data: tasksData },
+          { data: goalsData },
+          { data: projectsData },
+          { data: notificationsData }
+        ] = await Promise.all([
+          supabase
+            .from('tasks')
+            .select(`
+              *,
+              project:projects(id, name, color)
+            `)
+            .eq('userId', user.id)
+            .order('createdAt', { ascending: false }),
+          supabase
+            .from('goals')
+            .select('*')
+            .eq('userId', user.id)
+            .order('createdAt', { ascending: false }),
+          supabase
+            .from('projects')
+            .select('id, name, color')
+            .eq('userId', user.id)
+            .order('createdAt', { ascending: false }),
+          supabase
+            .from('notifications')
+            .select('*')
+            .eq('userId', user.id)
+            .order('createdAt', { ascending: false })
         ])
 
         // Transform and set data
@@ -173,7 +192,7 @@ export default function DashboardPage() {
   }
 
   const handleSettingsClick = () => {
-    router.push('/settings')
+    router.push('/dashboard/settings')
   }
 
   const markNotificationAsRead = (notificationId) => {

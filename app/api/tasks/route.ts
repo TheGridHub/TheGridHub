@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateUser } from '@/lib/user'
-import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -12,13 +11,17 @@ export async function GET() {
     const user = await getOrCreateUser(supabaseUser)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const tasks = await prisma.task.findMany({
-      where: { userId: user.id },
-      include: { project: true },
-      orderBy: { createdAt: 'desc' },
-    })
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        project:projects(id, name, color)
+      `)
+      .eq('userId', user.id)
+      .order('createdAt', { ascending: false })
 
-    return NextResponse.json(tasks)
+    if (error) throw error
+    return NextResponse.json(data || [])
   } catch (error) {
     console.error('Error fetching tasks:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -37,19 +40,25 @@ export async function POST(request: NextRequest) {
     const user = await getOrCreateUser(supabaseUser)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const task = await prisma.task.create({
-      data: {
+    const insert = await supabase
+      .from('tasks')
+      .insert({
         title,
-        description,
+        description: description || null,
         priority,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: dueDate || null,
         userId: user.id,
-        projectId,
-      },
-      include: { project: true },
-    })
+        projectId: projectId || null,
+      })
+      .select(`
+        *,
+        project:projects(id, name, color)
+      `)
+      .single()
 
-    return NextResponse.json(task, { status: 201 })
+    if (insert.error) throw insert.error
+
+    return NextResponse.json(insert.data, { status: 201 })
   } catch (error) {
     console.error('Error creating task:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

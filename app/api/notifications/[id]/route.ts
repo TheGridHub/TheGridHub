@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/user';
-import prisma from '@/lib/prisma';
 
 export async function PATCH(
   request: NextRequest,
@@ -19,28 +18,23 @@ export async function PATCH(
     const body = await request.json();
     const { isRead } = body;
 
-    // Verify the notification belongs to the user
-    const notification = await prisma.notification.findFirst({
-      where: {
-        id: params.id,
-        userId: user.id
-      }
-    });
+    // Update only if it belongs to the user
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ read: (isRead ?? true) })
+      .eq('id', params.id)
+      .eq('userId', user.id)
+      .select('*')
+      .single()
 
-    if (!notification) {
-      return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+    if (error) {
+      if ((error as any).code === 'PGRST116') {
+        return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
+      }
+      throw error
     }
 
-    // Update the notification
-    const updatedNotification = await prisma.notification.update({
-      where: { id: params.id },
-      data: {
-        isRead: isRead ?? true,
-        updatedAt: new Date()
-      }
-    });
-
-    return NextResponse.json(updatedNotification);
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error updating notification:', error);
     return NextResponse.json(
@@ -64,22 +58,13 @@ export async function DELETE(
 
     const user = await getOrCreateUser(supabaseUser);
 
-    // Verify the notification belongs to the user
-    const notification = await prisma.notification.findFirst({
-      where: {
-        id: params.id,
-        userId: user.id
-      }
-    });
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', params.id)
+      .eq('userId', user.id)
 
-    if (!notification) {
-      return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
-    }
-
-    // Delete the notification
-    await prisma.notification.delete({
-      where: { id: params.id }
-    });
+    if (error) throw error
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateUser } from '@/lib/user'
-import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -12,12 +11,15 @@ export async function GET() {
     const user = await getOrCreateUser(supabaseUser)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const notifications = await prisma.notification.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-    })
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('userId', user.id)
+      .order('createdAt', { ascending: false })
 
-    return NextResponse.json(notifications)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
   } catch (error) {
     console.error('Error fetching notifications:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

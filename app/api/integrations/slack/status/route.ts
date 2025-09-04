@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/auth/user-mapping';
 import { prisma } from '@/lib/prisma';
-import { getSlackChannels } from '@/lib/integrations/slack';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     const user = await getOrCreateUser(supabaseUser);
     
-    // Get user's Slack integration
+    // Check if user has Slack integration connected
     const integration = await prisma.integration.findFirst({
       where: {
         userId: user.id,
@@ -24,23 +23,14 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    if (!integration) {
-      return NextResponse.json({ 
-        channels: [],
-        error: 'Slack not connected' 
-      }, { status: 200 });
-    }
-
-    // Fetch channels from Slack
-    const channels = await getSlackChannels(integration.accessToken);
-
     return NextResponse.json({
-      channels: channels || []
+      connected: !!integration,
+      workspace: integration?.metadata?.workspace_name || null
     });
   } catch (error) {
-    console.error('Error fetching Slack channels:', error);
+    console.error('Error checking Slack status:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch Slack channels' },
+      { error: 'Failed to check Slack status' },
       { status: 500 }
     );
   }

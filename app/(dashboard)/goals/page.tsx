@@ -284,9 +284,16 @@ export default function GoalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 relative">
+      {/* Animated background blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-48 -left-48 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute -bottom-48 -right-48 w-96 h-96 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+      </div>
+      
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white/70 backdrop-blur-md shadow-sm border-b border-white/20 relative z-10">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -313,7 +320,7 @@ export default function GoalsPage() {
       {/* Stats Cards */}
       <div className="px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Target className="h-6 w-6 text-purple-600" />
@@ -325,7 +332,7 @@ export default function GoalsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <Trophy className="h-6 w-6 text-green-600" />
@@ -337,7 +344,7 @@ export default function GoalsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-blue-600" />
@@ -349,7 +356,7 @@ export default function GoalsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
                 <Clock className="h-6 w-6 text-red-600" />
@@ -363,7 +370,7 @@ export default function GoalsPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white border rounded-lg p-4 mb-6">
+        <div className="bg-white/80 backdrop-blur-sm border rounded-xl p-4 mb-6 shadow-lg border-white/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {/* Search */}
@@ -461,7 +468,7 @@ export default function GoalsPage() {
                 const TypeIcon = getTypeIcon(goal.type)
 
                 return (
-                  <div key={goal.id} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+                  <div key={goal.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <TypeIcon className="h-5 w-5 text-purple-600" />
@@ -584,7 +591,7 @@ export default function GoalsPage() {
 
       {/* Create Goal Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Create New Goal</h2>
@@ -701,7 +708,7 @@ export default function GoalsPage() {
 
       {/* Edit Goal Modal */}
       {showEditModal && editingGoal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Edit Goal</h2>

@@ -194,9 +194,15 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 relative">
+      {/* Animated background blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-48 -left-48 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute -bottom-48 -right-48 w-96 h-96 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+      </div>
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r">
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-md shadow-lg border-r border-white/20">
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center px-6 py-4 border-b">
@@ -255,7 +261,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="pl-64">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b">
+        <header className="bg-white/70 backdrop-blur-md shadow-sm border-b border-white/20">
           <div className="px-6 py-4">
             <div className="flex justify-between items-center">
               <div>
@@ -351,7 +357,7 @@ export default function DashboardPage() {
             {/* Performance Metrics Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               {/* Team Performance */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-gray-600 font-medium">Team performance</h3>
                   <MoreHorizontal className="h-5 w-5 text-gray-400" />
@@ -382,7 +388,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Upcoming Deadlines */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-gray-600 font-medium">Upcoming deadlines</h3>
                   <MoreHorizontal className="h-5 w-5 text-gray-400" />
@@ -417,7 +423,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tasks Completed */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-gray-600 font-medium">Task completed</h3>
                   <MoreHorizontal className="h-5 w-5 text-gray-400" />
@@ -461,7 +467,7 @@ export default function DashboardPage() {
         {/* Tasks and Goals Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Tasks Section */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Your task</h3>
               <div className="flex items-center space-x-2">
@@ -558,7 +564,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Goals Section */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Your goals</h3>
               <button className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
@@ -635,7 +641,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded-lg">
+            <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-xl border border-white/20">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
@@ -683,7 +689,7 @@ export default function DashboardPage() {
 
           {/* Quick Links */}
           <div className="space-y-6">
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-xl p-6 border border-white/20">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
                 <button className="w-full text-left px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center">

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Filter, MoreHorizontal } from 'lucide-react'
+import { Filter, MoreHorizontal, ExternalLink, Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 interface Task {
   id: string
@@ -9,6 +10,9 @@ interface Task {
   dueDate: string
   progress: number
   priority: string
+  projectId?: string
+  jiraIssueKey?: string
+  jiraIssueUrl?: string
 }
 
 interface TaskTableProps {
@@ -18,6 +22,9 @@ interface TaskTableProps {
 }
 
 export default function TaskTable({ tasks, selectedTab, onTabChange }: TaskTableProps) {
+  const [creatingJiraIssue, setCreatingJiraIssue] = useState<string | null>(null)
+  const { toast } = useToast()
+  
   const tabs = [
     { id: 'upcoming', label: 'Upcoming' },
     { id: 'overdue', label: 'Overdue' },
@@ -41,6 +48,52 @@ export default function TaskTable({ tasks, selectedTab, onTabChange }: TaskTable
     if (progress >= 70) return 'bg-green-500'
     if (progress >= 40) return 'bg-yellow-500'
     return 'bg-blue-500'
+  }
+
+  const handleCreateJiraIssue = async (task: Task) => {
+    if (!task.projectId) {
+      toast({
+        title: "Error",
+        description: "No project associated with this task",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setCreatingJiraIssue(task.id)
+    try {
+      const response = await fetch('/api/integrations/jira/create-issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: task.id,
+          projectId: task.projectId
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create Jira issue')
+      }
+
+      const result = await response.json()
+      
+      toast({
+        title: "Success",
+        description: `Created Jira issue: ${result.jiraIssue.key}`,
+      })
+      
+      // Optionally refresh the task list here
+      window.location.reload()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create Jira issue",
+        variant: "destructive",
+      })
+    } finally {
+      setCreatingJiraIssue(null)
+    }
   }
 
   return (
@@ -100,6 +153,9 @@ export default function TaskTable({ tasks, selectedTab, onTabChange }: TaskTable
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Priority
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -131,6 +187,39 @@ export default function TaskTable({ tasks, selectedTab, onTabChange }: TaskTable
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                     ● {task.priority}
                   </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-2">
+                    {task.jiraIssueKey ? (
+                      <a
+                        href={task.jiraIssueUrl || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        {task.jiraIssueKey}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => handleCreateJiraIssue(task)}
+                        disabled={creatingJiraIssue === task.id}
+                        className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {creatingJiraIssue === task.id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            Create Jira Issue
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

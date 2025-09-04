@@ -293,6 +293,72 @@ export default function IntegrationSettings() {
                     )}
                     {isConnected ? (
                       <>
+                        {/* Google specific actions */}
+                        {type === 'google' && integration && (
+                          <>
+                            <button
+                              onClick={async () => {
+                                setActionLoading('google-test-email')
+                                try {
+                                  await fetch('/api/integrations/google/test-email', { method: 'POST' })
+                                } finally {
+                                  setActionLoading(null)
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                              title="Send test email"
+                            >
+                              Test Email
+                            </button>
+                            <button
+                              onClick={async () => {
+                                setActionLoading('google-test-cal')
+                                try {
+                                  await fetch('/api/integrations/google/test-calendar', { method: 'POST' })
+                                } finally {
+                                  setActionLoading(null)
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                              title="Create test calendar event"
+                            >
+                              Test Calendar
+                            </button>
+                          </>
+                        )}
+                        {/* Office365 specific actions */}
+                        {type === 'office365' && integration && (
+                          <>
+                            <button
+                              onClick={async () => {
+                                setActionLoading('o365-test-email')
+                                try {
+                                  await fetch('/api/integrations/office365/test-email', { method: 'POST' })
+                                } finally {
+                                  setActionLoading(null)
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                              title="Send test email"
+                            >
+                              Test Email
+                            </button>
+                            <button
+                              onClick={async () => {
+                                setActionLoading('o365-test-cal')
+                                try {
+                                  await fetch('/api/integrations/office365/test-calendar', { method: 'POST' })
+                                } finally {
+                                  setActionLoading(null)
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                              title="Create test calendar event"
+                            >
+                              Test Calendar
+                            </button>
+                          </>
+                        )}
                         {/* Jira specific actions */}
                         {type === 'jira' && integration && (
                           <>

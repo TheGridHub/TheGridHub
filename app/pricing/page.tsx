@@ -65,6 +65,29 @@ export default function PricingPage() {
     }
   ]
 
+  const PRO_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY
+  const PRO_YEARLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY
+  const ENT_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY
+  const ENT_YEARLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY
+
+  const handleCheckout = async (planKey: 'PRO' | 'ENTERPRISE') => {
+    try {
+      const priceId = planKey === 'PRO'
+        ? (billingCycle === 'monthly' ? PRO_MONTHLY : PRO_YEARLY)
+        : (billingCycle === 'monthly' ? ENT_MONTHLY : ENT_YEARLY)
+
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey, priceId })
+      })
+      const json = await res.json()
+      if (json.url) window.location.href = json.url
+    } catch (e) {
+      console.error('Checkout failed', e)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -161,16 +184,28 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link
-                  href={plan.href}
-                  className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors ${
-                    plan.popular
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
+                {plan.name === 'Pro' ? (
+                  <button
+                    onClick={() => handleCheckout('PRO')}
+                    className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors bg-primary-600 text-white hover:bg-primary-700`}
+                  >
+                    {billingCycle === 'monthly' ? 'Upgrade to Pro (Monthly)' : 'Upgrade to Pro (Yearly)'}
+                  </button>
+                ) : plan.name === 'Enterprise' ? (
+                  <button
+                    onClick={() => handleCheckout('ENTERPRISE')}
+                    className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors bg-primary-600 text-white hover:bg-primary-700`}
+                  >
+                    {billingCycle === 'monthly' ? 'Upgrade to Enterprise (Monthly)' : 'Upgrade to Enterprise (Yearly)'}
+                  </button>
+                ) : (
+                  <Link
+                    href={plan.href}
+                    className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors bg-gray-100 text-gray-900 hover:bg-gray-200`}
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
               </div>
             ))}
           </div>

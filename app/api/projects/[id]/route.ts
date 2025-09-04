@@ -14,9 +14,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const project = await prisma.project.update({
       where: { id: params.id },
       data: {
-        name: body.name,
-        description: body.description,
-        color: body.color
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.description !== undefined && { description: body.description }),
+        ...(body.color !== undefined && { color: body.color }),
+        ...(body.slackDefaultChannelId !== undefined && { slackDefaultChannelId: body.slackDefaultChannelId }),
+        ...(body.jiraProjectKey !== undefined && { jiraProjectKey: body.jiraProjectKey })
       }
     })
 

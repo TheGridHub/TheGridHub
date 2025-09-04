@@ -11,14 +11,21 @@ export default function WelcomePage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
 
-  // Auto-redirect to dashboard after 12 seconds
+  // Check if user has completed onboarding
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/dashboard')
-    }, 12000)
+    if (isLoaded && user) {
+      const hasOnboarded = localStorage.getItem('onboarded')
+      const timer = setTimeout(() => {
+        if (hasOnboarded) {
+          router.push('/dashboard')
+        } else {
+          router.push('/onboarding')
+        }
+      }, 12000)
 
-    return () => clearTimeout(timer)
-  }, [router])
+      return () => clearTimeout(timer)
+    }
+  }, [router, isLoaded, user])
 
   if (!isLoaded) {
     return (
@@ -70,10 +77,10 @@ export default function WelcomePage() {
         {/* Action Buttons */}
         <div className="space-y-3">
           <Link
-            href="/dashboard"
+            href="/onboarding"
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center group"
           >
-            Go to Dashboard
+            Get Started
             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           

@@ -16,8 +16,9 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Using exchangerate-api.com which provides free tier without API key
     const response = await fetch(
-      `https://api.exchangerate.host/convert?from=${from}&to=${to}&amount=${amount}`
+      `https://api.exchangerate-api.com/v4/latest/${from}`
     )
     
     if (!response.ok) {
@@ -27,8 +28,8 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
     
     // Validate the response structure
-    if (!data || typeof data.result === 'undefined') {
-      console.error('Invalid response from currency API:', data)
+    if (!data || !data.rates || !data.rates[to]) {
+      console.error('Invalid response from currency API or currency not found:', data)
       return NextResponse.json({
         result: amount,
         from,
@@ -37,11 +38,14 @@ export async function GET(request: NextRequest) {
       })
     }
     
+    const rate = data.rates[to]
+    const result = amount * rate
+    
     return NextResponse.json({
-      result: Math.round((data.result || amount) * 100) / 100,
-      from: data.query?.from || from,
-      to: data.query?.to || to,
-      rate: data.info?.rate || 1
+      result: Math.round(result * 100) / 100,
+      from,
+      to,
+      rate: Math.round(rate * 10000) / 10000
     })
   } catch (error) {
     console.error('Error fetching currency conversion:', error)

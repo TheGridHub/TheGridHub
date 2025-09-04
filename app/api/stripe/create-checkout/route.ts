@@ -4,6 +4,8 @@ import { SUBSCRIPTION_PLANS } from '@/lib/pricing'
 import { auth } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 export async function POST(req: NextRequest) {
   try {
     if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })

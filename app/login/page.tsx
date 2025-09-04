@@ -22,6 +22,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [rememberMe, setRememberMe] = useState(false)
   
   const supabase = createClient()
@@ -49,7 +50,8 @@ function LoginForm() {
         if (error) throw error
         
         if (data?.user && !data.user.confirmed_at) {
-          setError('Please check your email to confirm your account.')
+          setSuccess('Account created! Please check your email to confirm your account before signing in.')
+          setIsSignUp(false) // Switch to login mode
           return
         }
         
@@ -83,6 +85,31 @@ function LoginForm() {
       if (error) throw error
     } catch (error: any) {
       setError(error.message || 'An error occurred')
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=/login`,
+      })
+
+      if (error) throw error
+
+      setSuccess('Password reset email sent! Check your inbox.')
+    } catch (error: any) {
+      setError(error.message || 'Failed to send reset email')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -184,6 +211,12 @@ function LoginForm() {
             </div>
           )}
 
+          {success && (
+            <div className="p-3 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-600 rounded-xl text-sm">
+              {success}
+            </div>
+          )}
+
           <form className="space-y-4" onSubmit={handleEmailAuth}>
             {isSignUp && (
               <div>
@@ -252,9 +285,14 @@ function LoginForm() {
                   />
                   <span className="ml-2 text-sm text-gray-600">Remember me</span>
                 </label>
-                <a href="#" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                >
                   Forgot Password?
-                </a>
+                </button>
               </div>
             )}
 

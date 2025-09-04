@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
+import { getOrCreateUser } from '@/lib/user'
 import prisma from '@/lib/prisma'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } })
+    const dbUser = await getOrCreateUser(supabaseUser)
     if (!dbUser) return NextResponse.json({ error: 'Profile not initialized' }, { status: 400 })
 
     const project = await prisma.project.update({
@@ -31,8 +33,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = auth()
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = createClient()
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+    if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await prisma.project.delete({ where: { id: params.id } })
     return NextResponse.json({ ok: true })

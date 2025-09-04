@@ -38,7 +38,8 @@
     "postinstall": "prisma generate",
     "pre-commit": "npm run lint && npm run type-check && npm run security:check",
     "security:validate": "echo 'Running security validation...' && npm audit && npm run lint && npm run type-check",
-    "quick-start": "node scripts/quick-start.js"
+    "quick-start": "node scripts/quick-start.js",
+    "stripe:bootstrap": "node scripts/stripe/bootstrap.js"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.23",

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 
 export default function WelcomePage() {
   const router = useRouter()
@@ -30,9 +31,14 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
       <div className="max-w-md w-full mx-auto p-8 bg-white rounded-2xl shadow-lg text-center">
-        {/* Success Icon */}
-        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+        {/* Welcome Animation */}
+        <div className="mx-auto w-32 h-32 mb-6">
+          <DotLottieReact
+            src="/Lottie/Welcome.lottie"
+            loop
+            autoplay
+            className="w-full h-full"
+          />
         </div>
 
         {/* Welcome Message */}

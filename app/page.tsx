@@ -8,12 +8,25 @@ import CurrencyConverter from '@/components/CurrencyConverter'
 export default function LandingPage() {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [selectedCurrency, setSelectedCurrency] = useState('USD')
+  const [convertedPrices, setConvertedPrices] = useState({
+    personal: 0,
+    pro: 12,
+    enterprise: 25
+  })
 
   // Base prices in USD
   const basePrices = {
     personal: 0,
     pro: 12,
     enterprise: 25
+  }
+
+  // Handle currency conversion
+  const handleCurrencyChange = (currency: string, prices: any) => {
+    setSelectedCurrency(currency)
+    if (prices) {
+      setConvertedPrices(prices)
+    }
   }
 
   const features = [
@@ -132,9 +145,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <CheckSquare className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src="/images/logo.svg" 
+                alt="TheGridHub" 
+                className="h-8 w-auto"
+              />
               <span className="text-xl font-bold text-gray-900">TheGridHub</span>
             </div>
             
@@ -344,9 +359,11 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <CheckSquare className="h-5 w-5 text-white" />
-                </div>
+                <img 
+                  src="/images/logo.svg" 
+                  alt="TheGridHub" 
+                  className="h-8 w-auto brightness-0 invert"
+                />
                 <span className="text-xl font-bold text-white">TheGridHub</span>
               </div>
               <p className="text-gray-400 max-w-md">

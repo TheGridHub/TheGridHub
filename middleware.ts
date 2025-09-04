@@ -5,20 +5,26 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/webhook(.*)'
+  '/welcome',
+  '/api/webhook(.*)',
+  '/api/currency',
+  '/contact',
+  '/pricing'
 ])
 
 export default clerkMiddleware((auth, req) => {
-  // Protect non-public routes
-  if (!isPublicRoute(req)) {
-    auth().protect()
+  // Allow public routes
+  if (isPublicRoute(req)) {
+    return NextResponse.next()
   }
 
-  // Redirect authenticated users from landing page to dashboard
+  // Protect all other routes
   const { userId } = auth()
-  if (userId && req.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  if (!userId) {
+    return NextResponse.redirect(new URL('/sign-in', req.url))
   }
+
+  return NextResponse.next()
 })
 
 export const config = {

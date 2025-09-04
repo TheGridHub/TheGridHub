@@ -11,11 +11,11 @@ export default function WelcomePage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
 
-  // Auto-redirect to dashboard after 3 seconds
+  // Auto-redirect to dashboard after 12 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       router.push('/dashboard')
-    }, 3000)
+    }, 12000)
 
     return () => clearTimeout(timer)
   }, [router])
@@ -78,7 +78,7 @@ export default function WelcomePage() {
           </Link>
           
           <p className="text-xs text-gray-500">
-            Redirecting automatically in 3 seconds...
+            Redirecting automatically in 12 seconds...
           </p>
         </div>
       </div>

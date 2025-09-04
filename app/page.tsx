@@ -156,7 +156,7 @@ export default function LandingPage() {
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
               <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
-              <a href="#about" className="text-gray-600 hover:text-gray-900">About</a>
+              <Link href="/why-thegridhub" className="text-gray-600 hover:text-gray-900">Why TheGridHub?</Link>
               <Link href="/sign-in" className="text-gray-600 hover:text-gray-900">Sign In</Link>
               <Link href="/sign-up" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                 Start Free
@@ -385,10 +385,10 @@ export default function LandingPage() {
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><a href="/about" className="text-gray-400 hover:text-white">About</a></li>
-                <li><a href="/blog" className="text-gray-400 hover:text-white">Blog</a></li>
-                <li><a href="/careers" className="text-gray-400 hover:text-white">Careers</a></li>
-                <li><a href="/contact" className="text-gray-400 hover:text-white">Contact</a></li>
+                <li><Link href="/why-thegridhub" className="text-gray-400 hover:text-white">Why TheGridHub?</Link></li>
+                <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link></li>
+                <li><Link href="/careers" className="text-gray-400 hover:text-white">Careers</Link></li>
+                <li><Link href="/privacy-policy" className="text-gray-400 hover:text-white">Privacy</Link></li>
               </ul>
             </div>
           </div>
@@ -398,9 +398,9 @@ export default function LandingPage() {
               © 2025 TheGridHub. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="/privacy" className="text-gray-400 hover:text-white text-sm">Privacy</a>
-              <a href="/terms" className="text-gray-400 hover:text-white text-sm">Terms</a>
-              <a href="/security" className="text-gray-400 hover:text-white text-sm">Security</a>
+              <Link href="/privacy-policy" className="text-gray-400 hover:text-white text-sm">Privacy</Link>
+              <Link href="/terms-of-service" className="text-gray-400 hover:text-white text-sm">Terms</Link>
+              <Link href="/contact" className="text-gray-400 hover:text-white text-sm">Support</Link>
             </div>
           </div>
         </div>

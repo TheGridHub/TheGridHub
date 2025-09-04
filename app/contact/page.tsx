@@ -34,10 +34,12 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <CheckSquare className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">TaskWork</span>
+              <img 
+                src="/images/logo.svg" 
+                alt="TheGridHub" 
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">TheGridHub</span>
             </Link>
             
             <nav className="flex items-center space-x-6">
@@ -66,7 +68,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">Email us</h3>
-                  <p className="text-gray-600">enterprise@TaskWork.com</p>
+                  <p className="text-gray-600">enterprise@thegridhub.co</p>
                   <p className="text-sm text-gray-500">We'll respond within 24 hours</p>
                 </div>
               </div>

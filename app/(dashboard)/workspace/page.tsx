@@ -136,11 +136,29 @@ export default function WorkspacePage() {
               <div className="divide-y divide-gray-100">
                 {(team || []).map((m:any) => (
                   <div key={m.id} className="flex items-center justify-between p-4">
-                    <div>
-                      <div className="font-medium text-gray-900">{m.userId}</div>
-                      <div className="text-sm text-gray-600">{m.role}</div>
+                    <div className="flex items-center gap-6">
+                      <div>
+                        <div className="font-medium text-gray-900">{m.userId}</div>
+                        <div className="text-xs text-gray-500">Member ID: {m.id}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Role</span>
+                        <select
+                          value={m.role}
+                          onChange={async (e) => {
+                            const role = e.target.value
+                            await fetch(`/api/team/${m.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) })
+                            mutateTeam()
+                          }}
+                          className="px-2 py-1 rounded-md bg-white border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-sm"
+                        >
+                          <option value="owner">Owner</option>
+                          <option value="admin">Admin</option>
+                          <option value="member">Member</option>
+                        </select>
+                      </div>
                     </div>
-                    <button disabled title="Removal coming soon" className="p-2 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">
+                    <button onClick={async () => { await fetch(`/api/team/${m.id}`, { method: 'DELETE' }); mutateTeam() }} className="p-2 rounded-lg border border-gray-200 text-red-600 hover:bg-red-50">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

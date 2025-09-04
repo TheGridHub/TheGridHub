@@ -3,7 +3,6 @@
 import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 
 // Make this page dynamic to avoid static generation issues
@@ -59,45 +58,20 @@ export default function DashboardPage() {
       
       try {
         setLoading(true)
-        const supabase = createClient()
-        
-        // Fetch tasks
-        const { data: tasksData } = await supabase
-          .from('tasks')
-          .select(`
-            *,
-            project:projects(id, name, color)
-          `)
-          .eq('userId', user.id)
-          .order('createdAt', { ascending: false })
-          .limit(10)
+        // Fetch via internal APIs (Prisma-backed)
+        const [tasksRes, goalsRes, projectsRes, notificationsRes] = await Promise.all([
+          fetch('/api/tasks'),
+          fetch('/api/goals'),
+          fetch('/api/projects'),
+          fetch('/api/notifications')
+        ])
 
-        // Fetch goals
-        const { data: goalsData } = await supabase
-          .from('goals')
-          .select('*')
-          .eq('userId', user.id)
-          .order('createdAt', { ascending: false })
-          .limit(5)
-
-        // Fetch projects
-        const { data: projectsData } = await supabase
-          .from('projects')
-          .select(`
-            *,
-            _count:tasks(count)
-          `)
-          .eq('userId', user.id)
-          .order('createdAt', { ascending: false })
-          .limit(5)
-
-        // Fetch notifications
-        const { data: notificationsData } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('userId', user.id)
-          .order('createdAt', { ascending: false })
-          .limit(10)
+        const [tasksData, goalsData, projectsData, notificationsData] = await Promise.all([
+          tasksRes.ok ? tasksRes.json() : Promise.resolve([]),
+          goalsRes.ok ? goalsRes.json() : Promise.resolve([]),
+          projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
+          notificationsRes.ok ? notificationsRes.json() : Promise.resolve([])
+        ])
 
         // Transform and set data
         if (tasksData) {
@@ -236,23 +210,23 @@ export default function DashboardPage() {
               <LayoutDashboard className="h-5 w-5 mr-3" />
               Dashboard
             </Link>
-            <Link href="/tasks" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
+            <Link href="/dashboard/tasks" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <CheckSquare className="h-5 w-5 mr-3" />
               My tasks
             </Link>
-            <Link href="/reports" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
+            <Link href="/dashboard/reports" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <BarChart3 className="h-5 w-5 mr-3" />
               Reports
             </Link>
-            <Link href="/workspace" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
+            <Link href="/dashboard/workspace" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <Users className="h-5 w-5 mr-3" />
               My workspace
             </Link>
-            <Link href="/goals" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
+            <Link href="/dashboard/goals" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <Target className="h-5 w-5 mr-3" />
               Goals
             </Link>
-            <Link href="/settings" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
+            <Link href="/dashboard/settings" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <Settings className="h-5 w-5 mr-3" />
               Settings
             </Link>
@@ -566,7 +540,7 @@ export default function DashboardPage() {
                 <p className="mt-1 text-sm text-gray-500">Get started by creating your first task.</p>
                 <div className="mt-6">
                   <Link
-                    href="/tasks/new"
+                    href="/dashboard/tasks"
                     className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -577,7 +551,7 @@ export default function DashboardPage() {
             )}
             
             <div className="mt-4 text-center">
-              <Link href="/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+              <Link href="/dashboard/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                 View all tasks
               </Link>
             </div>
@@ -640,7 +614,7 @@ export default function DashboardPage() {
                 <p className="mt-1 text-sm text-gray-500">Set your first goal to track your progress.</p>
                 <div className="mt-6">
                   <Link
-                    href="/goals/new"
+                    href="/dashboard/goals"
                     className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -651,7 +625,7 @@ export default function DashboardPage() {
             )}
             
             <div className="mt-6 text-center">
-              <Link href="/goals" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+              <Link href="/dashboard/goals" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                 View all goals
               </Link>
             </div>
@@ -699,7 +673,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <div className="mt-4">
-                  <Link href="/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                  <Link href="/dashboard/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                     View all tasks →
                   </Link>
                 </div>

@@ -158,7 +158,7 @@ export default function LandingPage() {
               <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
               <Link href="/why-thegridhub" className="text-gray-600 hover:text-gray-900">Why TheGridHub?</Link>
               <Link href="/sign-in" className="text-gray-600 hover:text-gray-900">Sign In</Link>
-              <Link href="/sign-up" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              <Link href="/sign-up" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
                 Start Free
               </Link>
             </nav>
@@ -167,13 +167,13 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20">
+      <section className="relative bg-gradient-to-br from-primary-50 via-white to-primary-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               AI-Powered Task Management
               <br />
-              <span className="text-blue-600">That Actually Works</span>
+              <span className="text-primary-600">That Actually Works</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Stop juggling spreadsheets and sticky notes. TheGridHub combines intelligent AI with beautiful design 
@@ -181,7 +181,7 @@ export default function LandingPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-              <Link href="/sign-up" className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 flex items-center">
+              <Link href="/sign-up" className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 flex items-center">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -226,7 +226,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-shadow">
-                <feature.icon className="h-12 w-12 text-blue-600 mb-4" />
+                <feature.icon className="h-12 w-12 text-primary-600 mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
                 <p className="text-gray-600 mb-4">{feature.description}</p>
                 <div className="flex items-center space-x-2 text-sm">
@@ -257,7 +257,7 @@ export default function LandingPage() {
               </span>
               <button
                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600"
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary-600"
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
@@ -285,12 +285,12 @@ export default function LandingPage() {
               <div
                 key={index}
                 className={`relative bg-white rounded-2xl shadow-sm border-2 p-8 ${
-                  plan.popular ? 'border-blue-500' : 'border-gray-200'
+                  plan.popular ? 'border-primary-500' : 'border-gray-200'
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-primary-600 text-white px-4 py-1 rounded-full text-sm font-medium">
                       Most Popular
                     </span>
                   </div>
@@ -320,7 +320,7 @@ export default function LandingPage() {
                   href={plan.href}
                   className={`block w-full text-center py-3 px-4 rounded-lg font-semibold transition-colors ${
                     plan.popular
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-primary-600 text-white hover:bg-primary-700'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
@@ -333,20 +333,20 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
+      <section className="py-20 bg-primary-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to supercharge your productivity?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-primary-100 mb-8">
             Join thousands of teams already using TheGridHub to get more done.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link href="/sign-up" className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 flex items-center">
+            <Link href="/sign-up" className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 flex items-center">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <Link href="/sign-in" className="text-white px-8 py-4 rounded-lg text-lg font-semibold hover:text-blue-100 border border-white/20 hover:border-white/40">
+            <Link href="/sign-in" className="text-white px-8 py-4 rounded-lg text-lg font-semibold hover:text-primary-100 border border-white/20 hover:border-white/40">
               Sign In
             </Link>
           </div>

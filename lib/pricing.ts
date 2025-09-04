@@ -1,6 +1,17 @@
 // TaskWork Competitive Pricing Strategy
 // Based on analysis of Asana, Notion, ClickUp, Monday.com, Trello pricing
 
+const env = (key: string, fallback: string | null = null) => {
+  if (typeof window !== 'undefined') {
+    // On client, only NEXT_PUBLIC_ vars are available
+    // @ts-ignore
+    return (process.env as any)[key] ?? fallback
+  }
+  // On server, both are available but we stick to NEXT_PUBLIC_ for safety in UI code
+  // @ts-ignore
+  return (process.env as any)[key] ?? fallback
+}
+
 export const SUBSCRIPTION_PLANS = {
   FREE: {
     id: 'free',
@@ -36,7 +47,7 @@ export const SUBSCRIPTION_PLANS = {
     originalPrice: 8.99, // Show discount
     billingPeriod: 'month',
     stripeProductId: 'prod_personal', // Replace with actual Stripe product ID
-    stripePriceId: 'price_personal_monthly', // Replace with actual Stripe price ID
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY', 'price_personal_monthly'), // env-configured
     features: {
       maxProjects: 20,
       maxTasks: 1000,
@@ -63,7 +74,7 @@ export const SUBSCRIPTION_PLANS = {
     originalPrice: 15.99,
     billingPeriod: 'month',
     stripeProductId: 'prod_pro', // Replace with actual Stripe product ID
-    stripePriceId: 'price_pro_monthly', // Replace with actual Stripe price ID
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY', 'price_pro_monthly'), // env-configured
     features: {
       maxProjects: 100,
       maxTasks: 10000,
@@ -90,7 +101,7 @@ export const SUBSCRIPTION_PLANS = {
     originalPrice: 29.99,
     billingPeriod: 'month',
     stripeProductId: 'prod_business', // Replace with actual Stripe product ID
-    stripePriceId: 'price_business_monthly', // Replace with actual Stripe price ID
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_MONTHLY', 'price_business_monthly'), // env-configured
     features: {
       maxProjects: 500,
       maxTasks: 50000,
@@ -120,7 +131,7 @@ export const SUBSCRIPTION_PLANS = {
     originalPrice: 59.99,
     billingPeriod: 'month',
     stripeProductId: 'prod_enterprise', // Replace with actual Stripe product ID
-    stripePriceId: 'price_enterprise_monthly', // Replace with actual Stripe price ID
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY', 'price_enterprise_monthly'), // env-configured
     features: {
       maxProjects: -1, // Unlimited
       maxTasks: -1, // Unlimited
@@ -154,7 +165,7 @@ export const ANNUAL_PRICING = {
     price: 5.59, // 20% off monthly
     originalPrice: 7.19,
     billingPeriod: 'year',
-    stripePriceId: 'price_personal_yearly',
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY', 'price_personal_yearly'),
     annualSavings: 16.80 // $6.99 * 12 - $5.59 * 12
   },
   PRO: {
@@ -162,7 +173,7 @@ export const ANNUAL_PRICING = {
     price: 10.39, // 20% off monthly
     originalPrice: 12.79,
     billingPeriod: 'year',
-    stripePriceId: 'price_pro_yearly',
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY', 'price_pro_yearly'),
     annualSavings: 31.20
   },
   BUSINESS: {
@@ -170,7 +181,7 @@ export const ANNUAL_PRICING = {
     price: 19.99, // 20% off monthly
     originalPrice: 23.99,
     billingPeriod: 'year',
-    stripePriceId: 'price_business_yearly',
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_YEARLY', 'price_business_yearly'),
     annualSavings: 60.00
   },
   ENTERPRISE: {
@@ -178,7 +189,7 @@ export const ANNUAL_PRICING = {
     price: 39.99, // 20% off monthly
     originalPrice: 47.99,
     billingPeriod: 'year',
-    stripePriceId: 'price_enterprise_yearly',
+    stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY', 'price_enterprise_yearly'),
     annualSavings: 120.00
   }
 } as const

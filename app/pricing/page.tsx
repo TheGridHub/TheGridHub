@@ -79,10 +79,12 @@ export default function PricingPage() {
         ? (billingCycle === 'monthly' ? PRO_MONTHLY : PRO_YEARLY)
         : (billingCycle === 'monthly' ? ENT_MONTHLY : ENT_YEARLY)
 
+      const planName = `${planKey} ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`
+
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planKey, priceId })
+        body: JSON.stringify({ priceId, planName })
       })
       const json = await res.json()
       if (json.url) window.location.href = json.url

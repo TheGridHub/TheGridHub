@@ -28,11 +28,7 @@ export default function RootLayout({
     <ClerkProvider publishableKey={publishableKey}>
       <html lang="en">
         <head>
-          {/* Load Puter.js for free AI capabilities */}
-          <Script 
-            src="https://js.puter.com/v2/" 
-            strategy="beforeInteractive"
-          />
+          {/* Removed Puter.js - causing authentication conflicts */}
         </head>
         <body className={inter.className}>
           {children}

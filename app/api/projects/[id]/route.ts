@@ -8,8 +8,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } })
+    if (!dbUser) return NextResponse.json({ error: 'Profile not initialized' }, { status: 400 })
+
     const project = await prisma.project.update({
-      where: { id: params.id, userId },
+      where: { id: params.id },
       data: {
         name: body.name,
         description: body.description,

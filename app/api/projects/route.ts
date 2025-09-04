@@ -7,7 +7,10 @@ export async function GET() {
     const { userId } = auth()
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const projects = await prisma.project.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } })
+    let user = await prisma.user.findUnique({ where: { clerkId: userId } })
+    if (!user) user = await prisma.user.create({ data: { clerkId: userId, email: `${userId}@placeholder.local` } })
+
+    const projects = await prisma.project.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } })
     return NextResponse.json(projects)
   } catch (error) {
     console.error('Error fetching projects:', error)
@@ -21,12 +24,15 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
+    let user = await prisma.user.findUnique({ where: { clerkId: userId } })
+    if (!user) user = await prisma.user.create({ data: { clerkId: userId, email: `${userId}@placeholder.local` } })
+
     const project = await prisma.project.create({
       data: {
         name: body.name,
         description: body.description,
         color: body.color || '#6366f1',
-        userId
+        userId: user.id
       }
     })
 

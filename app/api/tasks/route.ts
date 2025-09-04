@@ -10,8 +10,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Resolve internal user row by Clerk ID, create if missing
+    let user = await prisma.user.findUnique({ where: { clerkId: userId } })
+    if (!user) {
+      user = await prisma.user.create({ data: { clerkId: userId, email: `${userId}@placeholder.local` } })
+    }
+
     const tasks = await prisma.task.findMany({
-      where: { userId },
+      where: { userId: user.id },
       include: {
         project: true,
       },
@@ -41,13 +47,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, description, priority, dueDate, projectId } = body
 
+    // Map Clerk user to internal user
+    let user = await prisma.user.findUnique({ where: { clerkId: userId } })
+    if (!user) {
+      user = await prisma.user.create({ data: { clerkId: userId, email: `${userId}@placeholder.local` } })
+    }
+
     const task = await prisma.task.create({
       data: {
         title,
         description,
         priority,
         dueDate: dueDate ? new Date(dueDate) : null,
-        userId,
+        userId: user.id,
         projectId,
       },
       include: {

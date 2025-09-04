@@ -1,0 +1,51 @@
+name: Prisma DB Push (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (e.g., production)"
+        required: false
+        default: production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prisma-db-push-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  db-push:
+    name: Apply Prisma schema to database
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Inject DB URLs from GitHub Secrets (set these in repo settings)
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      NODE_ENV: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps (CI)
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Push schema to database
+        run: npx prisma db push --force-reset --skip-generate
+        if: ${{ env.DATABASE_URL != '' }}
+
+      - name: Verify connection
+        run: |
+          node -e "console.log('DB URL present:', !!process.env.DATABASE_URL);"
+

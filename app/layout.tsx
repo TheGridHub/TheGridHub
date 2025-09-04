@@ -4,6 +4,9 @@ import { Metadata } from 'next'
 import Script from 'next/script'
 import SupabaseProvider from '@/components/providers/SupabaseProvider'
 
+// Make this layout dynamic to avoid static generation issues with SupabaseProvider
+export const dynamic = 'force-dynamic'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {

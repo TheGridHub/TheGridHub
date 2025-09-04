@@ -40,6 +40,16 @@ private.*
 *_private.*
 *.private
 
+# Temp files and sensitive data
+TEMP_*
+temp_*
+*.tmp
+*.temp
+*.bak
+*.backup
+*_VARS.txt
+*_KEYS.txt
+
 # Vercel
 .vercel
 

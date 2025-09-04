@@ -1,24 +1,7 @@
-// Database connection placeholder
-// In production, this would connect to your actual database
+import prisma from './prisma'
 
-export const db = {
-  user: {
-    findMany: async () => [],
-    findUnique: async () => null,
-    create: async () => null,
-    update: async () => null,
-  },
-  subscription: {
-    findMany: async () => [],
-    findUnique: async () => null,
-    create: async () => null,
-    update: async () => null,
-  },
-  payment: {
-    findMany: async () => [],
-    create: async () => null,
-  }
-}
+// Thin wrapper so existing imports continue to work
+export const db = prisma
 
-export default db
+export default prisma
 

@@ -3,6 +3,8 @@
 import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { format } from 'date-fns'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
@@ -35,6 +37,8 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState([])
   const [goals, setGoals] = useState([])
   const [projects, setProjects] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [showInviteForm, setShowInviteForm] = useState(false)
@@ -42,44 +46,117 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [newTask, setNewTask] = useState({ title: '', priority: 'medium', project: '' })
   const [newGoal, setNewGoal] = useState({ title: '', target: 100, current: 0 })
-  const [teamPerformance, setTeamPerformance] = useState({ current: 85, change: 2.55 })
-  const [upcomingDeadlines, setUpcomingDeadlines] = useState(96)
-  const [tasksCompleted, setTasksCompleted] = useState({ count: 48, change: 8 })
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'task', message: 'New task assigned: Website redesign', time: '2 min ago', read: false },
-    { id: 2, type: 'team', message: 'John joined your workspace', time: '1 hour ago', read: false },
-    { id: 3, type: 'deadline', message: 'Project deadline approaching', time: '3 hours ago', read: true }
-  ])
 
+  // Fetch user data from database
   useEffect(() => {
     const hour = new Date().getHours()
     if (hour < 12) setGreeting('Good morning')
     else if (hour < 18) setGreeting('Good afternoon')
     else setGreeting('Good evening')
 
-    // Initialize sample data for demo
-    setTasks([
-      { id: 1, title: 'Create wireframes for the new dashboard', project: 'Aerotech Web Design', priority: 'medium', status: 'upcoming', progress: 20, dueDate: 'Wed, 14 Jan 2025' },
-      { id: 2, title: 'Redesign navigation menu for improved UX', project: 'Climtown App Redesign', priority: 'medium', status: 'in-progress', progress: 50, dueDate: 'Wed, 14 Jan 2025' },
-      { id: 3, title: 'Finalize the interactive data visualization', project: 'Uwo App Redesign', priority: 'high', status: 'in-progress', progress: 30, dueDate: 'Fri, 16 Jan 2025' },
-      { id: 4, title: 'Review and optimize image assets', project: '', priority: 'low', status: 'in-progress', progress: 60, dueDate: 'Tue, 13 Jan 2025' },
-      { id: 5, title: 'Conduct user testing on prototype', project: '', priority: 'medium', status: 'upcoming', progress: 30, dueDate: 'Thu, 15 Jan 2025' },
-      { id: 6, title: 'Develop a color scheme and typography', project: '', priority: 'low', status: 'upcoming', progress: 40, dueDate: 'Tue, 13 Jan 2025' },
-      { id: 7, title: 'Implement dark mode for the entire app', project: '', priority: 'medium', status: 'upcoming', progress: 70, dueDate: 'Sat, 17 Jan 2025' },
-      { id: 8, title: 'Create a responsive layout for tablets', project: '', priority: 'high', status: 'completed', progress: 50, dueDate: 'Mon, 12 Jan 2025' }
-    ])
+    const fetchUserData = async () => {
+      if (!user) return
+      
+      try {
+        setLoading(true)
+        const supabase = createClient()
+        
+        // Fetch tasks
+        const { data: tasksData } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            project:projects(id, name, color)
+          `)
+          .eq('userId', user.id)
+          .order('createdAt', { ascending: false })
+          .limit(10)
 
-    setGoals([
-      { id: 1, title: 'Completing 80 task every month', progress: 60, target: 80, current: 48, quarter: 1, year: 2025, owner: 'Platama Adi Pangestu' },
-      { id: 2, title: 'Finishing 12 project together', progress: 70, target: 12, current: 8.4, quarter: 2, year: 2025, owner: 'Dwi Ayu Putri Permatasari' }
-    ])
+        // Fetch goals
+        const { data: goalsData } = await supabase
+          .from('goals')
+          .select('*')
+          .eq('userId', user.id)
+          .order('createdAt', { ascending: false })
+          .limit(5)
 
-    setProjects([
-      { id: 1, name: 'Aerotech Web Design', tasks: 12, color: 'bg-purple-100 text-purple-700' },
-      { id: 2, name: 'Climtown App Redesign', tasks: 8, color: 'bg-blue-100 text-blue-700' },
-      { id: 3, name: 'Uwo App Redesign', tasks: 4, color: 'bg-pink-100 text-pink-700' }
-    ])
-  }, [])
+        // Fetch projects
+        const { data: projectsData } = await supabase
+          .from('projects')
+          .select(`
+            *,
+            _count:tasks(count)
+          `)
+          .eq('userId', user.id)
+          .order('createdAt', { ascending: false })
+          .limit(5)
+
+        // Fetch notifications
+        const { data: notificationsData } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('userId', user.id)
+          .order('createdAt', { ascending: false })
+          .limit(10)
+
+        // Transform and set data
+        if (tasksData) {
+          const formattedTasks = tasksData.map(task => ({
+            id: task.id,
+            title: task.title,
+            project: task.project?.name || '',
+            priority: task.priority.toLowerCase(),
+            status: task.status.toLowerCase().replace('_', '-'),
+            progress: task.progress,
+            dueDate: task.dueDate ? format(new Date(task.dueDate), 'EEE, dd MMM yyyy') : ''
+          }))
+          setTasks(formattedTasks)
+        }
+
+        if (goalsData) {
+          const formattedGoals = goalsData.map(goal => ({
+            id: goal.id,
+            title: goal.title,
+            progress: Math.round((goal.current / goal.target) * 100),
+            target: goal.target,
+            current: goal.current,
+            quarter: Math.ceil(new Date().getMonth() / 3),
+            year: new Date().getFullYear(),
+            owner: user.name || user.email
+          }))
+          setGoals(formattedGoals)
+        }
+
+        if (projectsData) {
+          const formattedProjects = projectsData.map(project => ({
+            id: project.id,
+            name: project.name,
+            tasks: project._count || 0,
+            color: 'bg-purple-100 text-purple-700' // Use project.color if available
+          }))
+          setProjects(formattedProjects)
+        }
+
+        if (notificationsData) {
+          const formattedNotifications = notificationsData.map(notification => ({
+            id: notification.id,
+            type: notification.type,
+            message: notification.message,
+            time: format(new Date(notification.createdAt), 'MMM dd, yyyy'),
+            read: notification.read
+          }))
+          setNotifications(formattedNotifications)
+        }
+
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [user])
 
   if (!isLoaded) {
     return (
@@ -291,88 +368,121 @@ export default function DashboardPage() {
         </header>
 
       <main className="px-6 py-8">
-        {/* Performance Metrics Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Team Performance */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-600 font-medium">Team performance</h3>
-              <MoreHorizontal className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="flex items-end space-x-2 mb-2">
-              <span className="text-3xl font-bold text-gray-900">{teamPerformance.current}%</span>
-              <span className="text-sm font-medium text-green-600 flex items-center">
-                ↗ {teamPerformance.change} Increased vs last week
-              </span>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">vs 76.55%</p>
-            {/* Mini Chart Placeholder */}
-            <div className="h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg flex items-end justify-between px-2 py-2">
-              {[40, 45, 35, 50, 45, 55, 60].map((height, index) => (
-                <div key={index} className={`bg-purple-400 rounded-sm w-3`} style={{height: `${height}%`}}></div>
-              ))}
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
           </div>
-
-          {/* Upcoming Deadlines */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-600 font-medium">Upcoming deadlines</h3>
-              <MoreHorizontal className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="flex items-end space-x-2 mb-4">
-              <span className="text-3xl font-bold text-gray-900">{upcomingDeadlines}</span>
-              <span className="text-sm font-medium text-red-600 flex items-center">
-                ↘ 12 Decreased vs last week
-              </span>
-            </div>
-            {/* Calendar Visualization */}
-            <div className="grid grid-cols-7 gap-1 text-xs">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                <div key={day} className="text-center p-1 text-gray-500">{day}</div>
-              ))}
-              {Array.from({length: 21}, (_, i) => (
-                <div key={i} className={`aspect-square rounded text-center p-1 ${
-                  [13, 14, 17].includes(i + 8) ? 'bg-purple-100 text-purple-700 font-medium' : 'text-gray-700'
-                }`}>
-                  {i + 8}
+        ) : (
+          <>
+            {/* Performance Metrics Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Team Performance */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-gray-600 font-medium">Team performance</h3>
+                  <MoreHorizontal className="h-5 w-5 text-gray-400" />
                 </div>
-              ))}
-            </div>
-          </div>
+                {tasks.length > 0 ? (
+                  <>
+                    <div className="flex items-end space-x-2 mb-2">
+                      <span className="text-3xl font-bold text-gray-900">{Math.round((tasks.filter(t => t.status === 'completed').length / tasks.length) * 100)}%</span>
+                      <span className="text-sm font-medium text-green-600 flex items-center">
+                        ↗ Completion rate
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">Tasks completed this week</p>
+                    {/* Mini Chart Placeholder */}
+                    <div className="h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg flex items-end justify-between px-2 py-2">
+                      {[40, 45, 35, 50, 45, 55, 60].map((height, index) => (
+                        <div key={index} className={`bg-purple-400 rounded-sm w-3`} style={{height: `${height}%`}}></div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <TrendingUp className="mx-auto h-12 w-12 text-gray-300" />
+                    <p className="text-sm text-gray-500 mt-2">No performance data yet</p>
+                    <p className="text-xs text-gray-400">Complete some tasks to see your performance</p>
+                  </div>
+                )}
+              </div>
 
-          {/* Tasks Completed */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-600 font-medium">Task completed</h3>
-              <MoreHorizontal className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="flex items-end space-x-2 mb-4">
-              <span className="text-3xl font-bold text-gray-900">{tasksCompleted.count}</span>
-              <span className="text-sm font-medium text-green-600 flex items-center">
-                ↗ {tasksCompleted.change} Increased vs last week
-              </span>
-            </div>
-            {/* Project Progress Bars */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
-                <span className="text-sm text-gray-600 flex-1">Aerotech Web Design</span>
-                <span className="text-sm font-medium text-gray-900">{projects[0]?.tasks || 12} Tasks</span>
+              {/* Upcoming Deadlines */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-gray-600 font-medium">Upcoming deadlines</h3>
+                  <MoreHorizontal className="h-5 w-5 text-gray-400" />
+                </div>
+                {tasks.length > 0 ? (
+                  <>
+                    <div className="flex items-end space-x-2 mb-4">
+                      <span className="text-3xl font-bold text-gray-900">{tasks.filter(t => t.dueDate && new Date(t.dueDate) > new Date()).length}</span>
+                      <span className="text-sm font-medium text-blue-600 flex items-center">
+                        Tasks with deadlines
+                      </span>
+                    </div>
+                    {/* Calendar Visualization */}
+                    <div className="grid grid-cols-7 gap-1 text-xs">
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                        <div key={day} className="text-center p-1 text-gray-500">{day}</div>
+                      ))}
+                      {Array.from({length: 21}, (_, i) => (
+                        <div key={i} className={`aspect-square rounded text-center p-1 text-gray-700`}>
+                          {i + 8}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <Clock className="mx-auto h-12 w-12 text-gray-300" />
+                    <p className="text-sm text-gray-500 mt-2">No upcoming deadlines</p>
+                    <p className="text-xs text-gray-400">Create tasks with due dates to track deadlines</p>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-sm text-gray-600 flex-1">Climtown App Redesign</span>
-                <span className="text-sm font-medium text-gray-900">{projects[1]?.tasks || 8} Tasks</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-pink-400 rounded-full"></div>
-                <span className="text-sm text-gray-600 flex-1">Uwo App Redesign</span>
-                <span className="text-sm font-medium text-gray-900">{projects[2]?.tasks || 4} Tasks</span>
+
+              {/* Tasks Completed */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-gray-600 font-medium">Task completed</h3>
+                  <MoreHorizontal className="h-5 w-5 text-gray-400" />
+                </div>
+                {tasks.length > 0 ? (
+                  <>
+                    <div className="flex items-end space-x-2 mb-4">
+                      <span className="text-3xl font-bold text-gray-900">{tasks.filter(t => t.status === 'completed').length}</span>
+                      <span className="text-sm font-medium text-green-600 flex items-center">
+                        ↗ Total completed
+                      </span>
+                    </div>
+                    {/* Project Progress Bars */}
+                    <div className="space-y-3">
+                      {projects.slice(0, 3).map((project, index) => (
+                        <div key={project.id} className="flex items-center space-x-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            index === 0 ? 'bg-purple-400' : index === 1 ? 'bg-green-400' : 'bg-pink-400'
+                          }`}></div>
+                          <span className="text-sm text-gray-600 flex-1">{project.name}</span>
+                          <span className="text-sm font-medium text-gray-900">{project.tasks} Tasks</span>
+                        </div>
+                      ))}
+                      {projects.length === 0 && (
+                        <div className="text-center py-4">
+                          <p className="text-sm text-gray-500">No projects yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckSquare className="mx-auto h-12 w-12 text-gray-300" />
+                    <p className="text-sm text-gray-500 mt-2">No tasks completed yet</p>
+                    <p className="text-xs text-gray-400">Start creating and completing tasks</p>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        </div>
 
         {/* Tasks and Goals Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -408,46 +518,63 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <div className="space-y-3">
-              {filteredTasks.slice(0, 6).map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => handleTaskComplete(task.id)}
-                      className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                        task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-purple-400'
-                      }`}
-                    >
-                      {task.status === 'completed' && <CheckCircle className="w-3 h-3 text-white" />}
-                    </button>
-                    <div className="flex-1">
-                      <p className={`text-sm font-medium ${
-                        task.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900'
-                      }`}>
-                        {task.title}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {task.project && `${task.project} • `}{task.dueDate}
-                      </p>
+            {filteredTasks.length > 0 ? (
+              <div className="space-y-3">
+                {filteredTasks.slice(0, 6).map((task) => (
+                  <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => handleTaskComplete(task.id)}
+                        className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                          task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-purple-400'
+                        }`}
+                      >
+                        {task.status === 'completed' && <CheckCircle className="w-3 h-3 text-white" />}
+                      </button>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${
+                          task.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900'
+                        }`}>
+                          {task.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {task.project && `${task.project} • `}{task.dueDate}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-2 h-2 rounded-full ${
+                        task.priority === 'high' ? 'bg-red-400' :
+                        task.priority === 'medium' ? 'bg-yellow-400' :
+                        'bg-green-400'
+                      }`}></span>
+                      <div className="w-12 bg-gray-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-purple-400 h-1.5 rounded-full" 
+                          style={{width: `${task.progress}%`}}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-gray-500">{task.progress}%</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`w-2 h-2 rounded-full ${
-                      task.priority === 'high' ? 'bg-red-400' :
-                      task.priority === 'medium' ? 'bg-yellow-400' :
-                      'bg-green-400'
-                    }`}></span>
-                    <div className="w-12 bg-gray-200 rounded-full h-1.5">
-                      <div 
-                        className="bg-purple-400 h-1.5 rounded-full" 
-                        style={{width: `${task.progress}%`}}
-                      ></div>
-                    </div>
-                    <span className="text-xs text-gray-500">{task.progress}%</span>
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <CheckSquare className="mx-auto h-12 w-12 text-gray-300" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks yet</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by creating your first task.</p>
+                <div className="mt-6">
+                  <Link
+                    href="/tasks/new"
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Task
+                  </Link>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
             
             <div className="mt-4 text-center">
               <Link href="/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
@@ -466,45 +593,62 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            <div className="space-y-6">
-              {goals.map((goal) => (
-                <div key={goal.id} className="">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">{goal.title}</h4>
-                      <p className="text-xs text-gray-500">Q{goal.quarter} {goal.year} • {goal.owner}</p>
-                    </div>
-                    <button className="p-1 text-gray-400 hover:text-gray-600">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl font-bold text-gray-900">{goal.current}</span>
-                    <span className="text-sm text-gray-500">/ {goal.target}</span>
-                  </div>
-                  
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div 
-                      className="bg-purple-400 h-2 rounded-full" 
-                      style={{width: `${goal.progress}%`}}
-                    ></div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{goal.progress}% completed</span>
-                    <div className="flex items-center space-x-2">
-                      <button className="p-1 text-gray-400 hover:text-purple-600">
-                        <Edit className="h-3 w-3" />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-red-600">
-                        <Trash2 className="h-3 w-3" />
+            {goals.length > 0 ? (
+              <div className="space-y-6">
+                {goals.map((goal) => (
+                  <div key={goal.id} className="">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-900 mb-1">{goal.title}</h4>
+                        <p className="text-xs text-gray-500">Q{goal.quarter} {goal.year} • {goal.owner}</p>
+                      </div>
+                      <button className="p-1 text-gray-400 hover:text-gray-600">
+                        <MoreHorizontal className="h-4 w-4" />
                       </button>
                     </div>
+                    
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl font-bold text-gray-900">{goal.current}</span>
+                      <span className="text-sm text-gray-500">/ {goal.target}</span>
+                    </div>
+                    
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-purple-400 h-2 rounded-full" 
+                        style={{width: `${goal.progress}%`}}
+                      ></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">{goal.progress}% completed</span>
+                      <div className="flex items-center space-x-2">
+                        <button className="p-1 text-gray-400 hover:text-purple-600">
+                          <Edit className="h-3 w-3" />
+                        </button>
+                        <button className="p-1 text-gray-400 hover:text-red-600">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Target className="mx-auto h-12 w-12 text-gray-300" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No goals yet</h3>
+                <p className="mt-1 text-sm text-gray-500">Set your first goal to track your progress.</p>
+                <div className="mt-6">
+                  <Link
+                    href="/goals/new"
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Goal
+                  </Link>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
             
             <div className="mt-6 text-center">
               <Link href="/goals" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
@@ -593,6 +737,8 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+          </>
+        )}
       </main>
       </div>
     </div>

@@ -1,11 +1,15 @@
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { SUBSCRIPTION_PLANS, ANNUAL_PRICING, PlanId } from './pricing'
 
-// Initialize Stripe with build-time safety
-export const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-  typescript: true
-}) : null
+// Lazy initialize Stripe to avoid static import during build/analysis
+export async function getStripe() {
+  const { default: Stripe } = await import('stripe')
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured')
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2022-11-15',
+    typescript: true
+  })
+}
 
 // Stripe customer management
 export class StripeCustomerManager {
@@ -15,7 +19,7 @@ export class StripeCustomerManager {
     userId: string,
     metadata: Record<string, string> = {}
   ): Promise<Stripe.Customer> {
-    if (!stripe) throw new Error('Stripe not initialized')
+    const stripe = await getStripe()
     return await stripe.customers.create({
       email,
       name,
@@ -29,6 +33,7 @@ export class StripeCustomerManager {
 
   static async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
     try {
+      const stripe = await getStripe()
       return await stripe.customers.retrieve(customerId) as Stripe.Customer
     } catch (error) {
       console.error('Failed to retrieve customer:', error)
@@ -40,10 +45,12 @@ export class StripeCustomerManager {
     customerId: string,
     updates: Partial<Stripe.CustomerUpdateParams>
   ): Promise<Stripe.Customer> {
+    const stripe = await getStripe()
     return await stripe.customers.update(customerId, updates)
   }
 
   static async deleteCustomer(customerId: string): Promise<void> {
+    const stripe = await getStripe()
     await stripe.customers.del(customerId)
   }
 
@@ -53,6 +60,7 @@ export class StripeCustomerManager {
     userId: string
   ): Promise<Stripe.Customer> {
     // First try to find existing customer
+    const stripe = await getStripe()
     const existingCustomers = await stripe.customers.list({
       email,
       limit: 1
@@ -90,6 +98,7 @@ export class StripeSubscriptionManager {
       subscriptionParams.trial_period_days = options.trialDays
     }
 
+    const stripe = await getStripe()
     return await stripe.subscriptions.create(subscriptionParams)
   }
 
@@ -101,6 +110,7 @@ export class StripeSubscriptionManager {
       billingCycleAnchor?: 'now' | 'unchanged'
     } = {}
   ): Promise<Stripe.Subscription> {
+    const stripe = await getStripe()
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
     
     return await stripe.subscriptions.update(subscriptionId, {
@@ -117,6 +127,7 @@ export class StripeSubscriptionManager {
     subscriptionId: string,
     immediately: boolean = false
   ): Promise<Stripe.Subscription> {
+    const stripe = await getStripe()
     if (immediately) {
       return await stripe.subscriptions.cancel(subscriptionId)
     } else {
@@ -127,6 +138,7 @@ export class StripeSubscriptionManager {
   }
 
   static async resumeSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+    const stripe = await getStripe()
     return await stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: false
     })
@@ -134,6 +146,7 @@ export class StripeSubscriptionManager {
 
   static async getSubscription(subscriptionId: string): Promise<Stripe.Subscription | null> {
     try {
+      const stripe = await getStripe()
       return await stripe.subscriptions.retrieve(subscriptionId, {
         expand: ['latest_invoice', 'latest_invoice.payment_intent']
       })
@@ -144,6 +157,7 @@ export class StripeSubscriptionManager {
   }
 
   static async listCustomerSubscriptions(customerId: string): Promise<Stripe.Subscription[]> {
+    const stripe = await getStripe()
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: 'all',
@@ -162,6 +176,7 @@ export class StripePaymentManager {
     customerId?: string,
     metadata: Record<string, string> = {}
   ): Promise<Stripe.PaymentIntent> {
+    const stripe = await getStripe()
     return await stripe.paymentIntents.create({
       amount,
       currency,
@@ -180,12 +195,14 @@ export class StripePaymentManager {
     paymentIntentId: string,
     paymentMethodId: string
   ): Promise<Stripe.PaymentIntent> {
+    const stripe = await getStripe()
     return await stripe.paymentIntents.confirm(paymentIntentId, {
       payment_method: paymentMethodId
     })
   }
 
   static async createSetupIntent(customerId: string): Promise<Stripe.SetupIntent> {
+    const stripe = await getStripe()
     return await stripe.setupIntents.create({
       customer: customerId,
       usage: 'off_session',
@@ -198,6 +215,7 @@ export class StripePaymentManager {
     amount?: number,
     reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer'
   ): Promise<Stripe.Refund> {
+    const stripe = await getStripe()
     return await stripe.refunds.create({
       payment_intent: paymentIntentId,
       amount,
@@ -241,11 +259,13 @@ export class StripeCheckoutManager {
       sessionParams.subscription_data!.trial_period_days = options.trialDays
     }
 
+    const stripe = await getStripe()
     return await stripe.checkout.sessions.create(sessionParams)
   }
 
   static async retrieveCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session | null> {
     try {
+      const stripe = await getStripe()
       return await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['subscription', 'subscription.latest_invoice']
       })
@@ -259,6 +279,7 @@ export class StripeCheckoutManager {
     customerId: string,
     returnUrl?: string
   ): Promise<Stripe.BillingPortal.Session> {
+    const stripe = await getStripe()
     return await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/billing`
@@ -273,6 +294,7 @@ export class StripeUsageManager {
     quantity: number,
     timestamp?: number
   ): Promise<Stripe.UsageRecord> {
+    const stripe = await getStripe()
     return await stripe.subscriptionItems.createUsageRecord(
       subscriptionItemId,
       {
@@ -288,6 +310,7 @@ export class StripeUsageManager {
     startDate: Date,
     endDate: Date
   ): Promise<Stripe.UsageRecordSummary[]> {
+    const stripe = await getStripe()
     const summaries = await stripe.subscriptionItems.listUsageRecordSummaries(
       subscriptionItemId,
       {
@@ -302,11 +325,12 @@ export class StripeUsageManager {
 
 // Stripe webhook utilities
 export class StripeWebhookManager {
-  static constructEvent(
+  static async constructEvent(
     payload: string | Buffer,
     signature: string,
     endpointSecret: string
-  ): Stripe.Event {
+  ): Promise<Stripe.Event> {
+    const stripe = await getStripe()
     return stripe.webhooks.constructEvent(payload, signature, endpointSecret)
   }
 
@@ -424,6 +448,7 @@ export class StripePricingManager {
     description: string,
     metadata: Record<string, string> = {}
   ): Promise<Stripe.Product> {
+    const stripe = await getStripe()
     return await stripe.products.create({
       name,
       description,
@@ -441,6 +466,7 @@ export class StripePricingManager {
     interval: 'month' | 'year' = 'month',
     metadata: Record<string, string> = {}
   ): Promise<Stripe.Price> {
+    const stripe = await getStripe()
     return await stripe.prices.create({
       product: productId,
       unit_amount: amount,
@@ -453,6 +479,7 @@ export class StripePricingManager {
   }
 
   static async listPrices(productId?: string): Promise<Stripe.Price[]> {
+    const stripe = await getStripe()
     const prices = await stripe.prices.list({
       product: productId,
       active: true,
@@ -463,6 +490,7 @@ export class StripePricingManager {
   }
 
   static async deactivatePrice(priceId: string): Promise<Stripe.Price> {
+    const stripe = await getStripe()
     return await stripe.prices.update(priceId, {
       active: false
     })
@@ -630,6 +658,7 @@ export class StripeAnalyticsManager {
     avgRevenuePerUser: number
   }> {
     // Get invoices for the period
+    const stripe = await getStripe()
     const invoices = await stripe.invoices.list({
       created: {
         gte: Math.floor(startDate.getTime() / 1000),
@@ -709,6 +738,7 @@ export class StripePromotionManager {
       minimumAmount?: number
     } = {}
   ): Promise<Stripe.PromotionCode> {
+    const stripe = await getStripe()
     return await stripe.promotionCodes.create({
       coupon: couponId,
       code,
@@ -731,6 +761,7 @@ export class StripePromotionManager {
       name?: string
     } = {}
   ): Promise<Stripe.Coupon> {
+    const stripe = await getStripe()
     return await stripe.coupons.create({
       percent_off: percentOff,
       duration,
@@ -774,35 +805,6 @@ export class StripePromotionManager {
   }
 }
 
-// Main StripeManager class combining all functionality
-export class StripeManager {
-  static stripe = stripe
-  static customers = StripeCustomerManager
-  static subscriptions = StripeSubscriptionManager
-  static payments = StripePaymentManager
-  static checkout = StripeCheckoutManager
-  static usage = StripeUsageManager
-  static webhooks = StripeWebhookManager
-  static pricing = StripePricingManager
-  static analytics = StripeAnalyticsManager
-  static promotions = StripePromotionManager
-  static helpers = StripeHelpers
-  static enforcement = PlanEnforcement
-
-  // Convenience methods
-  static async createCustomer(...args: Parameters<typeof StripeCustomerManager.createCustomer>) {
-    return StripeCustomerManager.createCustomer(...args)
-  }
-
-  static async createCheckoutSession(...args: Parameters<typeof StripeCheckoutManager.createCheckoutSession>) {
-    return StripeCheckoutManager.createCheckoutSession(...args)
-  }
-
-  static async createBillingPortalSession(...args: Parameters<typeof StripeCheckoutManager.createBillingPortalSession>) {
-    return StripeCheckoutManager.createBillingPortalSession(...args)
-  }
-}
-
 // Stripe utilities for export
 export const StripeHelpers = {
   formatPrice: (amount: number, currency: string = 'USD'): string => {
@@ -834,11 +836,11 @@ export const StripeHelpers = {
     billingPeriod: 'month' | 'year' = 'month'
   ): number => {
     const current = billingPeriod === 'year' 
-      ? ANNUAL_PRICING[currentPlan] || SUBSCRIPTION_PLANS[currentPlan]
+      ? ANNUAL_PRICING[currentPlan as keyof typeof ANNUAL_PRICING] || SUBSCRIPTION_PLANS[currentPlan]
       : SUBSCRIPTION_PLANS[currentPlan]
     
     const target = billingPeriod === 'year'
-      ? ANNUAL_PRICING[newPlan] || SUBSCRIPTION_PLANS[newPlan]
+      ? ANNUAL_PRICING[newPlan as keyof typeof ANNUAL_PRICING] || SUBSCRIPTION_PLANS[newPlan]
       : SUBSCRIPTION_PLANS[newPlan]
 
     const dailyRateCurrent = (current?.price || 0) / (billingPeriod === 'year' ? 365 : 30)
@@ -850,15 +852,15 @@ export const StripeHelpers = {
     return chargeAmount - refundAmount
   },
 
-  getNextBillingDate: (subscription: Stripe.Subscription): Date => {
-    return new Date(subscription.current_period_end * 1000)
+  getNextBillingDate: (subscription: any): Date => {
+    return new Date((subscription.current_period_end || 0) * 1000)
   },
 
-  isSubscriptionActive: (subscription: Stripe.Subscription): boolean => {
+  isSubscriptionActive: (subscription: any): boolean => {
     return ['active', 'trialing'].includes(subscription.status)
   },
 
-  getSubscriptionStatus: (subscription: Stripe.Subscription): {
+  getSubscriptionStatus: (subscription: any): {
     status: string
     displayStatus: string
     canUpgrade: boolean
@@ -904,6 +906,35 @@ export const StripeHelpers = {
       status,
       ...(statusMap[status as keyof typeof statusMap] || statusMap.canceled)
     }
+  }
+}
+
+// Main StripeManager class combining all functionality
+export class StripeManager {
+  static getStripe = getStripe
+  static customers = StripeCustomerManager
+  static subscriptions = StripeSubscriptionManager
+  static payments = StripePaymentManager
+  static checkout = StripeCheckoutManager
+  static usage = StripeUsageManager
+  static webhooks = StripeWebhookManager
+  static pricing = StripePricingManager
+  static analytics = StripeAnalyticsManager
+  static promotions = StripePromotionManager
+  static helpers = StripeHelpers
+  static enforcement = PlanEnforcement
+
+  // Convenience methods
+  static async createCustomer(...args: Parameters<typeof StripeCustomerManager.createCustomer>) {
+    return StripeCustomerManager.createCustomer(...args)
+  }
+
+  static async createCheckoutSession(...args: Parameters<typeof StripeCheckoutManager.createCheckoutSession>) {
+    return StripeCheckoutManager.createCheckoutSession(...args)
+  }
+
+  static async createBillingPortalSession(...args: Parameters<typeof StripeCheckoutManager.createBillingPortalSession>) {
+    return StripeCheckoutManager.createBillingPortalSession(...args)
   }
 }
 

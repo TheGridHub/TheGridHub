@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import prisma from '@/lib/prisma'
+import { getStripe } from '@/lib/stripe'
 
 export const runtime = 'nodejs'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16'
-})
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -25,6 +22,7 @@ export async function POST(req: NextRequest) {
     let event: Stripe.Event
 
     try {
+      const stripe = await getStripe()
       event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
     } catch (err) {
       console.error('Webhook signature verification failed:', err)
@@ -114,6 +112,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     const priceId = subscription.items.data[0]?.price?.id
     const status = subscription.status
     
+    const stripe = await getStripe()
     const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
     const userId = customer.metadata?.userId
 
@@ -152,6 +151,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const priceId = subscription.items.data[0]?.price?.id
     const status = subscription.status
 
+    const stripe = await getStripe()
     const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
     const userId = customer.metadata?.userId
 
@@ -178,6 +178,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   
   try {
     const customerId = subscription.customer as string
+    const stripe = await getStripe()
     const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
     const userId = customer.metadata?.userId
 
@@ -260,6 +261,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     const customerId = invoice.customer as string
     const amount = invoice.amount_paid // cents
 
+    const stripe = await getStripe()
     const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
     const userId = customer.metadata?.userId
 

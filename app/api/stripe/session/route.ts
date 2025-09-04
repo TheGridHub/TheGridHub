@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 
 export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   try {
-    if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+    const stripe = await getStripe()
 
     const { searchParams } = new URL(req.url)
     const sessionId = searchParams.get('session_id')

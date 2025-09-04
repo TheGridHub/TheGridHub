@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { SUBSCRIPTION_PLANS } from '@/lib/pricing'
 import { auth } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+    const stripe = await getStripe()
 
     const { userId } = auth()
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (!user) user = await prisma.user.create({ data: { clerkId: userId, email: `${userId}@placeholder.local`, name: 'New User' } })
 
     // Get or create Stripe customer
-    const customer = await stripe.customers.create({
+    const customer = await (await getStripe()).customers.create({
       email: user.email,
       name: user.name || undefined,
       metadata: { userId: user.id }

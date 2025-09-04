@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { SUBSCRIPTION_PLANS } from '@/lib/pricing'
-import { StripeManager } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 
 export interface UserUsage {
   projects: number
@@ -216,12 +216,13 @@ export class SubscriptionManager {
 
       // If user doesn't have an active subscription, create checkout session
       if (!user.subscription || user.subscription.status !== 'active') {
-        const checkoutSession = await StripeManager.createCheckoutSession({
-          userId,
-          priceId: targetPlanConfig.stripePriceId,
+        const stripe = await getStripe()
+        const checkoutSession = await stripe.checkout.sessions.create({
+          customer: user.stripeCustomerId,
           mode: 'subscription',
-          successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`
+          line_items: [{ price: targetPlanConfig.stripePriceId, quantity: 1 }],
+          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`
         })
 
         return {
@@ -232,11 +233,12 @@ export class SubscriptionManager {
 
       // If user has active subscription, modify it
       if (user.stripeCustomerId && user.subscription.stripeSubscriptionId) {
-        const subscription = await StripeManager.stripe.subscriptions.retrieve(
+        const stripe = await getStripe()
+        const subscription = await stripe.subscriptions.retrieve(
           user.subscription.stripeSubscriptionId
         )
 
-        const updatedSubscription = await StripeManager.stripe.subscriptions.update(
+        const updatedSubscription = await stripe.subscriptions.update(
           user.subscription.stripeSubscriptionId,
           {
             items: [{
@@ -286,7 +288,8 @@ export class SubscriptionManager {
 
       if (immediate) {
         // Cancel immediately
-        await StripeManager.stripe.subscriptions.cancel(
+        const stripe = await getStripe()
+        await stripe.subscriptions.cancel(
           user.subscription.stripeSubscriptionId
         )
 
@@ -299,7 +302,8 @@ export class SubscriptionManager {
         })
       } else {
         // Cancel at period end
-        await StripeManager.stripe.subscriptions.update(
+        const stripe = await getStripe()
+        await stripe.subscriptions.update(
           user.subscription.stripeSubscriptionId,
           { cancel_at_period_end: true }
         )
@@ -333,7 +337,8 @@ export class SubscriptionManager {
       }
 
       // Remove cancellation
-      await StripeManager.stripe.subscriptions.update(
+      const stripe = await getStripe()
+      await stripe.subscriptions.update(
         user.subscription.stripeSubscriptionId,
         { cancel_at_period_end: false }
       )

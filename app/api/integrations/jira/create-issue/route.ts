@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getOrCreateUser } from '@/lib/auth/user-mapping';
-import { prisma } from '@/lib/prisma';
+import { getOrCreateUser } from '@/lib/user';
+import prisma from '@/lib/prisma';
 import { createJiraIssue } from '@/lib/integrations/jira';
 
 export async function POST(request: NextRequest) {

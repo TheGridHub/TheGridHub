@@ -46,6 +46,7 @@ export default async function DashboardLayout({
         
         {/* Main content */}
         <div className="relative z-10">
+          {require('@/components/common/SkipToContent').default()}
           {/* Simple top bar with language switcher */}
           <div className="flex items-center justify-end px-4 pt-4">
             <div className="bg-white/70 backdrop-blur rounded-lg border border-gray-200 px-3 py-2">
@@ -54,7 +55,9 @@ export default async function DashboardLayout({
           </div>
           {require('@/components/common/AdminSchemaBanner').default()}
           {require('@/components/common/ErrorReporter').default()}
-          {children}
+          <main id="main-content">
+            {children}
+          </main>
         </div>
       </div>
     </I18nProvider>

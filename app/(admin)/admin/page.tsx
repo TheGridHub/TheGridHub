@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
-import AdminDashboard from '@/components/admin/AdminDashboard'
-import UserManagement from '@/components/admin/UserManagement'
-import PaymentManagement from '@/components/admin/PaymentManagement'
-import SystemHealth from '@/components/admin/SystemHealth'
-import Analytics from '@/components/admin/Analytics'
-import Settings from '@/components/admin/Settings'
+import dynamic from 'next/dynamic'
+const AdminDashboard = dynamic(() => import('@/components/admin/AdminDashboard'), { ssr: false })
+const UserManagement = dynamic(() => import('@/components/admin/UserManagement'), { ssr: false })
+const PaymentManagement = dynamic(() => import('@/components/admin/PaymentManagement'), { ssr: false })
+const SystemHealth = dynamic(() => import('@/components/admin/SystemHealth'), { ssr: false })
+const Analytics = dynamic(() => import('@/components/admin/Analytics'), { ssr: false })
+const Settings = dynamic(() => import('@/components/admin/Settings'), { ssr: false })
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('dashboard')

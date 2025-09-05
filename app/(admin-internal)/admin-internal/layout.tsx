@@ -27,8 +27,9 @@ export default function AdminInternalLayout({ children }: { children: React.Reac
                 {session.role}
               </span>
             </div>
-            <form action="/api/admin-internal/login" method="POST" onSubmit={(e)=>{}}>
+            <form action="/api/admin-internal/login" method="POST">
               <button
+                type="submit"
                 formAction="/api/admin-internal/login"
                 formMethod="DELETE"
                 className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm"

@@ -119,6 +119,15 @@ npm run dev
 npm run db:studio
 ```
 
+#### Developer Tooling
+- Vercel Analytics: enabled via <Analytics /> in the root layout (production-safe).
+- Accessibility (dev only): axe-core is loaded from CDN in development and logs violations to the console. See components/dev/DevA11y.tsx.
+- Bundle analysis (optional): set ANALYZE=true for the build and install @next/bundle-analyzer to enable. Example:
+  ```bash
+  npm i -D @next/bundle-analyzer
+  ANALYZE=true npm run build
+  ```
+
 ## 🌟 Why Choose TheGridHub?
 
 ### **Built for Modern Teams**

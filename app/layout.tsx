@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Metadata } from 'next'
 import Script from 'next/script'
 import SupabaseProvider from '@/components/providers/SupabaseProvider'
+import { Analytics } from '@vercel/analytics/react'
 
 // Make this layout dynamic to avoid static generation issues with SupabaseProvider
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,7 @@ export default function RootLayout({
         <SupabaseProvider>
           {children}
         </SupabaseProvider>
+        <Analytics />
       </body>
     </html>
   )

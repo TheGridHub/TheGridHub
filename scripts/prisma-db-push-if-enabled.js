@@ -20,8 +20,13 @@ function main() {
 
   const res = spawnSync('npx', ['--yes', 'prisma', 'db', 'push'], { stdio: 'inherit', shell: true })
   if (res.status !== 0) {
-    console.error('[prisma-db-push-if-enabled] prisma db push failed')
-    process.exit(res.status || 1)
+    const hardFail = (process.env.PRISMA_FAIL_BUILD_ON_PUSH || 'false').toLowerCase() === 'true'
+    if (hardFail) {
+      console.error('[prisma-db-push-if-enabled] prisma db push failed (failing build because PRISMA_FAIL_BUILD_ON_PUSH=true)')
+      process.exit(res.status || 1)
+    } else {
+      console.warn('[prisma-db-push-if-enabled] prisma db push failed, continuing build (set PRISMA_FAIL_BUILD_ON_PUSH=true to fail)')
+    }
   }
 }
 

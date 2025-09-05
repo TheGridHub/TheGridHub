@@ -39,7 +39,8 @@
     "db:push": "npx prisma db push",
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio",
-    "e2e:smoke": "node scripts/smoke.js"
+    "e2e:smoke": "node scripts/smoke.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.23",
@@ -70,7 +71,8 @@
     "stripe": "^18.5.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss": "^3.4.15",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@prisma/client": "^6.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.8.7",
@@ -86,6 +88,7 @@
     "eslint-plugin-security": "^3.0.1",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "prisma": "^6.3.0"
   }
 }

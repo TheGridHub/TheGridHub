@@ -33,7 +33,7 @@ export default async function AdminInternalHome() {
         </div>
         <div className="flex gap-2">
           <Link href="/admin-internal/users" className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Users</Link>
-          <Link href="/admin/flags" className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Feature Flags</Link>
+          <Link href="/admin-internal/flags" className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Feature Flags</Link>
         </div>
       </div>
 

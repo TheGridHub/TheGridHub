@@ -20,7 +20,19 @@ export default function AdminInternalLayout({ children }: { children: React.Reac
               <div className="text-slate-900 font-semibold">TheGridHub Admin</div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-3 text-sm">
+              <a href="/admin-internal" className="text-slate-700 hover:text-slate-900">Home</a>
+              <a href="/admin-internal/users" className="text-slate-700 hover:text-slate-900">Users</a>
+              <a href="/admin-internal/projects" className="text-slate-700 hover:text-slate-900">Projects</a>
+              <a href="/admin-internal/tasks" className="text-slate-700 hover:text-slate-900">Tasks</a>
+              <a href="/admin-internal/team" className="text-slate-700 hover:text-slate-900">Team</a>
+              <a href="/admin-internal/db" className="text-slate-700 hover:text-slate-900">DB</a>
+              <a href="/admin-internal/integrations" className="text-slate-700 hover:text-slate-900">Integrations</a>
+              <a href="/admin-internal/notifications" className="text-slate-700 hover:text-slate-900">Notifications</a>
+              <a href="/admin-internal/stripe" className="text-slate-700 hover:text-slate-900">Stripe</a>
+              <a href="/admin-internal/flags" className="text-slate-700 hover:text-slate-900">Flags</a>
+            </nav>
             <div className="text-xs text-slate-600">
               Logged in as <span className="font-medium text-slate-900">{session.username}</span>
               <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${session.role === 'owner' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>

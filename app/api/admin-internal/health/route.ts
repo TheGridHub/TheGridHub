@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+
+export const runtime = 'nodejs'
 
 function mask(value?: string) {
   if (!value) return { present: false, value: null }
@@ -27,7 +29,8 @@ async function ping(url: string) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const origin = req.nextUrl.origin
   const env = process.env
   const envStatus = {
     DATABASE_URL: mask(env.DATABASE_URL),
@@ -78,12 +81,12 @@ export async function GET() {
 
   const [supa, app, db, stripe, slack, google, ms] = await Promise.all([
     checkSupabase(),
-    ping(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/health/app`),
-    ping(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/health/db`),
-    ping(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/health/stripe`),
-    ping(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/slack/status`),
-    ping(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/google/status`),
-    ping(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/office365/status`),
+    ping(`${origin}/api/health/app`),
+    ping(`${origin}/api/health/db`),
+    ping(`${origin}/api/health/stripe`),
+    ping(`${origin}/api/integrations/slack/status`),
+    ping(`${origin}/api/integrations/google/status`),
+    ping(`${origin}/api/integrations/office365/status`),
   ])
 
   return NextResponse.json({

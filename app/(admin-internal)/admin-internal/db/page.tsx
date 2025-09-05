@@ -28,7 +28,10 @@ export default async function AdminDbPage() {
           <h1 className="text-2xl font-semibold text-slate-900">Database Checks</h1>
           <p className="text-slate-600 text-sm">Schema, latency, and RLS smoke tests</p>
         </div>
-        <Link href="/admin-internal" className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Back</Link>
+        <div className="flex items-center gap-2">
+          <Link href="/admin-internal" className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Back</Link>
+          <Link href="/admin-internal/db/explorer" className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Explorer</Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

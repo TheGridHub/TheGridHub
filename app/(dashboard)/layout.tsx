@@ -53,6 +53,7 @@ export default async function DashboardLayout({
             </div>
           </div>
           {require('@/components/common/AdminSchemaBanner').default()}
+          {require('@/components/common/ErrorReporter').default()}
           {children}
         </div>
       </div>

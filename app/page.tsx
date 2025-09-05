@@ -153,11 +153,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/images/logo.svg" 
-                alt="TheGridHub" 
-                className="h-8 w-auto"
-              />
+              {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={112} height={32} className="h-8 w-auto" /> })()}
               <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">TheGridHub</span>
             </div>
             
@@ -561,11 +557,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <img 
-                  src="/images/logo.svg" 
-                  alt="TheGridHub" 
-                  className="h-8 w-auto brightness-0 invert"
-                />
+                {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={112} height={32} className="h-8 w-auto brightness-0 invert" /> })()}
                 <span className="text-xl font-bold text-white">TheGridHub</span>
               </div>
               <p className="text-gray-400 max-w-md">

@@ -234,7 +234,7 @@ export default function DashboardPage() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center px-6 py-4 border-b">
-            <img src="/images/logo.svg" alt="TheGridHub" className="h-8 w-auto" />
+            {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={112} height={32} className="h-8 w-auto" /> })()}
             <span className="ml-2 text-xl font-bold text-purple-600">TheGridHub</span>
           </div>
           
@@ -269,11 +269,7 @@ export default function DashboardPage() {
           {/* User Profile */}
           <div className="p-4 border-t">
             <div className="flex items-center space-x-3">
-              <img 
-                src={user?.imageUrl || `https://ui-avatars.com/api/?name=${user?.firstName || 'U'}&background=0D9488&color=fff`}
-                alt={user?.firstName || 'User'}
-                className="h-10 w-10 rounded-full"
-              />
+              {(() => { const Image = require('next/image').default; return <Image src={user?.imageUrl || `https://ui-avatars.com/api/?name=${user?.firstName || 'U'}&background=0D9488&color=fff`} alt={user?.firstName || 'User'} width={40} height={40} className="h-10 w-10 rounded-full" /> })()}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.firstName || 'User'}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email || 'user@example.com'}</p>

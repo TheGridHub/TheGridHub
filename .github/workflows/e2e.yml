@@ -1,0 +1,35 @@
+name: E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to test'
+        required: true
+      cookie:
+        description: 'Cookie header for authenticated tests'
+        required: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright
+        run: npx playwright install --with-deps || true
+      - name: Run API smoke via curl
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url }}
+          COOKIE: ${{ github.event.inputs.cookie }}
+        run: |
+          set -e
+          curl -sS "$BASE_URL/api/health/app"
+          curl -sS -H "Cookie: $COOKIE" "$BASE_URL/api/projects"
+          curl -sS -H "Cookie: $COOKIE" "$BASE_URL/api/tasks"
+          curl -sS -H "Cookie: $COOKIE" "$BASE_URL/api/integrations/slack/status"
+

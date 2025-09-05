@@ -151,11 +151,7 @@ function LoginForm() {
           {/* Logo */}
           <div>
             <Link href="/" className="flex items-center space-x-3 group">
-              <img 
-                src="/images/logo.svg" 
-                alt="TheGridHub" 
-                className="h-10 w-auto transition-transform group-hover:scale-110"
-              />
+              {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={120} height={40} className="h-10 w-auto transition-transform group-hover:scale-110" /> })()}
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
                 TheGridHub
               </span>
@@ -338,11 +334,7 @@ function LoginForm() {
               "{testimonials[currentTestimonial].quote}"
             </p>
             <div className="flex items-center">
-              <img
-                src={testimonials[currentTestimonial].avatar}
-                alt={testimonials[currentTestimonial].author}
-                className="w-12 h-12 rounded-full mr-4"
-              />
+              {(() => { const Image = require('next/image').default; return <Image src={testimonials[currentTestimonial].avatar} alt={testimonials[currentTestimonial].author} width={48} height={48} className="w-12 h-12 rounded-full mr-4" /> })()}
               <div>
                 <p className="text-gray-900 font-semibold">{testimonials[currentTestimonial].author}</p>
                 <p className="text-gray-500 text-sm">{testimonials[currentTestimonial].role}</p>

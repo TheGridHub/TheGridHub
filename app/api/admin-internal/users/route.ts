@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { ensureInternalAuth } from '@/lib/internal-admin/auth'
+import { adminAuditLog } from '@/lib/internal-admin/audit'
 
 export async function GET(req: NextRequest) {
   try {
+    ensureInternalAuth() // any authenticated internal user can list
     const url = new URL(req.url)
     const q = url.searchParams.get('q') || ''
     const page = parseInt(url.searchParams.get('page') || '1', 10)
@@ -32,6 +35,7 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const auth = ensureInternalAuth('owner')
     const body = await req.json().catch(()=>({}))
     const { userId } = body
     if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
@@ -50,6 +54,9 @@ export async function DELETE(req: NextRequest) {
       await supa.from(t).delete().eq('userId', userId)
     }
     await supa.from('users').delete().eq('id', userId)
+
+    // Audit
+    await adminAuditLog(auth, 'user.delete', { userId })
 
     // Delete Supabase Auth user (if available)
     if (supabaseId) {

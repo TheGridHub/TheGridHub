@@ -153,7 +153,9 @@ export default function IntegrationsSettingsPage() {
               <button onClick={googleStatus} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Check status</button>
               <button onClick={googleTestEmail} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testEmail') || 'Send test email'}</button>
               <button onClick={googleTestCalendar} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testCalendar') || 'Create test calendar event'}</button>
-              <button onClick={async ()=>{ try { await post('/api/integrations/google/test-calendar?meet=1'); toast({ title: 'Create Meet event', variant: 'success' }) } catch (e:any) { toast({ title: 'Google Meet failed', description: e?.message || String(e), variant: 'destructive' }) } }} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Create Meet event</button>
+              {(() => { const useFeatureFlag = require('@/components/common/useFeatureFlag').useFeatureFlag; const enabled = useFeatureFlag('google_meet_test'); return enabled ? (
+                <button onClick={async ()=>{ try { await post('/api/integrations/google/test-calendar?meet=1'); toast({ title: 'Create Meet event', variant: 'success' }) } catch (e:any) { toast({ title: 'Google Meet failed', description: e?.message || String(e), variant: 'destructive' }) } }} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Create Meet event</button>
+              ) : null })()}
               <button onClick={googleTestSheets} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testSheets') || 'Create test spreadsheet'}</button>
             </div>
           </div>

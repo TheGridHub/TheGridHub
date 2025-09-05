@@ -72,6 +72,19 @@ export default function IntegrationsSettingsPage() {
     }
   }
 
+  const msStatus = async () => {
+    try {
+      const status = await get('/api/integrations/office365/status')
+      if (!status?.connected) {
+        toast({ title: 'Microsoft 365 not connected', description: 'Connect Office 365 under Integrations.', variant: 'destructive' })
+        return
+      }
+      toast({ title: 'Microsoft 365 connected', description: status.userEmail || '', variant: 'success' })
+    } catch (e:any) {
+      toast({ title: 'Microsoft status failed', description: e?.message || String(e), variant: 'destructive' })
+    }
+  }
+
   const msTestEmail = async () => {
     try {
       await post('/api/integrations/office365/test-email')
@@ -119,6 +132,7 @@ export default function IntegrationsSettingsPage() {
           <div className="border rounded-lg p-4">
             <h2 className="font-medium mb-2">{t('settings.integrations.microsoft.title') || 'Microsoft 365'}</h2>
             <div className="flex gap-2 flex-wrap">
+              <button onClick={msStatus} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Check status</button>
               <button onClick={msTestEmail} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.microsoft.testEmail') || 'Send test email'}</button>
               <button onClick={msTestCalendar} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.microsoft.testCalendar') || 'Create test calendar event'}</button>
             </div>

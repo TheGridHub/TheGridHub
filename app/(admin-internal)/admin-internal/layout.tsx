@@ -31,6 +31,9 @@ export default function AdminInternalLayout({ children }: { children: React.Reac
               <a href="/admin-internal/integrations" className="text-slate-700 hover:text-slate-900">Integrations</a>
               <a href="/admin-internal/notifications" className="text-slate-700 hover:text-slate-900">Notifications</a>
               <a href="/admin-internal/stripe" className="text-slate-700 hover:text-slate-900">Stripe</a>
+              <a href="/admin-internal/logs" className="text-slate-700 hover:text-slate-900">Logs</a>
+              <a href="/admin-internal/errors" className="text-slate-700 hover:text-slate-900">Errors</a>
+              <a href="/admin-internal/maintenance" className="text-slate-700 hover:text-slate-900">Maintenance</a>
               <a href="/admin-internal/flags" className="text-slate-700 hover:text-slate-900">Flags</a>
             </nav>
             <div className="text-xs text-slate-600">

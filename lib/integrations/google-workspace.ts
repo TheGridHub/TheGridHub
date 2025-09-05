@@ -332,9 +332,9 @@ description: 'TheGridHub project export'
 
       // Create folder
       const folderMetadata = {
-name: `TheGridHub - ${projectName}`
+        name: `TheGridHub - ${projectName}`,
         mimeType: 'application/vnd.google-apps.folder',
-description: `Shared folder for TheGridHub project: ${projectName}`
+        description: `Shared folder for TheGridHub project: ${projectName}`
       }
 
       const folder = await drive.files.create({

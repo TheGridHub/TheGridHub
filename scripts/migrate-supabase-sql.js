@@ -14,6 +14,7 @@ const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
 const { Client } = require('pg')
+const dns = require('dns').promises
 
 async function main() {
   if ((process.env.APPLY_SQL_MIGRATIONS_ON_BUILD || 'true').toLowerCase() === 'false') {
@@ -21,7 +22,7 @@ async function main() {
     return
   }
 
-  const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
+  const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
   if (!dbUrl) {
     console.warn('[migrate-supabase-sql] No DIRECT_URL or DATABASE_URL set; skipping SQL migrations')
     return
@@ -43,7 +44,24 @@ async function main() {
     return
   }
 
-  const client = new Client({ connectionString: dbUrl })
+  // Prefer IPv4 to avoid ENETUNREACH in some build environments
+  const u = new URL(dbUrl)
+  const host = u.hostname
+  let ipv4Host = host
+  try {
+    const a = await dns.resolve4(host)
+    if (a && a.length > 0) ipv4Host = a[0]
+  } catch {}
+
+  const ssl = u.searchParams.get('sslmode') === 'disable' ? false : { rejectUnauthorized: false }
+  const client = new Client({
+    host: ipv4Host,
+    port: Number(u.port || 5432),
+    user: decodeURIComponent(u.username),
+    password: decodeURIComponent(u.password),
+    database: u.pathname.replace(/^\/+/, '') || 'postgres',
+    ssl,
+  })
   await client.connect()
 
   try {

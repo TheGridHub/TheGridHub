@@ -23,7 +23,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/migrate-supabase-sql.js && prisma db push",
+    "prebuild": "node scripts/migrate-supabase-sql.js && node scripts/prisma-db-push-if-enabled.js",
     "build": "next build",
     "build:static": "next build && next export",
     "start": "next start",

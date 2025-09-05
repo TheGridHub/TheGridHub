@@ -45,6 +45,36 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // Onboarding guard: if user authenticated but hasn't completed onboarding,
+  // redirect to /onboarding (except when already on /onboarding)
+  if (!pathname.startsWith('/onboarding')) {
+    // Find users row by supabaseId
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('id')
+      .eq('supabaseId', session.user.id)
+      .maybeSingle()
+
+    const userId = userRow?.id
+
+    if (!userId) {
+      // No users row yet -> treat as not onboarded
+      const url = new URL('/onboarding', request.url)
+      return NextResponse.redirect(url)
+    }
+
+    const { data: onboard } = await supabase
+      .from('user_onboarding')
+      .select('id')
+      .eq('userId', userId)
+      .maybeSingle()
+
+    if (!onboard) {
+      const url = new URL('/onboarding', request.url)
+      return NextResponse.redirect(url)
+    }
+  }
+
   return response
 }
 

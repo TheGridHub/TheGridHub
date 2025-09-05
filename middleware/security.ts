@@ -41,7 +41,7 @@ export async function securityMiddleware(request: NextRequest): Promise<NextResp
     // 1. Basic request validation
     const basicValidation = await validateBasicSecurity(request, context)
     if (!basicValidation.passed) {
-      return createSecurityResponse(basicValidation.reason, 400, context)
+      return createSecurityResponse(basicValidation.reason || 'Bad request', 400, context)
     }
 
     // 2. Rate limiting check
@@ -81,7 +81,7 @@ export async function securityMiddleware(request: NextRequest): Promise<NextResp
     if (isAdminRoute(request)) {
       const adminCheck = await validateAdminAccess(request, context)
       if (!adminCheck.passed) {
-        return createSecurityResponse(adminCheck.reason, 401, context)
+        return createSecurityResponse(adminCheck.reason || 'Unauthorized', 401, context)
       }
     }
 
@@ -98,7 +98,7 @@ export async function securityMiddleware(request: NextRequest): Promise<NextResp
 
   } catch (error) {
     console.error('Security middleware error:', error)
-    await logSecurityEvent(context, 'MIDDLEWARE_ERROR', { error: error.toString() })
+    await logSecurityEvent(context, 'MIDDLEWARE_ERROR', { error: String(error) })
     return createSecurityResponse('Security check failed', 500, context)
   }
 }
@@ -278,11 +278,14 @@ function getClientIP(request: NextRequest): string {
   }
 
   // Fallback to connection remote address
-  return request.ip || '127.0.0.1'
+  return '127.0.0.1'
 }
 
 function generateRequestId(): string {
-  return `req_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`
+  const bytes = new Uint8Array(8)
+  globalThis.crypto.getRandomValues(bytes)
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
+  return `req_${Date.now()}_${hex}`
 }
 
 async function extractUserId(request: NextRequest): Promise<string | null> {
@@ -407,7 +410,7 @@ async function logRequestForAudit(request: NextRequest, context: SecurityContext
     action: 'API_ACCESS',
     severity: 'LOW',
     adminId: context.userId || 'anonymous',
-    adminRoles: context.adminRoles || [],
+    adminRoles: (context.adminRoles as any) || [],
     resource: 'api_endpoint',
     resourceId: request.nextUrl.pathname,
     success: true,
@@ -415,7 +418,6 @@ async function logRequestForAudit(request: NextRequest, context: SecurityContext
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
       requestId: context.requestId,
-      method: request.method,
       duration: Date.now() - context.startTime
     }
   })
@@ -659,7 +661,7 @@ class AdminOperationValidator {
         break
       
       case 'suspend':
-        if (!RBACManager.hasPermission(context.adminRoles || [], 'user:suspend')) {
+        if (!RBACManager.hasPermission((context.adminRoles || []) as any, 'user:suspend')) {
           return { isValid: false, reason: 'Missing suspend permission' }
         }
         break
@@ -709,7 +711,7 @@ class AdminOperationValidator {
 
     // Security config requires special permission
     if (operation === 'config_update' && category === 'security') {
-      if (!RBACManager.hasPermission(context.adminRoles || [], 'security:config')) {
+      if (!RBACManager.hasPermission((context.adminRoles || []) as any, 'security:config')) {
         return { isValid: false, reason: 'Security config requires security permission' }
       }
     }

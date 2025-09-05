@@ -1,7 +1,9 @@
+const path = require('path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Standalone output for server deployment
   output: 'standalone',
+  outputFileTracingRoot: __dirname,
   
   typescript: {
     ignoreBuildErrors: true,

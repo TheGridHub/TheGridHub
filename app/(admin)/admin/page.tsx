@@ -59,11 +59,18 @@ export default function AdminPage() {
       case 'users':
         return <UserManagement users={adminData?.users || []} onUserUpdate={handleUserUpdate} />
       case 'payments':
-        return <PaymentManagement payments={adminData?.payments || []} />
+        return (
+          <PaymentManagement 
+            payments={adminData?.payments || []} 
+            subscriptions={adminData?.subscriptions || []}
+            onPaymentUpdate={() => {}}
+            onSubscriptionUpdate={() => {}}
+          />
+        )
       case 'system':
-        return <SystemHealth data={adminData?.systemHealth} />
+        return <SystemHealth />
       case 'analytics':
-        return <Analytics data={adminData} />
+        return <Analytics />
       case 'settings':
         return <Settings />
       default:

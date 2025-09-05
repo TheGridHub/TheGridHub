@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
@@ -31,8 +31,42 @@ export async function POST(req: NextRequest) {
 
     console.log(`Processing Stripe event: ${event.type}`)
 
+    // Idempotency: attempt to record the event before processing
+    let canUpdateEventLog = false
+    try {
+      const supa = createServiceClient()
+      const inserted = await supa
+        .from('stripe_webhook_events')
+        .insert({
+          event_id: event.id,
+          type: event.type,
+          created_at: new Date(((event.created as number) || Math.floor(Date.now()/1000)) * 1000).toISOString(),
+          payload: event as any,
+          status: 'received'
+        })
+        .select('event_id')
+        .single()
+
+      if (inserted.error) {
+        // 23505 => unique_violation: duplicate event delivery
+        if ((inserted.error as any).code === '23505') {
+          console.warn(`Duplicate Stripe event received: ${event.id}`)
+          return NextResponse.json({ received: true, duplicate: true })
+        }
+        // Unexpected insert error, continue processing but note that we couldn't log it
+        console.warn('stripe_webhook_events insert error:', inserted.error)
+      } else {
+        canUpdateEventLog = true
+      }
+    } catch (e) {
+      // Table might not exist yet or other non-fatal error — continue processing
+      console.warn('stripe_webhook_events insert skipped (table missing or other non-fatal error):', e)
+    }
+
     // Handle the specific events you configured
-    switch (event.type) {
+    let handlerError: unknown = null
+    try {
+      switch (event.type) {
       // Subscription Events
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription)
@@ -95,6 +129,35 @@ export async function POST(req: NextRequest) {
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }
+    } catch (err) {
+      handlerError = err
+      console.error('Error while handling Stripe event:', err)
+    }
+
+    // After handling, update event log status
+    try {
+      if (canUpdateEventLog) {
+        const supa = createServiceClient()
+        if (!handlerError) {
+          await supa
+            .from('stripe_webhook_events')
+            .update({ status: 'processed', processed_at: new Date().toISOString() })
+            .eq('event_id', event.id)
+        } else {
+          const message = (handlerError as any)?.message || String(handlerError)
+          await supa
+            .from('stripe_webhook_events')
+            .update({ status: 'error', error: message, processed_at: new Date().toISOString() })
+            .eq('event_id', event.id)
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to update stripe_webhook_events status:', e)
+    }
+
+    if (handlerError) {
+      return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+    }
 
     return NextResponse.json({ received: true })
   } catch (error) {
@@ -117,7 +180,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      const supabase = createClient()
+      const supabase = createServiceClient()
       await supabase
         .from('subscriptions')
         .upsert({
@@ -125,8 +188,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
           stripeSubscriptionId: subscription.id,
           plan: priceId || 'UNKNOWN',
           status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
+          currentPeriodStart: new Date((subscription as any).current_period_start * 1000).toISOString(),
+          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString()
         }, { onConflict: 'userId' })
     }
     
@@ -149,14 +212,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      const supabase = createClient()
+      const supabase = createServiceClient()
       await supabase
         .from('subscriptions')
         .update({
           plan: priceId || 'UNKNOWN',
           status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
+          currentPeriodStart: new Date((subscription as any).current_period_start * 1000).toISOString(),
+          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString()
         })
         .eq('userId', userId)
     }
@@ -177,7 +240,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      const supabase = createClient()
+      const supabase = createServiceClient()
       await supabase
         .from('subscriptions')
         .update({ status: 'canceled' })
@@ -261,7 +324,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     const userId = customer.metadata?.userId
 
     if (userId) {
-      const supabase = createClient()
+      const supabase = createServiceClient()
       await supabase
         .from('payments')
         .insert({

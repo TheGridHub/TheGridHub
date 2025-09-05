@@ -46,7 +46,7 @@ export class SlackIntegration {
         Low: '#27ae60'
       }
 
-      const blocks = [
+      const blocks: any[] = [
         {
           type: 'section',
           text: {
@@ -123,7 +123,7 @@ export class SlackIntegration {
     assignerName?: string
   ): Promise<void> {
     try {
-      const blocks = [
+      const blocks: any[] = [
         {
           type: 'section',
           text: {
@@ -432,6 +432,24 @@ export class SlackIntegration {
       console.error('Error fetching team members:', error)
       return []
     }
+  }
+}
+
+// Minimal helper used by API route to fetch channels for a bot token
+export async function getSlackChannels(accessToken: string): Promise<Array<{ id: string; name: string }>> {
+  try {
+    const url = 'https://slack.com/api/conversations.list?exclude_archived=true&types=public_channel,private_channel'
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+    const json = await res.json()
+    if (!json.ok) return []
+    return (json.channels || []).map((c: any) => ({ id: c.id, name: c.name }))
+  } catch (e) {
+    console.error('Failed to fetch Slack channels:', e)
+    return []
   }
 }
 

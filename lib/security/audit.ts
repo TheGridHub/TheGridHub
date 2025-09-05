@@ -1,4 +1,5 @@
 import { PrivacyCompliance } from './validation'
+import { createHash } from 'node:crypto'
 
 export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'BILLING_ADMIN' | 'SUPPORT_ADMIN' | 'SECURITY_ADMIN' | 'ANALYTICS_ADMIN' | 'READ_ONLY_ADMIN'
 
@@ -57,7 +58,9 @@ export const AUDIT_ACTIONS = {
   DATA_EXPORT: 'DATA_EXPORT',
   DATA_DELETE: 'DATA_DELETE',
   DATA_ANONYMIZE: 'DATA_ANONYMIZE',
-  GDPR_REQUEST: 'GDPR_REQUEST'
+  GDPR_REQUEST: 'GDPR_REQUEST',
+  DATA_ACCESS: 'DATA_ACCESS',
+  API_ACCESS: 'API_ACCESS'
 } as const
 
 export const AUDIT_SEVERITY = {
@@ -203,7 +206,10 @@ export class AuditTrailManager {
   }
 
   private static generateEventId(): string {
-    return `audit_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`
+    const bytes = new Uint8Array(8)
+    globalThis.crypto.getRandomValues(bytes)
+    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
+    return `audit_${Date.now()}_${hex}`
   }
 }
 
@@ -1074,8 +1080,7 @@ export class AuditIntegrity {
       event.timestamp?.toISOString()
     ].join('|')
 
-    return crypto
-      .createHash('sha256')
+    return createHash('sha256')
       .update(criticalFields)
       .digest('hex')
   }
@@ -1169,7 +1174,7 @@ export const AuditHelpers = {
   extractAuditMetadata: (request: any): any => ({
     ipAddress: request.ip || request.headers['x-forwarded-for'] || 'unknown',
     userAgent: request.headers['user-agent'] || 'unknown',
-    requestId: request.id || crypto.randomBytes(8).toString('hex'),
+    requestId: request.id || (() => { const a=new Uint8Array(8); globalThis.crypto.getRandomValues(a); return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('') })(),
     sessionId: request.session?.id,
     timestamp: new Date()
   })

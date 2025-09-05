@@ -4,9 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabase = createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (error || !user) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
@@ -30,14 +30,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const current = (integration.features as any) || {}
     const updated = { ...current, [feature]: enabled }
 
-    const { data: saved, error } = await supa
+    const { data: saved, error: updateError } = await supa
       .from('integrations')
       .update({ features: updated })
       .eq('id', integration.id)
       .select('*')
       .single()
 
-    if (error) throw error
+    if (updateError) throw updateError
     return NextResponse.json(saved)
   } catch (error) {
     console.error('Features update error:', error)

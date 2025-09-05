@@ -7,7 +7,7 @@ import {
   SqlInjectionPrevention
 } from '@/lib/security/validation'
 import { RBACManager, PERMISSIONS } from '@/lib/security/rbac'
-import { SecurityAudit } from '@/lib/security/audit'
+import { AuditTrailManager } from '@/lib/security/audit'
 import { SecurityDashboard, IPSecurityManager } from '@/middleware/security'
 
 // Rate limiting for security endpoints
@@ -40,14 +40,18 @@ export async function GET(request: NextRequest) {
     ])
 
     // Log access for audit
-    await SecurityAudit.logDataAccess(
-      adminContext.adminId,
-      adminContext.adminRoles,
-      'security_dashboard',
-      'overview',
-      'view',
-      getRequestMetadata(request)
-    )
+    await AuditTrailManager.logEvent({
+      category: 'SECURITY',
+      action: 'DATA_ACCESS',
+      severity: 'LOW',
+      adminId: adminContext.adminId!,
+      adminRoles: (adminContext.adminRoles || []) as any,
+      resource: 'security_dashboard',
+      resourceId: 'overview',
+      newValues: { action: 'view' },
+      success: true,
+      metadata: getRequestMetadata(request)
+    })
 
     return NextResponse.json({
       metrics: securityMetrics,
@@ -115,16 +119,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Log security action
-    await SecurityAudit.logSensitiveAction(
-      adminContext.adminId,
-      `IP_${action.toUpperCase()}`,
-      'ip_management',
-      ipAddress,
-      reason,
-      getRequestMetadata(request).ipAddress,
-      getRequestMetadata(request).userAgent,
-      action === 'block' ? 'HIGH' : 'MEDIUM'
-    )
+    await AuditTrailManager.logEvent({
+      category: 'SECURITY',
+      action: 'CONFIG_UPDATE',
+      severity: (action === 'block' ? 'HIGH' : 'MEDIUM'),
+      adminId: adminContext.adminId,
+      adminRoles: adminContext.adminRoles as any,
+      resource: 'ip_management',
+      resourceId: ipAddress,
+      newValues: { action, reason },
+      success: true,
+      metadata: getRequestMetadata(request)
+    })
 
     return NextResponse.json(result)
 
@@ -176,16 +182,18 @@ export async function PUT(request: NextRequest) {
     const updatedSettings = await updateSecuritySettings(body, adminContext.adminId)
 
     // Log critical security configuration change
-    await SecurityAudit.logSensitiveAction(
-      adminContext.adminId,
-      'SECURITY_CONFIG_UPDATE',
-      'security_settings',
-      body.key,
-      `Updated security setting: ${body.key}`,
-      getRequestMetadata(request).ipAddress,
-      getRequestMetadata(request).userAgent,
-      'CRITICAL'
-    )
+    await AuditTrailManager.logEvent({
+      category: 'SECURITY',
+      action: 'CONFIG_UPDATE',
+      severity: 'CRITICAL',
+      adminId: adminContext.adminId,
+      adminRoles: adminContext.adminRoles as any,
+      resource: 'security_settings',
+      resourceId: body.key,
+      newValues: body,
+      success: true,
+      metadata: getRequestMetadata(request)
+    })
 
     return NextResponse.json({
       message: 'Security settings updated successfully',
@@ -205,9 +213,9 @@ export async function PUT(request: NextRequest) {
 async function getAdminContext(request: NextRequest): Promise<{
   success: boolean
   error?: string
-  adminId: string
-  adminRoles: any[]
-  isAdmin: boolean
+  adminId?: string
+  adminRoles?: any[]
+  isAdmin?: boolean
 }> {
   // Extract user from authentication system (Clerk, JWT, etc.)
   const authHeader = request.headers.get('authorization')
@@ -234,7 +242,7 @@ async function getAdminContext(request: NextRequest): Promise<{
 
 function getRequestMetadata(request: NextRequest) {
   return {
-    ipAddress: request.headers.get('x-forwarded-for') || request.ip || 'unknown',
+    ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
     userAgent: request.headers.get('user-agent') || 'unknown',
     requestId: crypto.randomUUID(),
     timestamp: new Date()

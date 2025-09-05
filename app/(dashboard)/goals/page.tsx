@@ -4,6 +4,7 @@ import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
+import { useI18n } from '@/components/i18n/I18nProvider'
 import { 
   Target, 
   Plus, 
@@ -43,6 +44,7 @@ interface Goal {
 
 export default function GoalsPage() {
   const { user, isLoaded } = useUser()
+  const { t } = useI18n()
   const [goals, setGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -52,12 +54,12 @@ export default function GoalsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
-  const [newGoal, setNewGoal] = useState({
+  const [newGoal, setNewGoal] = useState<{ title: string; description: string; target: number; current: number; type: 'TASK' | 'PROJECT' | 'CUSTOM'; deadline: string }>({
     title: '',
     description: '',
     target: 100,
     current: 0,
-    type: 'CUSTOM' as const,
+    type: 'CUSTOM',
     deadline: ''
   })
 
@@ -208,7 +210,7 @@ export default function GoalsPage() {
   }
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!confirm('Are you sure you want to delete this goal?')) return
+    if (!confirm(t('goals.confirmDelete') || 'Are you sure you want to delete this goal?')) return
 
     try {
       const supabase = createClient()
@@ -297,9 +299,9 @@ export default function GoalsPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Goals</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">{t('goals.title') || 'Goals'}</h1>
               <p className="text-gray-600 mt-1">
-                Track your progress and achieve your objectives
+                {t('goals.subtitle') || 'Track your progress and achieve your objectives'}
               </p>
             </div>
             
@@ -310,7 +312,7 @@ export default function GoalsPage() {
                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                New Goal
+                {t('goals.newGoal') || 'New Goal'}
               </button>
             </div>
           </div>
@@ -326,7 +328,7 @@ export default function GoalsPage() {
                 <Target className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Goals</p>
+                <p className="text-sm font-medium text-gray-600">{t('goals.stats.total') || 'Total Goals'}</p>
                 <p className="text-2xl font-bold text-gray-900">{totalGoals}</p>
               </div>
             </div>
@@ -338,7 +340,7 @@ export default function GoalsPage() {
                 <Trophy className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-sm font-medium text-gray-600">{t('goals.stats.completed') || 'Completed'}</p>
                 <p className="text-2xl font-bold text-gray-900">{completedGoals}</p>
               </div>
             </div>
@@ -350,7 +352,7 @@ export default function GoalsPage() {
                 <TrendingUp className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Average Progress</p>
+                <p className="text-sm font-medium text-gray-600">{t('goals.stats.averageProgress') || 'Average Progress'}</p>
                 <p className="text-2xl font-bold text-gray-900">{averageProgress}%</p>
               </div>
             </div>
@@ -362,7 +364,7 @@ export default function GoalsPage() {
                 <Clock className="h-6 w-6 text-red-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Overdue</p>
+                <p className="text-sm font-medium text-gray-600">{t('goals.stats.overdue') || 'Overdue'}</p>
                 <p className="text-2xl font-bold text-gray-900">{overdue}</p>
               </div>
             </div>
@@ -378,7 +380,7 @@ export default function GoalsPage() {
                 <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search goals..."
+                  placeholder={t('goals.searchPlaceholder') || 'Search goals...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -391,10 +393,10 @@ export default function GoalsPage() {
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="all">All Types</option>
-                <option value="TASK">Task Goals</option>
-                <option value="PROJECT">Project Goals</option>
-                <option value="CUSTOM">Custom Goals</option>
+                <option value="all">{t('goals.types.all') || 'All Types'}</option>
+                <option value="TASK">{t('goals.types.task') || 'Task Goals'}</option>
+                <option value="PROJECT">{t('goals.types.project') || 'Project Goals'}</option>
+                <option value="CUSTOM">{t('goals.types.custom') || 'Custom Goals'}</option>
               </select>
             </div>
 
@@ -405,17 +407,17 @@ export default function GoalsPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="deadline">Sort by Deadline</option>
-                <option value="title">Sort by Title</option>
-                <option value="progress">Sort by Progress</option>
-                <option value="target">Sort by Target</option>
-                <option value="createdAt">Sort by Created Date</option>
+                <option value="deadline">{t('common.sortBy.deadline') || 'Sort by Deadline'}</option>
+                <option value="title">{t('common.sortBy.title') || 'Sort by Title'}</option>
+                <option value="progress">{t('common.sortBy.progress') || 'Sort by Progress'}</option>
+                <option value="target">{t('common.sortBy.target') || 'Sort by Target'}</option>
+                <option value="createdAt">{t('common.sortBy.createdAt') || 'Sort by Created Date'}</option>
               </select>
 
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                 className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                title={`${t('common.sort')} ${sortOrder === 'asc' ? (t('common.descending') || 'Descending') : (t('common.ascending') || 'Ascending')}`}
               >
                 <ArrowUpDown className="h-4 w-4" />
               </button>
@@ -431,11 +433,11 @@ export default function GoalsPage() {
         ) : filteredGoals.length === 0 ? (
           <div className="text-center py-12">
             <Target className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No goals found</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('goals.empty.title') || 'No goals found'}</h3>
             <p className="mt-1 text-sm text-gray-500">
               {searchQuery || selectedType !== 'all'
-                ? 'Try adjusting your filters or search term.'
-                : 'Get started by creating your first goal.'
+                ? (t('goals.empty.adjust') || 'Try adjusting your filters or search term.')
+                : (t('goals.empty.cta') || 'Get started by creating your first goal.')
               }
             </p>
             {!searchQuery && selectedType === 'all' && (
@@ -445,7 +447,7 @@ export default function GoalsPage() {
                   className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Goal
+                  {t('goals.empty.createFirst') || 'Create Your First Goal'}
                 </button>
               </div>
             )}
@@ -455,7 +457,7 @@ export default function GoalsPage() {
             {/* Goals Count */}
             <div className="mb-6">
               <p className="text-sm text-gray-500">
-                Showing {filteredGoals.length} of {goals.length} goals
+                {t('common.showingOf', { current: filteredGoals.length, total: goals.length }) || `Showing ${filteredGoals.length} of ${goals.length}`}
               </p>
             </div>
 
@@ -508,7 +510,7 @@ export default function GoalsPage() {
                     {/* Progress Section */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Progress</span>
+                        <span className="text-sm font-medium text-gray-700">{t('goals.progress.label') || 'Progress'}</span>
                         <span className="text-sm text-gray-500">{Math.round(progress)}%</span>
                       </div>
                       
@@ -523,7 +525,7 @@ export default function GoalsPage() {
                       </div>
                       
                       <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>{goal.current} of {goal.target}</span>
+                        <span>{t('goals.progress.of', { current: goal.current, target: goal.target }) || `${goal.current} of ${goal.target}`}</span>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleUpdateProgress(goal, Math.max(0, goal.current - 1))}
@@ -548,14 +550,14 @@ export default function GoalsPage() {
                       {goal.deadline && (
                         <div className={`flex items-center ${isOverdue ? 'text-red-600' : 'text-gray-500'}`}>
                           <Calendar className="h-4 w-4 mr-1" />
-                          {isOverdue ? 'Overdue' : format(new Date(goal.deadline), 'MMM dd, yyyy')}
+                          {isOverdue ? (t('goals.status.overdue') || 'Overdue') : format(new Date(goal.deadline), 'MMM dd, yyyy')}
                         </div>
                       )}
                       
                       {isCompleted && (
                         <div className="flex items-center text-green-600">
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Completed
+                          {t('goals.status.completed') || 'Completed'}
                         </div>
                       )}
                     </div>
@@ -568,7 +570,7 @@ export default function GoalsPage() {
                           disabled={isCompleted}
                           className="flex-1 px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-lg hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Mark Complete
+                          {t('goals.actions.markComplete') || 'Mark Complete'}
                         </button>
                         <button
                           onClick={() => {
@@ -577,7 +579,7 @@ export default function GoalsPage() {
                           }}
                           className="flex-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100"
                         >
-                          Edit Goal
+                          {t('goals.actions.edit') || 'Edit Goal'}
                         </button>
                       </div>
                     </div>
@@ -594,7 +596,7 @@ export default function GoalsPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Create New Goal</h2>
+              <h2 className="text-lg font-semibold">{t('goals.create.title') || 'Create New Goal'}</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-1 text-gray-400 hover:text-gray-600"
@@ -606,34 +608,34 @@ export default function GoalsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Goal Title *
+                  {t('goals.form.titleLabel') || 'Goal Title *'}
                 </label>
                 <input
                   type="text"
                   value={newGoal.title}
                   onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter goal title"
+                  placeholder={t('goals.form.titlePlaceholder') || 'Enter goal title'}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('common.description') || 'Description'}
                 </label>
                 <textarea
                   value={newGoal.description}
                   onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter goal description"
+                  placeholder={t('goals.form.descriptionPlaceholder') || 'Enter goal description'}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Target *
+                    {t('goals.form.target') || 'Target *'}
                   </label>
                   <input
                     type="number"
@@ -646,7 +648,7 @@ export default function GoalsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Current Progress
+                    {t('goals.form.currentProgress') || 'Current Progress'}
                   </label>
                   <input
                     type="number"
@@ -661,22 +663,22 @@ export default function GoalsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Goal Type
+                  {t('goals.form.type') || 'Goal Type'}
                 </label>
                 <select
                   value={newGoal.type}
                   onChange={(e) => setNewGoal({ ...newGoal, type: e.target.value as 'TASK' | 'PROJECT' | 'CUSTOM' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="CUSTOM">Custom Goal</option>
-                  <option value="TASK">Task Goal</option>
-                  <option value="PROJECT">Project Goal</option>
+                  >
+                  <option value="CUSTOM">{t('goals.form.customGoal') || 'Custom Goal'}</option>
+                  <option value="TASK">{t('goals.form.taskGoal') || 'Task Goal'}</option>
+                  <option value="PROJECT">{t('goals.form.projectGoal') || 'Project Goal'}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Deadline (Optional)
+                  {t('goals.form.deadlineOptional') || 'Deadline (Optional)'}
                 </label>
                 <input
                   type="date"
@@ -693,13 +695,13 @@ export default function GoalsPage() {
                 disabled={!newGoal.title.trim() || newGoal.target < 1}
                 className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Goal
+                {t('goals.create.submit') || 'Create Goal'}
               </button>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Cancel
+                {t('common.cancel') || 'Cancel'}
               </button>
             </div>
           </div>
@@ -711,7 +713,7 @@ export default function GoalsPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Edit Goal</h2>
+              <h2 className="text-lg font-semibold">{t('goals.edit.title') || 'Edit Goal'}</h2>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="p-1 text-gray-400 hover:text-gray-600"
@@ -723,34 +725,34 @@ export default function GoalsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Goal Title *
+                  {t('goals.form.titleLabel') || 'Goal Title *'}
                 </label>
                 <input
                   type="text"
                   value={editingGoal.title}
                   onChange={(e) => setEditingGoal({ ...editingGoal, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter goal title"
+                  placeholder={t('goals.form.titlePlaceholder') || 'Enter goal title'}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('common.description') || 'Description'}
                 </label>
                 <textarea
                   value={editingGoal.description || ''}
                   onChange={(e) => setEditingGoal({ ...editingGoal, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter goal description"
+                  placeholder={t('goals.form.descriptionPlaceholder') || 'Enter goal description'}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Target *
+                    {t('goals.form.target') || 'Target *'}
                   </label>
                   <input
                     type="number"
@@ -763,7 +765,7 @@ export default function GoalsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Current Progress
+                    {t('goals.form.currentProgress') || 'Current Progress'}
                   </label>
                   <input
                     type="number"
@@ -778,7 +780,7 @@ export default function GoalsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Goal Type
+                  {t('goals.form.type') || 'Goal Type'}
                 </label>
                 <select
                   value={editingGoal.type}

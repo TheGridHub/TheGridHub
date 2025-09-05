@@ -1,227 +1,301 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
+import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
 import { 
-  Briefcase, 
-  Users, 
-  Target, 
   ArrowRight, 
   ArrowLeft,
   CheckCircle,
-  Sparkles
+  Globe,
+  ChevronDown
 } from 'lucide-react'
+
+const translations = {
+  en: {
+    step: 'Step',
+    of: 'of',
+    continue: 'Continue',
+    back: 'Back',
+    companyQuestion: 'What is your company called?',
+    companyHelp: "Let us know the name of your team, department, or company, and we'll use this information to enhance your experience.",
+    companyPlaceholder: 'e.g., Taskworld',
+    workingQuestion: "What is your team working on?",
+    workingHelp: 'Let us know what your team is currently focused on, such as launching a website, selling subscriptions, or planning events.',
+    workingPlaceholder: 'e.g., planning events',
+    whoQuestion: 'Who do you work with?',
+    whoHelp: "Collaboration is key! Let's bring in the rest of the team.",
+    inviteByEmail: 'Invite by email – We\'ll send them an invitation email',
+    invitePlaceholder: 'email@company.com',
+    members: 'Members',
+    guests: 'Guests',
+    almostDone: 'Almost done!',
+    almostHelp: 'Just a few more details and your account will be set up.',
+    firstName: 'First name',
+    lastName: 'Last name',
+    phoneNumber: 'Phone number',
+    getStarted: 'Get Started',
+  },
+  fr: {
+    step: 'Étape',
+    of: 'sur',
+    continue: 'Continuer',
+    back: 'Retour',
+    companyQuestion: "Comment s'appelle votre entreprise ?",
+    companyHelp: "Dites-nous le nom de votre équipe, service ou entreprise pour améliorer votre expérience.",
+    companyPlaceholder: 'ex. Taskworld',
+    workingQuestion: "Sur quoi votre équipe travaille-t-elle ?",
+    workingHelp: "Indiquez votre objectif actuel (lancement de site, abonnements, événements...).",
+    workingPlaceholder: 'ex. planification d’événements',
+    whoQuestion: 'Avec qui travaillez-vous ?',
+    whoHelp: "La collaboration est essentielle ! Invitez le reste de l'équipe.",
+    inviteByEmail: "Inviter par e‑mail – nous leur enverrons une invitation",
+    invitePlaceholder: 'email@entreprise.com',
+    members: 'Membres',
+    guests: 'Invités',
+    almostDone: 'Presque terminé !',
+    almostHelp: "Encore quelques détails pour terminer la configuration.",
+    firstName: 'Prénom',
+    lastName: 'Nom',
+    phoneNumber: 'Numéro de téléphone',
+    getStarted: 'Commencer',
+  },
+  es: {
+    step: 'Paso',
+    of: 'de',
+    continue: 'Continuar',
+    back: 'Atrás',
+    companyQuestion: '¿Cómo se llama tu empresa?',
+    companyHelp: 'Cuéntanos el nombre de tu equipo, departamento o empresa para mejorar tu experiencia.',
+    companyPlaceholder: 'p. ej., Taskworld',
+    workingQuestion: '¿En qué está trabajando tu equipo?',
+    workingHelp: 'Indica el enfoque actual: lanzar un sitio web, vender suscripciones o planificar eventos.',
+    workingPlaceholder: 'p. ej., planificar eventos',
+    whoQuestion: '¿Con quién trabajas?',
+    whoHelp: '¡La colaboración es clave! Invita al resto del equipo.',
+    inviteByEmail: 'Invitar por correo – Les enviaremos una invitación',
+    invitePlaceholder: 'email@empresa.com',
+    members: 'Miembros',
+    guests: 'Invitados',
+    almostDone: '¡Casi listo!',
+    almostHelp: 'Solo unos detalles más y tu cuenta estará lista.',
+    firstName: 'Nombre',
+    lastName: 'Apellido',
+    phoneNumber: 'Número de teléfono',
+    getStarted: 'Empezar',
+  },
+  de: {
+    step: 'Schritt',
+    of: 'von',
+    continue: 'Weiter',
+    back: 'Zurück',
+    companyQuestion: 'Wie heißt dein Unternehmen?',
+    companyHelp: 'Teile den Namen deines Teams, Bereichs oder Unternehmens mit, um deine Erfahrung zu verbessern.',
+    companyPlaceholder: 'z. B. Taskworld',
+    workingQuestion: 'Woran arbeitet dein Team?',
+    workingHelp: 'Gib den aktuellen Fokus an: Website-Launch, Abos verkaufen oder Events planen.',
+    workingPlaceholder: 'z. B. Eventplanung',
+    whoQuestion: 'Mit wem arbeitest du?',
+    whoHelp: 'Zusammenarbeit ist der Schlüssel! Lade den Rest des Teams ein.',
+    inviteByEmail: 'Per E‑Mail einladen – Wir senden eine Einladung',
+    invitePlaceholder: 'email@firma.com',
+    members: 'Mitglieder',
+    guests: 'Gäste',
+    almostDone: 'Fast fertig!',
+    almostHelp: 'Nur noch wenige Details, dann ist dein Konto eingerichtet.',
+    firstName: 'Vorname',
+    lastName: 'Nachname',
+    phoneNumber: 'Telefonnummer',
+    getStarted: 'Los geht’s',
+  },
+} as const
+
+type LangKey = keyof typeof translations
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
   const { user } = useUser()
+  const [lang, setLang] = useState<LangKey>('en')
+  const t = translations[lang]
+
   const [currentStep, setCurrentStep] = useState(0)
-  const [onboardingData, setOnboardingData] = useState({
-    role: '',
-    teamSize: '',
-    goals: [],
-    experience: ''
-  })
+  const [companyName, setCompanyName] = useState('')
+  const [focus, setFocus] = useState('')
+  const [invites, setInvites] = useState('') // comma-separated
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
+  const steps = [t.companyQuestion, t.workingQuestion, t.whoQuestion, t.almostDone]
 
-  const steps = [
-    {
-      title: 'Welcome to TheGridHub!',
-      subtitle: 'Let\'s get you set up in just a few steps'
-    },
-    {
-      title: 'What\'s your role?',
-      subtitle: 'This helps us customize your experience'
-    },
-    {
-      title: 'How big is your team?',
-      subtitle: 'We\'ll set up the right features for you'
-    },
-    {
-      title: 'What are your main goals?',
-      subtitle: 'Select all that apply'
+  // Redirect onboarded users
+  useEffect(() => {
+    const check = async () => {
+      if (!user) return
+      const { data } = await supabase
+        .from('user_onboarding')
+        .select('id')
+        .eq('userId', (await getUserId()))
+        .maybeSingle()
+      if (data) router.push('/dashboard')
     }
-  ]
+    void check()
+  }, [user, supabase, router])
 
-  const roles = [
-    { id: 'individual', label: 'Individual Contributor', icon: Briefcase },
-    { id: 'manager', label: 'Team Manager', icon: Users },
-    { id: 'executive', label: 'Executive', icon: Target },
-    { id: 'freelancer', label: 'Freelancer', icon: Sparkles }
-  ]
+  const getUserId = async (): Promise<string | null> => {
+    if (!user) return null
+    // Ensure a users row exists then get its id
+    const up = await supabase
+      .from('users')
+      .upsert({
+        supabaseId: user.id,
+        email: user.email!,
+        name: [firstName, lastName].filter(Boolean).join(' ') || user.email!,
+        avatar: (user as any)?.user_metadata?.avatar_url || null,
+      }, { onConflict: 'supabaseId' })
+    if (up.error) console.error(up.error)
+    const { data } = await supabase
+      .from('users')
+      .select('id')
+      .eq('supabaseId', user.id)
+      .single()
+    return data?.id ?? null
+  }
 
-  const teamSizes = [
-    { id: 'solo', label: 'Just me' },
-    { id: 'small', label: '2-10 people' },
-    { id: 'medium', label: '11-50 people' },
-    { id: 'large', label: '50+ people' }
-  ]
-
-  const goals = [
-    { id: 'tasks', label: 'Manage personal tasks' },
-    { id: 'projects', label: 'Track project progress' },
-    { id: 'team', label: 'Collaborate with team' },
-    { id: 'clients', label: 'Manage client work' },
-    { id: 'deadlines', label: 'Meet deadlines better' },
-    { id: 'productivity', label: 'Increase productivity' }
-  ]
-
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep((s) => s + 1)
     } else {
-      completeOnboarding()
+      await completeOnboarding()
     }
   }
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
-  const handleSkip = () => {
-    router.push('/dashboard')
+    if (currentStep > 0) setCurrentStep((s) => s - 1)
   }
 
   const completeOnboarding = async () => {
-    // Here you would save the onboarding data to your database
-    console.log('Onboarding completed:', onboardingData)
-    
-    // Mark user as onboarded (you'd save this to your database)
-    localStorage.setItem('onboarded', 'true')
-    
+    if (!user) return router.push('/login')
+
+    const userId = await getUserId()
+    if (!userId) return router.push('/dashboard')
+
+    // Save onboarding data
+    const invitedEmails = invites
+      .split(/[,\s]+/)
+      .map(e => e.trim())
+      .filter(Boolean)
+
+    const { error } = await supabase
+      .from('user_onboarding')
+      .insert({
+        userId,
+        companyName: companyName || null,
+        focus: focus || null,
+        invitedEmails: invitedEmails.length ? invitedEmails : null,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        phone: phone || null,
+        language: lang,
+      })
+    if (error) console.error(error)
+
+    // Update user name
+    await supabase
+      .from('users')
+      .update({ name: [firstName, lastName].filter(Boolean).join(' ') || undefined })
+      .eq('id', userId)
+
     router.push('/dashboard')
   }
 
-  const toggleGoal = (goalId: string) => {
-    setOnboardingData(prev => ({
-      ...prev,
-      goals: prev.goals.includes(goalId)
-        ? prev.goals.filter(g => g !== goalId)
-        : [...prev.goals, goalId]
-    }))
-  }
+  const StepHeader = (
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+        {/* Logo */}
+        <Image src="/images/logo.svg" alt="TheGridHub" width={28} height={28} />
+        <span className="text-sm text-gray-600">{t.step} {currentStep + 1} {t.of} {steps.length}</span>
+      </div>
+      {/* Language selector */}
+      <div className="relative">
+        <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm">
+          <Globe className="w-4 h-4" /> {lang.toUpperCase()} <ChevronDown className="w-4 h-4" />
+        </button>
+        <div className="absolute right-0 mt-2 w-28 rounded-md shadow bg-white border border-gray-200 z-10">
+          {(['en','fr','es','de'] as LangKey[]).map(l => (
+            <button key={l} onClick={() => setLang(l)} className={`block w-full text-left px-3 py-2 text-sm ${lang===l?'bg-gray-100':''}`}>{l.toUpperCase()}</button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-      <div className="max-w-2xl w-full mx-auto p-8">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-            <button
-              onClick={handleSkip}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Skip for now
-            </button>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            />
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#FAFBFC] flex items-center justify-center">
+      <div className="w-full max-w-2xl p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          {StepHeader}
 
-        {/* Content */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {steps[currentStep].title}
-          </h2>
-          <p className="text-gray-600 mb-8">
-            {steps[currentStep].subtitle}
-          </p>
-
-          {/* Step 1: Welcome */}
+          {/* Step content */}
           {currentStep === 0 && (
-            <div className="text-center py-8">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="h-12 w-12 text-blue-600" />
-              </div>
-              <p className="text-lg text-gray-700 mb-6">
-                Hi {user?.firstName || 'there'}! We're excited to have you on board.
-              </p>
-              <p className="text-gray-600">
-                This quick setup will help us personalize TheGridHub for your needs.
-              </p>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.companyQuestion}</h1>
+              <p className="text-gray-600 mb-4 text-sm">{t.companyHelp}</p>
+              <input
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                placeholder={t.companyPlaceholder}
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
             </div>
           )}
 
-          {/* Step 2: Role Selection */}
           {currentStep === 1 && (
-            <div className="grid grid-cols-2 gap-4">
-              {roles.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => setOnboardingData({ ...onboardingData, role: role.id })}
-                  className={`p-6 rounded-lg border-2 transition-all ${
-                    onboardingData.role === role.id
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <role.icon className={`h-8 w-8 mb-3 ${
-                    onboardingData.role === role.id ? 'text-blue-600' : 'text-gray-400'
-                  }`} />
-                  <p className="font-medium text-gray-900">{role.label}</p>
-                </button>
-              ))}
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.workingQuestion}</h1>
+              <p className="text-gray-600 mb-4 text-sm">{t.workingHelp}</p>
+              <input
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                placeholder={t.workingPlaceholder}
+                value={focus}
+                onChange={(e) => setFocus(e.target.value)}
+              />
             </div>
           )}
 
-          {/* Step 3: Team Size */}
           {currentStep === 2 && (
-            <div className="space-y-3">
-              {teamSizes.map((size) => (
-                <button
-                  key={size.id}
-                  onClick={() => setOnboardingData({ ...onboardingData, teamSize: size.id })}
-                  className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
-                    onboardingData.teamSize === size.id
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <p className="font-medium text-gray-900">{size.label}</p>
-                </button>
-              ))}
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.whoQuestion}</h1>
+              <p className="text-gray-600 mb-4 text-sm">{t.whoHelp}</p>
+              {/* Tabs simplified to input as per screenshot */}
+              <div className="text-sm text-gray-700 font-medium mb-2">{t.inviteByEmail}</div>
+              <textarea
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                rows={3}
+                placeholder={t.invitePlaceholder}
+                value={invites}
+                onChange={(e) => setInvites(e.target.value)}
+              />
+              <p className="text-xs text-gray-500 mt-2">Separate emails with commas , or spaces.</p>
             </div>
           )}
 
-          {/* Step 4: Goals */}
           {currentStep === 3 && (
-            <div className="space-y-3">
-              {goals.map((goal) => (
-                <button
-                  key={goal.id}
-                  onClick={() => toggleGoal(goal.id)}
-                  className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
-                    onboardingData.goals.includes(goal.id)
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
-                      onboardingData.goals.includes(goal.id)
-                        ? 'border-blue-600 bg-blue-600'
-                        : 'border-gray-300'
-                    }`}>
-                      {onboardingData.goals.includes(goal.id) && (
-                        <CheckCircle className="h-3 w-3 text-white" />
-                      )}
-                    </div>
-                    <p className="font-medium text-gray-900">{goal.label}</p>
-                  </div>
-                </button>
-              ))}
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.almostDone}</h1>
+              <p className="text-gray-600 mb-4 text-sm">{t.almostHelp}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.firstName} value={firstName} onChange={(e)=>setFirstName(e.target.value)} />
+                <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.lastName} value={lastName} onChange={(e)=>setLastName(e.target.value)} />
+              </div>
+              <div className="mt-3">
+                <input className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.phoneNumber} value={phone} onChange={(e)=>setPhone(e.target.value)} />
+              </div>
             </div>
           )}
 
@@ -230,32 +304,15 @@ export default function OnboardingPage() {
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
-              className={`flex items-center px-6 py-3 rounded-lg font-medium transition-colors ${
-                currentStep === 0
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`flex items-center px-5 py-2 rounded-lg font-medium ${currentStep===0? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
             >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back
+              <ArrowLeft className="h-5 w-5 mr-2" /> {t.back}
             </button>
-
             <button
               onClick={handleNext}
-              disabled={
-                (currentStep === 1 && !onboardingData.role) ||
-                (currentStep === 2 && !onboardingData.teamSize) ||
-                (currentStep === 3 && onboardingData.goals.length === 0)
-              }
-              className={`flex items-center px-6 py-3 rounded-lg font-medium transition-colors ${
-                (currentStep === 1 && !onboardingData.role) ||
-                (currentStep === 2 && !onboardingData.teamSize) ||
-                (currentStep === 3 && onboardingData.goals.length === 0)
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className="flex items-center px-5 py-2 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-700"
             >
-              {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
+              {currentStep === steps.length - 1 ? t.getStarted : t.continue}
               <ArrowRight className="h-5 w-5 ml-2" />
             </button>
           </div>

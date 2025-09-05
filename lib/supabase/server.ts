@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
 export function createClient() {
-  const cookieStore = cookies()
+  const cookieStore = cookies() as any
   
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
@@ -23,12 +23,12 @@ export function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return (cookieStore?.getAll?.() || [])
         },
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore?.set?.(name, value, options)
             )
           } catch {
             // The `setAll` method was called from a Server Component.
@@ -57,6 +57,25 @@ export function createMiddlewareClient(request: NextRequest, response: NextRespo
           })
         },
       },
+    }
+  )
+}
+
+// Service client for server-side background tasks and webhooks (bypasses RLS)
+export function createServiceClient() {
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL)!
+  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey) {
+    throw new Error('Supabase service key env not configured (expected SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY)')
+  }
+  return createServerClient(
+    url,
+    serviceKey,
+    {
+      cookies: {
+        getAll() { return [] },
+        setAll() {},
+      }
     }
   )
 }

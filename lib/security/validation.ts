@@ -611,7 +611,7 @@ export class FileUploadSecurity {
     }
 
     // Check file type
-    if (!SECURITY_CONFIG.ALLOWED_FILE_TYPES.includes(file.type)) {
+if (!SECURITY_CONFIG.ALLOWED_FILE_TYPES.includes(file.type as any)) {
       return { isValid: false, reason: 'File type not allowed' }
     }
 

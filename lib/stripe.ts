@@ -5,10 +5,7 @@ import { SUBSCRIPTION_PLANS, ANNUAL_PRICING, PlanId } from './pricing'
 export async function getStripe() {
   const { default: Stripe } = await import('stripe')
   if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured')
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2022-11-15',
-    typescript: true
-  })
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {})
 }
 
 // Stripe customer management
@@ -293,9 +290,9 @@ export class StripeUsageManager {
     subscriptionItemId: string,
     quantity: number,
     timestamp?: number
-  ): Promise<Stripe.UsageRecord> {
+  ): Promise<any> {
     const stripe = await getStripe()
-    return await stripe.subscriptionItems.createUsageRecord(
+    return await (stripe.subscriptionItems as any).createUsageRecord(
       subscriptionItemId,
       {
         quantity,
@@ -309,9 +306,9 @@ export class StripeUsageManager {
     subscriptionItemId: string,
     startDate: Date,
     endDate: Date
-  ): Promise<Stripe.UsageRecordSummary[]> {
+  ): Promise<any> {
     const stripe = await getStripe()
-    const summaries = await stripe.subscriptionItems.listUsageRecordSummaries(
+    const summaries = await (stripe.subscriptionItems as any).listUsageRecordSummaries(
       subscriptionItemId,
       {
         starting_after: Math.floor(startDate.getTime() / 1000).toString(),
@@ -402,9 +399,9 @@ export class StripeWebhookManager {
   }
 
   static async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-    if (invoice.subscription) {
+    if ((invoice as any).subscription) {
       const subscription = await StripeSubscriptionManager.getSubscription(
-        invoice.subscription as string
+        (invoice as any).subscription as string
       )
       
       if (subscription) {
@@ -432,7 +429,7 @@ export class StripeWebhookManager {
   static async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     console.log('Payment failed:', {
       invoiceId: invoice.id,
-      subscriptionId: invoice.subscription,
+      subscriptionId: (invoice as any).subscription,
       amount: invoice.amount_due
     })
 

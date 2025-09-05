@@ -4,6 +4,7 @@ import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
+import { useI18n } from '@/components/i18n/I18nProvider'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
@@ -33,11 +34,12 @@ import { createClient } from '@/lib/supabase/client'
 export default function DashboardPage() {
   const { user, isLoaded } = useUser()
   const router = useRouter()
+  const { t } = useI18n()
   const [greeting, setGreeting] = useState('')
-  const [tasks, setTasks] = useState([])
-  const [goals, setGoals] = useState([])
-  const [projects, setProjects] = useState([])
-  const [notifications, setNotifications] = useState([])
+  const [tasks, setTasks] = useState<any[]>([])
+  const [goals, setGoals] = useState<any[]>([])
+  const [projects, setProjects] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showTaskForm, setShowTaskForm] = useState(false)
@@ -115,7 +117,7 @@ export default function DashboardPage() {
             current: goal.current,
             quarter: Math.ceil(new Date().getMonth() / 3),
             year: new Date().getFullYear(),
-            owner: user.name || user.email
+            owner: (user as any)?.email || ''
           }))
           setGoals(formattedGoals)
         }
@@ -124,7 +126,7 @@ export default function DashboardPage() {
           const formattedProjects = projectsData.map(project => ({
             id: project.id,
             name: project.name,
-            tasks: project._count || 0,
+            tasks: 0,
             color: 'bg-purple-100 text-purple-700' // Use project.color if available
           }))
           setProjects(formattedProjects)
@@ -195,6 +197,13 @@ export default function DashboardPage() {
     router.push('/dashboard/settings')
   }
 
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await fetch(`/api/notifications/${notificationId}`, { method: 'DELETE' })
+    } catch {}
+    setNotifications(notifications.filter(n => n.id !== notificationId))
+  }
+
   const markNotificationAsRead = (notificationId) => {
     setNotifications(notifications.map(notif => 
       notif.id === notificationId ? { ...notif, read: true } : notif
@@ -233,27 +242,27 @@ export default function DashboardPage() {
           <nav className="flex-1 px-4 py-6 space-y-2">
             <Link href="/dashboard" className="flex items-center px-4 py-2 text-purple-600 bg-purple-50 rounded-lg">
               <LayoutDashboard className="h-5 w-5 mr-3" />
-              Dashboard
+              {t('nav.dashboard')}
             </Link>
             <Link href="/dashboard/tasks" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <CheckSquare className="h-5 w-5 mr-3" />
-              My tasks
+              {t('nav.tasks')}
             </Link>
             <Link href="/dashboard/reports" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <BarChart3 className="h-5 w-5 mr-3" />
-              Reports
+              {t('nav.reports')}
             </Link>
             <Link href="/dashboard/workspace" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <Users className="h-5 w-5 mr-3" />
-              My workspace
+              {t('nav.workspace')}
             </Link>
             <Link href="/dashboard/goals" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <Target className="h-5 w-5 mr-3" />
-              Goals
+              {t('nav.goals')}
             </Link>
             <Link href="/dashboard/settings" className="flex items-center px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-lg">
               <Settings className="h-5 w-5 mr-3" />
-              Settings
+              {t('nav.settings')}
             </Link>
           </nav>
           
@@ -285,7 +294,7 @@ export default function DashboardPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-semibold text-gray-900">
-                  Let's start today, {user?.firstName || 'Bagus'}!
+                  {t('dashboard.greeting', { name: user?.firstName || 'User' })}
                 </h1>
                 <p className="text-gray-600">
                   {tasks.filter(t => t.status !== 'completed').length} pending tasks across {projects.length} projects today!
@@ -298,7 +307,7 @@ export default function DashboardPage() {
                   <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder={t('dashboard.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -307,13 +316,13 @@ export default function DashboardPage() {
                 
                 {/* Weekly button */}
                 <button className="flex items-center px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                  Weekly
+                  {t('dashboard.weekly')}
                   <ChevronDown className="h-4 w-4 ml-1" />
                 </button>
                 
                 {/* Customize button */}
                 <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-                  Customize
+                  {t('dashboard.customize')}
                 </button>
                 
                 {/* Notifications */}
@@ -321,8 +330,8 @@ export default function DashboardPage() {
                   <button 
                     onClick={handleNotificationClick}
                     className="p-2 text-gray-600 hover:text-gray-900 relative"
-                  >
-                    <Bell className="h-5 w-5" />
+>
+                    <Bell className="h-5 w-5" aria-label={t('dashboard.notifications')} />
                     {notifications.filter(n => !n.read).length > 0 && (
                       <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                         {notifications.filter(n => !n.read).length}
@@ -334,19 +343,33 @@ export default function DashboardPage() {
                   {showNotifications && (
                     <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
                       <div className="p-4 border-b">
-                        <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications')}</h3>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
                         {notifications.map((notification) => (
                           <div 
                             key={notification.id}
-                            className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
+                            className={`p-4 border-b hover:bg-gray-50 ${
                               !notification.read ? 'bg-blue-50' : ''
                             }`}
-                            onClick={() => markNotificationAsRead(notification.id)}
                           >
-                            <p className="text-sm text-gray-900">{notification.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                            <div className="flex items-start justify-between">
+                              <div className="cursor-pointer flex-1" onClick={async () => {
+                                try {
+                                  await fetch(`/api/notifications/${notification.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isRead: true }) })
+                                } catch {}
+                                markNotificationAsRead(notification.id)
+                              }}>
+                                <p className="text-sm text-gray-900">{notification.message}</p>
+                                <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                              </div>
+                              <button
+                                className="ml-3 text-xs text-red-600 hover:text-red-700"
+                                onClick={() => deleteNotification(notification.id)}
+                              >
+                                {t('common.delete')}
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -488,7 +511,7 @@ export default function DashboardPage() {
           {/* Tasks Section */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Your task</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.yourTasks')}</h3>
               <div className="flex items-center space-x-2">
                 <button 
                   onClick={() => setSelectedFilter('all')}
@@ -496,7 +519,7 @@ export default function DashboardPage() {
                     selectedFilter === 'all' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  All
+                  {t('common.all')}
                 </button>
                 <button 
                   onClick={() => setSelectedFilter('upcoming')}
@@ -504,7 +527,7 @@ export default function DashboardPage() {
                     selectedFilter === 'upcoming' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  Upcoming
+                  {t('dashboard.upcoming')}
                 </button>
                 <button 
                   onClick={() => setSelectedFilter('completed')}
@@ -512,7 +535,7 @@ export default function DashboardPage() {
                     selectedFilter === 'completed' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  Done
+                  {t('dashboard.done')}
                 </button>
               </div>
             </div>
@@ -569,7 +592,7 @@ export default function DashboardPage() {
                     className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Task
+                    {t('dashboard.createTask')}
                   </Link>
                 </div>
               </div>
@@ -577,7 +600,7 @@ export default function DashboardPage() {
             
             <div className="mt-4 text-center">
               <Link href="/dashboard/tasks" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
-                View all tasks
+                {t('dashboard.viewAllTasks')}
               </Link>
             </div>
           </div>
@@ -585,10 +608,10 @@ export default function DashboardPage() {
           {/* Goals Section */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Your goals</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.yourGoals')}</h3>
               <button className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
                 <Plus className="h-4 w-4 mr-1" />
-                Add goal
+                {t('dashboard.addGoal')}
               </button>
             </div>
             

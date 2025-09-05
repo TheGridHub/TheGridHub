@@ -121,7 +121,7 @@ export class RBACManager {
   static hasPermission(userRoles: AdminRole[], requiredPermission: string): boolean {
     for (const role of userRoles) {
       const permissions = this.rolePermissions.get(role) || []
-      if (permissions.includes(requiredPermission)) {
+      if ((permissions as string[]).includes(requiredPermission)) {
         return true
       }
     }
@@ -141,7 +141,8 @@ export class RBACManager {
   }
 
   static getRolePermissions(role: AdminRole): string[] {
-    return this.rolePermissions.get(role) || []
+    const perms = this.rolePermissions.get(role) || []
+    return Array.from(perms as string[])
   }
 
   static getAllUserPermissions(userRoles: AdminRole[]): string[] {

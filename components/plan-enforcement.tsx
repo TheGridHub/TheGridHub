@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Crown, Zap, TrendingUp, X, AlertTriangle, Lock } from 'lucide-react'
+import { Crown, Zap, TrendingUp, X, AlertTriangle, Lock, CheckCircle, Users, Database } from 'lucide-react'
 import Link from 'next/link'
 import { StripeHelpers } from '@/lib/stripe'
 import { SUBSCRIPTION_PLANS } from '@/lib/pricing'
@@ -129,7 +129,7 @@ export function FeatureGate({
   onUpgradeClick
 }: FeatureGateProps) {
   const plan = SUBSCRIPTION_PLANS[userPlan as keyof typeof SUBSCRIPTION_PLANS]
-  const hasFeature = plan?.features.features?.includes(feature) || userPlan === 'ENTERPRISE'
+  const hasFeature = (userPlan === 'ENTERPRISE') || (plan && (plan.features as any)[feature] === true)
 
   if (hasFeature) {
     return <>{children}</>
@@ -399,7 +399,7 @@ interface PlanComparisonProps {
 }
 
 export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProps) {
-  const plans = Object.values(SUBSCRIPTION_PLANS).filter(plan => plan.id !== 'FREE')
+const plans = Object.values(SUBSCRIPTION_PLANS).filter(plan => plan.id !== 'free')
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">

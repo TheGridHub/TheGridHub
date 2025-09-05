@@ -4,6 +4,7 @@ import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
+import { useI18n } from '@/components/i18n/I18nProvider'
 import { 
   CheckSquare, 
   Plus, 
@@ -19,7 +20,7 @@ import {
   Circle,
   Flag,
   ArrowUpDown,
-  GridView,
+  LayoutGrid,
   List,
   SlidersHorizontal,
   X,
@@ -57,6 +58,7 @@ interface Project {
 
 export default function TasksPage() {
   const { user, isLoaded } = useUser()
+  const { t } = useI18n()
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,10 +73,10 @@ export default function TasksPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
-  const [newTask, setNewTask] = useState({
+  const [newTask, setNewTask] = useState<{ title: string; description: string; priority: 'LOW' | 'MEDIUM' | 'HIGH'; projectId: string; dueDate: string }>({
     title: '',
     description: '',
-    priority: 'MEDIUM' as const,
+    priority: 'MEDIUM',
     projectId: '',
     dueDate: ''
   })
@@ -257,7 +259,7 @@ export default function TasksPage() {
   }
 
   const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('Are you sure you want to delete this task?')) return
+    if (!confirm(t('tasks.confirmDelete') || 'Are you sure you want to delete this task?')) return
 
     try {
       const supabase = createClient()
@@ -334,9 +336,9 @@ export default function TasksPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Tasks</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">{t('tasks.title') || 'Tasks'}</h1>
               <p className="text-gray-600 mt-1">
-                Manage and track your tasks
+                {t('tasks.subtitle') || 'Manage and track your tasks'}
               </p>
             </div>
             
@@ -353,7 +355,7 @@ export default function TasksPage() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 ${viewMode === 'grid' ? 'bg-purple-100 text-purple-600' : 'text-gray-400'}`}
                 >
-                  <GridView className="h-4 w-4" />
+                  <LayoutGrid className="h-4 w-4" />
                 </button>
               </div>
 
@@ -363,7 +365,7 @@ export default function TasksPage() {
                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                New Task
+                {t('tasks.newTask') || 'New Task' }
               </button>
             </div>
           </div>
@@ -379,7 +381,7 @@ export default function TasksPage() {
               <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search tasks..."
+                placeholder={t('tasks.searchPlaceholder') || 'Search tasks...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -393,10 +395,10 @@ export default function TasksPage() {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="all">All Status</option>
-                <option value="UPCOMING">Upcoming</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="OVERDUE">Overdue</option>
+                <option value="all">{t('tasks.allStatus') || 'All Status'}</option>
+                <option value="UPCOMING">{t('tasks.status.upcoming') || 'Upcoming'}</option>
+                <option value="COMPLETED">{t('tasks.status.completed') || 'Completed'}</option>
+                <option value="OVERDUE">{t('tasks.status.overdue') || 'Overdue'}</option>
               </select>
 
               <select
@@ -404,10 +406,10 @@ export default function TasksPage() {
                 onChange={(e) => setSelectedPriority(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="all">All Priority</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
+                <option value="all">{t('tasks.allPriority') || 'All Priority'}</option>
+                <option value="HIGH">{t('tasks.priority.high') || 'High'}</option>
+                <option value="MEDIUM">{t('tasks.priority.medium') || 'Medium'}</option>
+                <option value="LOW">{t('tasks.priority.low') || 'Low'}</option>
               </select>
 
               <select
@@ -415,7 +417,7 @@ export default function TasksPage() {
                 onChange={(e) => setSelectedProject(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="all">All Projects</option>
+                <option value="all">{t('tasks.allProjects') || 'All Projects'}</option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>{project.name}</option>
                 ))}
@@ -430,17 +432,17 @@ export default function TasksPage() {
               onChange={(e) => setSortBy(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              <option value="dueDate">Sort by Due Date</option>
-              <option value="title">Sort by Title</option>
-              <option value="priority">Sort by Priority</option>
-              <option value="status">Sort by Status</option>
-              <option value="createdAt">Sort by Created Date</option>
+              <option value="dueDate">{t('common.sortBy.dueDate') || 'Sort by Due Date'}</option>
+              <option value="title">{t('common.sortBy.title') || 'Sort by Title'}</option>
+              <option value="priority">{t('common.sortBy.priority') || 'Sort by Priority'}</option>
+              <option value="status">{t('common.sortBy.status') || 'Sort by Status'}</option>
+              <option value="createdAt">{t('common.sortBy.createdAt') || 'Sort by Created Date'}</option>
             </select>
 
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+              title={`${t('common.sort')} ${sortOrder === 'asc' ? (t('common.descending') || 'Descending') : (t('common.ascending') || 'Ascending')}`}
             >
               <ArrowUpDown className="h-4 w-4" />
             </button>
@@ -464,11 +466,11 @@ export default function TasksPage() {
         ) : filteredTasks.length === 0 ? (
           <div className="text-center py-12">
             <CheckSquare className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks found</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('tasks.empty.title') || 'No tasks found'}</h3>
             <p className="mt-1 text-sm text-gray-500">
               {searchQuery || selectedProject !== 'all' || selectedStatus !== 'all' || selectedPriority !== 'all'
-                ? 'Try adjusting your filters or search term.'
-                : 'Get started by creating your first task.'
+                ? (t('tasks.empty.adjust') || 'Try adjusting your filters or search term.')
+                : (t('tasks.empty.cta') || 'Get started by creating your first task.')
               }
             </p>
             {!searchQuery && selectedProject === 'all' && selectedStatus === 'all' && selectedPriority === 'all' && (
@@ -478,7 +480,7 @@ export default function TasksPage() {
                   className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Task
+                  {t('tasks.empty.createFirst') || 'Create Your First Task'}
                 </button>
               </div>
             )}
@@ -488,7 +490,7 @@ export default function TasksPage() {
             {/* Tasks Count */}
             <div className="mb-6">
               <p className="text-sm text-gray-500">
-                Showing {filteredTasks.length} of {tasks.length} tasks
+                {t('common.showingOf', { current: filteredTasks.length, total: tasks.length }) || `Showing ${filteredTasks.length} of ${tasks.length} tasks`}
               </p>
             </div>
 
@@ -660,7 +662,7 @@ export default function TasksPage() {
                     {task.dueDate && (
                       <div className="flex items-center text-sm text-gray-500 mb-2">
                         <Calendar className="h-4 w-4 mr-1" />
-                        Due {format(new Date(task.dueDate), 'MMM dd')}
+                        {t('tasks.due') || 'Due'} {format(new Date(task.dueDate), 'MMM dd')}
                       </div>
                     )}
 
@@ -687,7 +689,7 @@ export default function TasksPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Create New Task</h2>
+              <h2 className="text-lg font-semibold">{t('tasks.create.title') || 'Create New Task'}</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-1 text-gray-400 hover:text-gray-600"
@@ -699,56 +701,56 @@ export default function TasksPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Task Title *
+                  {t('tasks.form.titleLabel') || 'Task Title *'}
                 </label>
                 <input
                   type="text"
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter task title"
+                  placeholder={t('tasks.form.titlePlaceholder') || 'Enter task title'}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('common.description') || 'Description'}
                 </label>
                 <textarea
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter task description"
+                  placeholder={t('tasks.form.descriptionPlaceholder') || 'Enter task description'}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priority
+                    {t('tasks.form.priority') || 'Priority'}
                   </label>
                   <select
                     value={newTask.priority}
                     onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as 'LOW' | 'MEDIUM' | 'HIGH' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
+                    <option value="LOW">{t('tasks.priority.low') || 'Low'}</option>
+                    <option value="MEDIUM">{t('tasks.priority.medium') || 'Medium'}</option>
+                    <option value="HIGH">{t('tasks.priority.high') || 'High'}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Project
+                    {t('tasks.form.project') || 'Project'}
                   </label>
                   <select
                     value={newTask.projectId}
                     onChange={(e) => setNewTask({ ...newTask, projectId: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                    <option value="">No Project</option>
+                    <option value="">{t('tasks.form.noProject') || 'No Project'}</option>
                     {projects.map((project) => (
                       <option key={project.id} value={project.id}>{project.name}</option>
                     ))}
@@ -758,7 +760,7 @@ export default function TasksPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Date
+                  {t('tasks.form.dueDate') || 'Due Date'}
                 </label>
                 <input
                   type="date"
@@ -775,13 +777,13 @@ export default function TasksPage() {
                 disabled={!newTask.title.trim()}
                 className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Task
+                {t('tasks.create.submit') || 'Create Task'}
               </button>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Cancel
+                {t('common.cancel') || 'Cancel'}
               </button>
             </div>
           </div>
@@ -793,7 +795,7 @@ export default function TasksPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Edit Task</h2>
+              <h2 className="text-lg font-semibold">{t('tasks.edit.title') || 'Edit Task'}</h2>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="p-1 text-gray-400 hover:text-gray-600"
@@ -805,56 +807,56 @@ export default function TasksPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Task Title *
+                  {t('tasks.form.titleLabel') || 'Task Title *'}
                 </label>
                 <input
                   type="text"
                   value={editingTask.title}
                   onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter task title"
+                  placeholder={t('tasks.form.titlePlaceholder') || 'Enter task title'}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('common.description') || 'Description'}
                 </label>
                 <textarea
                   value={editingTask.description || ''}
                   onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter task description"
+                  placeholder={t('tasks.form.descriptionPlaceholder') || 'Enter task description'}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priority
+                    {t('tasks.form.priority') || 'Priority'}
                   </label>
                   <select
                     value={editingTask.priority}
                     onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value as 'LOW' | 'MEDIUM' | 'HIGH' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
+                    <option value="LOW">{t('tasks.priority.low') || 'Low'}</option>
+                    <option value="MEDIUM">{t('tasks.priority.medium') || 'Medium'}</option>
+                    <option value="HIGH">{t('tasks.priority.high') || 'High'}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Project
+                    {t('tasks.form.project') || 'Project'}
                   </label>
                   <select
                     value={editingTask.projectId || ''}
-                    onChange={(e) => setEditingTask({ ...editingTask, projectId: e.target.value || null })}
+                    onChange={(e) => setEditingTask({ ...editingTask, projectId: (e.target.value || undefined) as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                    <option value="">No Project</option>
+                    <option value="">{t('tasks.form.noProject') || 'No Project'}</option>
                     {projects.map((project) => (
                       <option key={project.id} value={project.id}>{project.name}</option>
                     ))}
@@ -864,7 +866,7 @@ export default function TasksPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Date
+                  {t('tasks.form.dueDate') || 'Due Date'}
                 </label>
                 <input
                   type="date"
@@ -895,13 +897,13 @@ export default function TasksPage() {
                 disabled={!editingTask.title.trim()}
                 className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save Changes
+                {t('common.saveChanges') || 'Save Changes'}
               </button>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Cancel
+                {t('common.cancel') || 'Cancel'}
               </button>
             </div>
           </div>

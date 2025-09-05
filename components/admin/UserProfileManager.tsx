@@ -286,10 +286,10 @@ export default function UserProfileManager({
               <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
                 {userProfile.name}
                 {userProfile.emailVerified && (
-                  <CheckCircle className="h-5 w-5 text-green-500" title="Email Verified" />
+<CheckCircle className="h-5 w-5 text-green-500" aria-label="Email Verified" />
                 )}
                 {userProfile.twoFactorEnabled && (
-                  <Shield className="h-5 w-5 text-blue-500" title="2FA Enabled" />
+<Shield className="h-5 w-5 text-blue-500" aria-label="2FA Enabled" />
                 )}
               </h2>
               <p className="text-gray-600">{userProfile.email}</p>
@@ -401,9 +401,9 @@ export default function UserProfileManager({
                       <p className="text-gray-900 flex-1">{userProfile.email}</p>
                     )}
                     {userProfile.emailVerified ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" title="Verified" />
+<CheckCircle className="h-5 w-5 text-green-500" aria-label="Verified" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-yellow-500" title="Not Verified" />
+<AlertCircle className="h-5 w-5 text-yellow-500" aria-label="Not Verified" />
                     )}
                   </div>
                 </div>

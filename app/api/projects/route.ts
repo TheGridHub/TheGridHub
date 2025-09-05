@@ -41,7 +41,9 @@ export async function POST(req: NextRequest) {
         name: body.name,
         description: body.description || null,
         color: body.color || '#6366f1',
-        userId: user.id
+        userId: user.id,
+        slackDefaultChannelId: body.slackDefaultChannelId || null,
+        jiraProjectKey: body.jiraProjectKey || null
       })
       .select()
       .single()

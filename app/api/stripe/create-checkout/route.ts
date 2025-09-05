@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateUser } from '@/lib/user';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-});
+import { getStripe } from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +22,8 @@ export async function POST(request: NextRequest) {
 
     // Create or retrieve Stripe customer
     let customerId = user.stripeCustomerId;
-    
+    const stripe = await getStripe();
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: supabaseUser.email!,

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { 
   Settings, 
   Shield, 
-  Toggle, 
   Bell, 
   Mail, 
   Database, 
@@ -32,7 +31,8 @@ import {
   HardDrive,
   Wifi,
   MessageSquare,
-  CreditCard
+  CreditCard,
+  BarChart3
 } from 'lucide-react'
 
 interface FeatureFlag {

@@ -83,7 +83,7 @@ export class EncryptionUtils {
       const key = await EncryptionKeyManager.deriveKey(masterKey, salt)
       const iv = crypto.randomBytes(ENCRYPTION_CONFIG.IV_LENGTH)
       
-      const cipher = crypto.createCipherGCM(ENCRYPTION_CONFIG.ALGORITHM, key, iv)
+      const cipher = crypto.createCipheriv(ENCRYPTION_CONFIG.ALGORITHM, key, iv)
       
       if (context) {
         cipher.setAAD(Buffer.from(context, 'utf8'))
@@ -119,7 +119,7 @@ export class EncryptionUtils {
       const iv = Buffer.from(encryptedPayload.iv, 'base64')
       const tag = Buffer.from(encryptedPayload.tag, 'base64')
       
-      const decipher = crypto.createDecipherGCM(ENCRYPTION_CONFIG.ALGORITHM, key, iv)
+      const decipher = crypto.createDecipheriv(ENCRYPTION_CONFIG.ALGORITHM, key, iv)
       decipher.setAuthTag(tag)
       
       if (context) {
@@ -341,7 +341,7 @@ export class TokenEncryption {
     reason?: string
   }> {
     try {
-      const tokenData = await EncryptionUtils.decryptObject(token, `session:${userId}`)
+      const tokenData: any = await EncryptionUtils.decryptObject<any>(token, `session:${userId}`)
       
       // Check expiration
       const expiresAt = new Date(tokenData.expiresAt)

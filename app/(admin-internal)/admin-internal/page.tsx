@@ -19,6 +19,11 @@ export default function AdminInternalHome() {
   const [health, setHealth] = useState<Health|null>(null)
   const [loading, setLoading] = useState(false)
 
+  // DB migrations UI state
+  const [migRunning, setMigRunning] = useState(false)
+  const [migResult, setMigResult] = useState<any|null>(null)
+  const [migError, setMigError] = useState<string|null>(null)
+
   async function loadEnvs() {
     try {
       const res = await fetch('/api/admin-internal/envs', { cache: 'no-store' })
@@ -45,6 +50,29 @@ export default function AdminInternalHome() {
 
   useEffect(() => { loadEnvs() }, [])
   useEffect(() => { loadHealth(selected || undefined) }, [selected])
+
+  async function applyMigrations(dryRun: boolean = false) {
+    setMigRunning(true)
+    setMigError(null)
+    setMigResult(null)
+    try {
+      const res = await fetch('/api/admin-internal/db/apply-migrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun }),
+        cache: 'no-store'
+      })
+      const j = await res.json()
+      if (!res.ok || j.error) {
+        throw new Error(j.error || `HTTP ${res.status}`)
+      }
+      setMigResult(j)
+    } catch (e: any) {
+      setMigError(e?.message || 'Migration failed')
+    } finally {
+      setMigRunning(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -102,6 +130,44 @@ export default function AdminInternalHome() {
                 <div className="font-mono text-slate-900 truncate">{typeof v === 'object' && 'present' in v ? (v.present ? v.value : '—') : '[group]'}</div>
               </div>
             )) : <div className="text-slate-600">Unable to fetch health</div>}
+          </div>
+        </div>
+      </div>
+
+      {/* Database Utilities */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-slate-900">Database Utilities</h2>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={migRunning}
+              onClick={()=> applyMigrations(true)}
+              className={`px-3 py-1.5 rounded-lg border text-sm ${migRunning ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'} border-slate-300`}
+            >
+              Dry Run Migrations
+            </button>
+            <button
+              disabled={migRunning}
+              onClick={()=> applyMigrations(false)}
+              className={`px-3 py-1.5 rounded-lg text-sm ${migRunning ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-600'} bg-purple-500 text-white`}
+            >
+              {migRunning ? 'Applying…' : 'Apply Migrations'}
+            </button>
+          </div>
+        </div>
+        <div className="text-xs text-slate-600">
+          <div>Runs SQL files from <code className="px-1 py-0.5 bg-slate-100 rounded">supabase/migrations</code> idempotently.</div>
+          <div className="mt-2">
+            {migError && (
+              <div className="text-red-600">Error: {migError}</div>
+            )}
+            {migResult && (
+              <div className="space-y-1">
+                <div className="text-green-700">Applied: {Array.isArray(migResult.applied) && migResult.applied.length > 0 ? migResult.applied.join(', ') : '—'}</div>
+                <div className="text-slate-700">Skipped: {Array.isArray(migResult.skipped) && migResult.skipped.length > 0 ? migResult.skipped.join(', ') : '—'}</div>
+                {migResult.note && <div className="text-slate-500">{migResult.note}</div>}
+              </div>
+            )}
           </div>
         </div>
       </div>

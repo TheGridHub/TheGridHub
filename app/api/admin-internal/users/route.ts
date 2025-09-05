@@ -38,6 +38,10 @@ export async function DELETE(req: NextRequest) {
 
     const supa = createServiceClient()
 
+    // Look up Supabase Auth user id (supabaseId)
+    const { data: userRow } = await supa.from('users').select('supabaseId').eq('id', userId).maybeSingle()
+    const supabaseId = userRow?.supabaseId as string | undefined
+
     // Danger zone: cascade delete user-related data
     const tables = [
       'notifications', 'tasks', 'goals', 'team_memberships', 'user_onboarding', 'projects'
@@ -47,8 +51,15 @@ export async function DELETE(req: NextRequest) {
     }
     await supa.from('users').delete().eq('id', userId)
 
-    // If you store auth users in Supabase auth use admin delete here (optional):
-    // Note: With SSR client, auth.admin may not be accessible; typically use @supabase/supabase-js client directly with service key.
+    // Delete Supabase Auth user (if available)
+    if (supabaseId) {
+      try {
+        await (supa as any).auth.admin.deleteUser(supabaseId)
+      } catch (e) {
+        // Non-fatal: log only on server
+        console.error('[admin-internal] Failed to delete auth user', supabaseId, e)
+      }
+    }
 
     return NextResponse.json({ ok: true })
   } catch (e:any) {

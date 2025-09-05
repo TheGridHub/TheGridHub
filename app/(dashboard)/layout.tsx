@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-
 import I18nProvider from '@/components/i18n/I18nProvider'
+
+import SkipToContent from '@/components/common/SkipToContent'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher'
+import AdminSchemaBanner from '@/components/common/AdminSchemaBanner'
+import ErrorReporter from '@/components/common/ErrorReporter'
 
 export default async function DashboardLayout({
   children,
@@ -9,9 +13,9 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect('/login')
   }
 
@@ -21,7 +25,7 @@ export default async function DashboardLayout({
     const { data: userRow } = await supabase
       .from('users')
       .select('id')
-      .eq('supabaseId', session.user.id)
+      .eq('supabaseId', user.id)
       .maybeSingle()
     const uid = userRow?.id
     if (uid) {
@@ -46,15 +50,15 @@ export default async function DashboardLayout({
         
         {/* Main content */}
         <div className="relative z-10">
-          {require('@/components/common/SkipToContent').default()}
+          <SkipToContent />
           {/* Simple top bar with language switcher */}
           <div className="flex items-center justify-end px-4 pt-4">
             <div className="bg-white/70 backdrop-blur rounded-lg border border-gray-200 px-3 py-2">
-              {require('@/components/common/LanguageSwitcher').default()}
+              <LanguageSwitcher />
             </div>
           </div>
-          {require('@/components/common/AdminSchemaBanner').default()}
-          {require('@/components/common/ErrorReporter').default()}
+          <AdminSchemaBanner />
+          <ErrorReporter />
           {require('@/components/dev/DevA11y').default()}
           <main id="main-content">
             {children}

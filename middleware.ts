@@ -18,7 +18,8 @@ const publicRoutes = [
   '/careers',
   '/about',
   '/api/auth',
-  '/auth'
+  '/auth',
+  '/admin-internal' // internal admin uses its own credential guard
 ]
 
 export async function middleware(request: NextRequest) {
@@ -35,11 +36,11 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Check if user is authenticated
-  const { data: { session } } = await supabase.auth.getSession()
+  // Check if user is authenticated (use getUser for verified auth)
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Redirect to login if not authenticated
-  if (!session) {
+  if (!user) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(redirectUrl)
@@ -52,7 +53,7 @@ export async function middleware(request: NextRequest) {
     const { data: userRow } = await supabase
       .from('users')
       .select('id')
-      .eq('supabaseId', session.user.id)
+      .eq('supabaseId', user.id)
       .maybeSingle()
 
     const userId = userRow?.id

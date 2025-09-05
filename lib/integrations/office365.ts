@@ -65,11 +65,11 @@ export class Office365Integration {
           contentType: 'HTML',
           content: `
             <div>
-              <h3>TaskWork Task: ${task.title}</h3>
+<h3>TheGridHub Task: ${task.title}</h3>
               <p><strong>Description:</strong> ${task.description || 'No description'}</p>
               <p><strong>Priority:</strong> ${task.priority}</p>
               <p><strong>Status:</strong> ${task.status}</p>
-              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TaskWork</a></p>
+<p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TheGridHub</a></p>
             </div>
           `
         },
@@ -89,7 +89,7 @@ export class Office365Integration {
             name: task.assigneeEmail
           }
         }] : [],
-        categories: ['TaskWork', `Priority-${task.priority}`],
+categories: ['TheGridHub', `Priority-${task.priority}`],
         isReminderOn: true,
         reminderMinutesBeforeStart: 15
       }
@@ -170,7 +170,7 @@ export class Office365Integration {
                 ${task.dueDate ? `<p><strong>Due:</strong> ${task.dueDate.toLocaleDateString()}</p>` : ''}
                 ${task.assigneeEmail ? `<p><strong>Assigned to:</strong> ${task.assigneeEmail}</p>` : ''}
               </div>
-              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TaskWork →</a></p>
+<p><a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}">View in TheGridHub →</a></p>
             </div>
           `
         }
@@ -208,7 +208,7 @@ export class Office365Integration {
    * ONEDRIVE INTEGRATION
    */
 
-  // Upload TaskWork export to OneDrive
+// Upload TheGridHub export to OneDrive
   async uploadProjectExportToOneDrive(
     userEmail: string,
     projectData: any,
@@ -332,7 +332,7 @@ export class Office365Integration {
         
         if (!TaskWorkList) {
           TaskWorkList = await this.client.api(`/users/${userEmail}/todo/lists`).post({
-            displayName: 'TaskWork Tasks'
+displayName: 'TheGridHub Tasks'
           })
         }
         

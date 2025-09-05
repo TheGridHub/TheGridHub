@@ -27,11 +27,11 @@ function exec(command) {
 }
 
 async function quickStart() {
-  console.log(`
-🚀 TaskWork Quick Start Setup
-==============================
+console.log(`
+🚀 TheGridHub Quick Start Setup
+===============================
 
-This script will help you get TaskWork up and running quickly.
+This script will help you get TheGridHub up and running quickly.
 `);
 
   // Choose deployment method
@@ -69,11 +69,11 @@ async function setupVercelSupabase() {
   const directUrl = dbUrl.replace('?pgbouncer=true&connection_limit=1', '');
   
   // Update .env.local file
-  const envContent = `# Supabase Database
+const envContent = `# Supabase Database
 DATABASE_URL="${dbUrl}"
 DIRECT_URL="${directUrl}"
 
-# Clerk Authentication
+# Clerk Authentication (optional)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_...'}
 CLERK_SECRET_KEY=${process.env.CLERK_SECRET_KEY || 'sk_test_...'}
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
@@ -82,10 +82,10 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 
 # Application URLs
-NEXT_PUBLIC_APP_URL=https://taskwork.vercel.app
-NEXT_PUBLIC_APP_NAME=TaskWork
-NEXT_PUBLIC_COMPANY_NAME=TaskWork
-NEXT_PUBLIC_DOMAIN=taskwork.io
+NEXT_PUBLIC_APP_URL=https://thegridhub.vercel.app
+NEXT_PUBLIC_APP_NAME=TheGridHub
+NEXT_PUBLIC_COMPANY_NAME=TheGridHub
+NEXT_PUBLIC_DOMAIN=thegridhub.co
 `;
   
   fs.writeFileSync('.env.local', envContent);
@@ -164,17 +164,31 @@ CLERK_SECRET_KEY=sk_test_...
   const secretKey = await question('Enter your Clerk Secret Key: ');
   
   // Update .env file
-  let envContent = fs.readFileSync('.env', 'utf8');
-  envContent = envContent.replace(
-    /NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=.*/,
-    `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${publishableKey}`
-  );
-  envContent = envContent.replace(
-    /CLERK_SECRET_KEY=.*/,
-    `CLERK_SECRET_KEY=${secretKey}`
-  );
-  fs.writeFileSync('.env', envContent);
-  console.log('✅ Clerk keys updated in .env');
+let envPath = '.env.local'
+  let envContent
+  try {
+    envContent = fs.readFileSync(envPath, 'utf8')
+  } catch {
+    envContent = ''
+  }
+  if (!envContent.includes('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=')) {
+    envContent += `\nNEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${publishableKey}`
+  } else {
+    envContent = envContent.replace(
+      /NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=.*/,
+      `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${publishableKey}`
+    )
+  }
+  if (!envContent.includes('CLERK_SECRET_KEY=')) {
+    envContent += `\nCLERK_SECRET_KEY=${secretKey}`
+  } else {
+    envContent = envContent.replace(
+      /CLERK_SECRET_KEY=.*/,
+      `CLERK_SECRET_KEY=${secretKey}`
+    )
+  }
+  fs.writeFileSync(envPath, envContent)
+  console.log('✅ Clerk keys updated in .env.local');
 
   // Set up database
   console.log('\n🗄️ Setting up database schema...');

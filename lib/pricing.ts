@@ -1,4 +1,4 @@
-// TaskWork Competitive Pricing Strategy
+// TheGridHub Competitive Pricing Strategy
 // Based on analysis of Asana, Notion, ClickUp, Monday.com, Trello pricing
 
 const env = (key: string, fallback: string | null = null) => {

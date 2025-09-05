@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { Office365Auth } from '@/lib/integrations/office365'
+import { createClient } from '@/lib/supabase/server'
 
 const office365Config = {
   clientId: process.env.MICROSOFT_CLIENT_ID!,
@@ -11,7 +11,9 @@ const office365Config = {
 
 export async function POST(req: NextRequest) {
   try {
-const { userId } = await auth()
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id
     
     if (!userId) {
       return NextResponse.json(

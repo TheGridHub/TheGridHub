@@ -22,7 +22,7 @@ export class StripeCustomerManager {
       name,
       metadata: {
         userId,
-        source: 'TaskWork',
+        source: 'TheGridHub',
         ...metadata
       }
     })
@@ -179,7 +179,7 @@ export class StripePaymentManager {
       currency,
       customer: customerId,
       metadata: {
-        source: 'TaskWork',
+        source: 'TheGridHub',
         ...metadata
       },
       automatic_payment_methods: {
@@ -450,7 +450,7 @@ export class StripePricingManager {
       name,
       description,
       metadata: {
-        source: 'TaskWork',
+source: 'TheGridHub',
         ...metadata
       }
     })

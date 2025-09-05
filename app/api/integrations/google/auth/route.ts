@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { GoogleWorkspaceAuth } from '@/lib/integrations/google-workspace'
+import { createClient } from '@/lib/supabase/server'
 
 const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -10,7 +10,9 @@ const googleConfig = {
 
 export async function POST(req: NextRequest) {
   try {
-const { userId } = await auth()
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id
     
     if (!userId) {
       return NextResponse.json(

@@ -343,9 +343,9 @@ export class SecurityValidator {
   static validateOrigin(request: NextRequest): boolean {
     const origin = request.headers.get('origin')
     const allowedOrigins = [
-      'https://taskwork.io',
-      'https://www.taskwork.io',
-      'https://admin.taskwork.io',
+'https://thegridhub.co',
+'https://www.thegridhub.co',
+'https://admin.thegridhub.co',
       process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''
     ].filter(Boolean)
 

@@ -53,7 +53,8 @@ export async function GET(req: NextRequest) {
     const apiRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/integrations`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Cookie': req.headers.get('cookie') || ''
       },
       body: JSON.stringify({
         type: 'slack',

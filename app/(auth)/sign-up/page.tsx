@@ -10,8 +10,8 @@ export default function SignUpPage() {
   const router = useRouter()
   
   useEffect(() => {
-    // Redirect to Clerk Account Portal
-    window.location.href = 'https://accounts.thegridhub.co/sign-up'
+    // Align to Supabase auth flow: route through local /login
+    window.location.href = '/login?signup=1'
   }, [])
 
   return (

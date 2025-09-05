@@ -64,13 +64,13 @@ export class GoogleWorkspaceIntegration {
       const event = {
         summary: `📋 ${task.title}`,
         description: `
-TaskWork Task: ${task.title}
+TheGridHub Task: ${task.title}
 
 Description: ${task.description || 'No description'}
 Priority: ${task.priority}
 Status: ${task.status}
 
-View in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
+View in TheGridHub: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
         `.trim(),
         start: {
           dateTime: task.dueDate?.toISOString() || new Date().toISOString(),
@@ -93,8 +93,8 @@ View in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
         },
         extendedProperties: {
           private: {
-            TaskWorkId: task.id,
-            TaskWorkPriority: task.priority
+TheGridHubId: task.id,
+TheGridHubPriority: task.priority
           }
         }
       }
@@ -182,7 +182,7 @@ View in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
             <div style="text-align: center; margin: 24px 0;">
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}" 
                  style="background: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: 500; display: inline-block;">
-                View Task in TaskWork
+View Task in TheGridHub
               </a>
             </div>
             
@@ -202,9 +202,9 @@ Status: ${task.status}
 ${task.description ? `Description: ${task.description}` : ''}
 ${task.dueDate ? `Due Date: ${task.dueDate.toLocaleDateString()}` : ''}
 
-View in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
+View in TheGridHub: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}
 
-This task was assigned to you via TaskWork.
+This task was assigned to you via TheGridHub.
       `.trim()
 
       // Create the email message
@@ -255,12 +255,12 @@ This task was assigned to you via TaskWork.
       let listId = taskListId
       if (!listId) {
         const taskLists = await tasks.tasklists.list()
-        let TaskWorkList = taskLists.data.items?.find(list => list.title === 'TaskWork Tasks')
+        let TaskWorkList = taskLists.data.items?.find(list => list.title === 'TheGridHub Tasks')
         
         if (!TaskWorkList) {
           const newList = await tasks.tasklists.insert({
             requestBody: {
-              title: 'TaskWork Tasks'
+            title: 'TheGridHub Tasks'
             }
           })
           TaskWorkList = newList.data
@@ -304,7 +304,7 @@ This task was assigned to you via TaskWork.
       const fileMetadata = {
         name: fileName,
         parents: folderId ? [folderId] : undefined,
-        description: 'TaskWork project export'
+description: 'TheGridHub project export'
       }
 
       const media = {
@@ -332,9 +332,9 @@ This task was assigned to you via TaskWork.
 
       // Create folder
       const folderMetadata = {
-        name: `TaskWork - ${projectName}`,
+name: `TheGridHub - ${projectName}`
         mimeType: 'application/vnd.google-apps.folder',
-        description: `Shared folder for TaskWork project: ${projectName}`
+description: `Shared folder for TheGridHub project: ${projectName}`
       }
 
       const folder = await drive.files.create({
@@ -394,7 +394,7 @@ This task was assigned to you via TaskWork.
           header: {
             title: `${actionEmoji[action]} Task ${action.charAt(0).toUpperCase() + action.slice(1)}`,
             subtitle: task.title,
-            imageUrl: 'https://TaskWork.io/icon-192.png'
+            imageUrl: `${process.env.NEXT_PUBLIC_APP_URL}/icons/Favicon.svg`
           },
           sections: [{
             widgets: [
@@ -433,7 +433,7 @@ This task was assigned to you via TaskWork.
               {
                 buttons: [{
                   textButton: {
-                    text: 'VIEW IN TaskWork',
+                    text: 'View in TheGridHub',
                     onClick: {
                       openLink: {
                         url: `${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`

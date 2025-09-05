@@ -91,7 +91,9 @@ export async function GET(req: NextRequest) {
     },
     GOOGLE: {
       CLIENT_ID: mask(env.GOOGLE_CLIENT_ID),
-      CLIENT_SECRET: mask(env.GOOGLE_CLIENT_SECRET)
+      CLIENT_SECRET: mask(env.GOOGLE_CLIENT_SECRET),
+      REDIRECT_URI: mask(env.GOOGLE_REDIRECT_URI),
+      SERVICE_ACCOUNT_JSON: mask(env.GOOGLE_SERVICE_ACCOUNT_JSON)
     },
     JIRA: {
       CLIENT_ID: mask(env.JIRA_CLIENT_ID),
@@ -152,9 +154,11 @@ export async function GET(req: NextRequest) {
   }
 
   async function checkGoogle() {
-    if (!googleSvc?.serviceAccountJson) return { ok: false, error: 'No Google service account configured' }
-    // Best-effort: presence check only; full token exchange requires domain delegation/scopes
-    return { ok: true }
+    const hasSvc = !!googleSvc?.serviceAccountJson
+    const hasOAuthClient = !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET
+    if (hasSvc) return { ok: true, mode: 'service_account' }
+    if (hasOAuthClient) return { ok: true, mode: 'oauth_client', note: 'Service account not configured' }
+    return { ok: false, error: 'No Google credentials configured' }
   }
 
   const [supa, app, db, stripe, slackSvc, googleSvcCheck, msSvc] = await Promise.all([

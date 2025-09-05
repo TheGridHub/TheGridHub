@@ -37,7 +37,7 @@
   "settings.integrations.title": "Integrations",
   "settings.integrations.description": "Connect Slack, Google Workspace, Microsoft 365, and Jira.",
   "settings.integrations.slack": {"title": "Slack", "testMessage": "Send test message"},
-  "settings.integrations.google": {"title": "Google Workspace", "testEmail": "Send test email", "testCalendar": "Create test calendar event"},
+  "settings.integrations.google": {"title": "Google Workspace", "testEmail": "Send test email", "testCalendar": "Create test calendar event", "testSheets": "Create test spreadsheet"},
   "settings.integrations.microsoft": {"title": "Microsoft 365", "testEmail": "Send test email", "testCalendar": "Create test calendar event"},
   "settings.integrations.jira": {"title": "Jira", "description": "Configure your Jira project key per project in /dashboard/projects and use the 'Create issue' flow from the task UI.", "open": "Open Jira settings"},
   "settings.profile.title": "Profile",

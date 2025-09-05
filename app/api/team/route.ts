@@ -33,7 +33,28 @@ export async function POST(req: NextRequest) {
     const currentUser = await getOrCreateUser(supabaseUser)
     if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
+    // Only owners/admins can invite
+    const { data: roleCheck } = await supabase
+      .from('team_memberships')
+      .select('role')
+      .eq('userId', currentUser.id)
+      .order('createdAt', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    const currentRole = roleCheck?.role || 'member'
+    if (currentRole !== 'owner' && currentRole !== 'admin') {
+      return NextResponse.json({ error: 'Insufficient permissions. Only owners and admins can invite.' }, { status: 403 })
+    }
+
     const body = await req.json()
+    if (!body?.email || typeof body.email !== 'string') {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+    }
+    const desiredRole = body.role || 'member'
+    if (!['owner','admin','member'].includes(desiredRole)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    }
+
     // Find user by email
     const { data: foundUser, error: findError } = await supabase
       .from('users')
@@ -42,11 +63,21 @@ export async function POST(req: NextRequest) {
       .single()
     if (findError || !foundUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
+    // Prevent duplicate membership
+    const { data: existing } = await supabase
+      .from('team_memberships')
+      .select('id')
+      .eq('userId', foundUser.id)
+      .maybeSingle()
+    if (existing) {
+      return NextResponse.json({ error: 'User is already a team member' }, { status: 409 })
+    }
+
     const { data, error } = await supabase
       .from('team_memberships')
       .insert({
         userId: foundUser.id,
-        role: body.role || 'member'
+        role: desiredRole
       })
       .select()
       .single()

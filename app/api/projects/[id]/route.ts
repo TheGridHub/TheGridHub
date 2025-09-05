@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       .from('projects')
       .update(updates)
       .eq('id', params.id)
+      .eq('userId', dbUser.id)
       .select()
       .single()
 
@@ -41,10 +42,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     const { data: { user: supabaseUser } } = await supabase.auth.getUser()
     if (!supabaseUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const dbUser = await getOrCreateUser(supabaseUser)
+    if (!dbUser) return NextResponse.json({ error: 'Profile not initialized' }, { status: 400 })
+
     const { error } = await supabase
       .from('projects')
       .delete()
       .eq('id', params.id)
+      .eq('userId', dbUser.id)
 
     if (error) throw error
     return NextResponse.json({ ok: true })

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSessionCookie, clearSessionCookie } from '@/lib/internal-admin/session'
+import { createSessionCookieOnResponse, clearSessionCookie } from '@/lib/internal-admin/session'
 import { adminAuditLog } from '@/lib/internal-admin/audit'
 import { ensureInternalAuth } from '@/lib/internal-admin/auth'
 
@@ -29,12 +29,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    // Set signed session cookie
-    createSessionCookie(username, 60 * 60, role)
+    // Prepare response and set signed session cookie explicitly on it
+    const res = NextResponse.json({ ok: true })
+    createSessionCookieOnResponse(res, username, 60 * 60, role)
     // Audit
     await adminAuditLog({ username, role }, 'login', { username })
-    return NextResponse.json({ ok: true })
-  } catch {
+    return res
+  } catch (e:any) {
     return NextResponse.json({ error: 'Login failed' }, { status: 500 })
   }
 }

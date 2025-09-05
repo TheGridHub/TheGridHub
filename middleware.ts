@@ -19,8 +19,21 @@ const publicRoutes = [
   '/about',
   '/api/auth',
   '/auth',
-  '/admin-internal' // internal admin uses its own credential guard
+  // Internal admin (has its own credential guard)
+  '/admin-internal',
+  '/internal-admin'
 ]
+
+// Routes that should bypass onboarding checks (but still require auth)
+const onboardingBypassPrefixes = [
+  '/billing',
+  '/settings/billing',
+  '/stripe',
+  '/checkout'
+]
+
+// Admin path prefixes for clarity
+const adminPrefixes = ['/admin-internal', '/internal-admin']
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
@@ -46,8 +59,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // Skip onboarding guard for admin paths and onboarding-bypass prefixes
+  const isAdminPath = adminPrefixes.some(p => pathname === p || pathname.startsWith(`${p}/`))
+  const isBypassPath = onboardingBypassPrefixes.some(p => pathname === p || pathname.startsWith(`${p}/`))
+  if (isAdminPath || isBypassPath) {
+    return response
+  }
+
   // Onboarding guard: if user authenticated but hasn't completed onboarding,
-  // redirect to /onboarding (except when already on /onboarding)
+  // redirect to /onboarding (except when already on /onboarding or allowed paths above)
   if (!pathname.startsWith('/onboarding')) {
     // Find users row by supabaseId
     const { data: userRow } = await supabase

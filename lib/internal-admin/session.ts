@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 const COOKIE_NAME = 'tgh_admin'
 
@@ -18,6 +19,21 @@ export function createSessionCookie(username: string, ttlSeconds = 60 * 60, role
   const value = `${payload}|${hmac}`
   const cookieStore = cookies() as any
   cookieStore.set(COOKIE_NAME, value, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: ttlSeconds,
+  })
+}
+
+export function createSessionCookieOnResponse(res: NextResponse, username: string, ttlSeconds = 60 * 60, role: InternalRole = 'owner') {
+  const secret = getSecret()
+  const exp = Math.floor(Date.now() / 1000) + ttlSeconds
+  const payload = `${username}|${role}|${exp}`
+  const hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex')
+  const value = `${payload}|${hmac}`
+  res.cookies.set(COOKIE_NAME, value, {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',

@@ -11,15 +11,22 @@ export default function AdminInternalLoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (!username.trim() || !password.trim()) {
+      setError('Please enter both username and password')
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/admin-internal/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username: username.trim(), password: password.trim() })
       })
       if (!res.ok) {
         const j = await res.json().catch(()=>({}))
+        if (res.status === 401) {
+          throw new Error('Invalid credentials')
+        }
         throw new Error(j?.error || 'Login failed')
       }
       window.location.href = '/admin-internal'

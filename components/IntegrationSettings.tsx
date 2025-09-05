@@ -511,12 +511,12 @@ export default function IntegrationSettings() {
           <p>• <strong>Email Notifications:</strong> Team members receive professional emails when assigned tasks</p>
           <p>• <strong>File Exports:</strong> Project data can be exported to Drive/OneDrive for backup</p>
           <p>• <strong>Chat Integration:</strong> Get real-time task updates in Teams or Google Chat</p>
-          <p>• <strong>Task Sync:</strong> Keep TaskWork tasks in sync with Microsoft To-Do or Google Tasks</p>
+          <p>• <strong>Task Sync:</strong> Keep TheGridHub tasks in sync with Microsoft To-Do or Google Tasks</p>
         </div>
         
         <div className="mt-4">
           <a
-            href="https://help.TaskWork.io/integrations"
+            href="https://help.thegridhub.co/integrations"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"

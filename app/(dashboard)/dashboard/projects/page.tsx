@@ -37,12 +37,19 @@ function SlackChannelPicker({ value, onChange }: { value: string; onChange: (v: 
   }, [])
   const disabled = loading || connected === false
   return (
-    <select className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
-      <option value="">{connected === false ? 'Connect Slack in Settings' : (t('projects.selectChannel') || 'Select a channel')}</option>
-      {channels.map((c) => (
-        <option key={c.id} value={c.id}>#{c.name}</option>
-      ))}
-    </select>
+    <div className="space-y-1">
+      <select className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
+        <option value="">{connected === false ? 'Connect Slack in Settings' : (t('projects.selectChannel') || 'Select a channel')}</option>
+        {channels.map((c) => (
+          <option key={c.id} value={c.id}>#{c.name}</option>
+        ))}
+      </select>
+      {connected === false && (
+        <div className="text-xs text-slate-600">
+          Slack is not connected. <a href="/dashboard/settings/integrations" className="underline">Open Integrations</a>
+        </div>
+      )}
+    </div>
   )
 }
 

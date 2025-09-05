@@ -21,14 +21,24 @@ export async function POST(req: NextRequest) {
 
     const accessToken = (integration as any).accessToken as string
 
-    const event = {
+    const url = new URL(req.url)
+    const wantMeet = url.searchParams.get('meet') === '1'
+
+    const event: any = {
       summary: 'TheGridHub: Test Event ✅',
       description: 'This is a test calendar event created by TheGridHub.',
       start: { dateTime: new Date(Date.now() + 5 * 60 * 1000).toISOString(), timeZone: 'UTC' },
       end: { dateTime: new Date(Date.now() + 65 * 60 * 1000).toISOString(), timeZone: 'UTC' }
     }
 
-    const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    let apiUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+    if (wantMeet) {
+      // Request a Google Meet link; will only succeed if scopes/policy allow
+      event.conferenceData = { createRequest: { requestId: `tgh-${Date.now()}` } }
+      apiUrl += '?conferenceDataVersion=1'
+    }
+
+    const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -47,7 +57,9 @@ export async function POST(req: NextRequest) {
       .update({ lastSync: new Date().toISOString() })
       .eq('type', 'google')
       .eq('accessToken', accessToken)
-    return NextResponse.json({ success: true })
+    
+    const created = await res.json().catch(()=> ({}))
+    return NextResponse.json({ success: true, eventId: created?.id || null, hangoutLink: created?.hangoutLink || created?.conferenceData?.entryPoints?.[0]?.uri || null })
   } catch (error) {
     console.error('Google test calendar error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

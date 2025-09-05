@@ -63,6 +63,15 @@ export default function IntegrationsSettingsPage() {
     }
   }
 
+  const googleTestSheets = async () => {
+    try {
+      const res = await post('/api/integrations/google/test-sheets')
+      toast({ title: 'Sheets smoke test', description: res?.message || 'OK', variant: 'success' })
+    } catch (e:any) {
+      toast({ title: 'Google Sheets failed', description: e?.message || String(e), variant: 'destructive' })
+    }
+  }
+
   const msTestEmail = async () => {
     try {
       await post('/api/integrations/office365/test-email')
@@ -103,6 +112,7 @@ export default function IntegrationsSettingsPage() {
             <div className="flex gap-2 flex-wrap">
               <button onClick={googleTestEmail} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testEmail') || 'Send test email'}</button>
               <button onClick={googleTestCalendar} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testCalendar') || 'Create test calendar event'}</button>
+              <button onClick={googleTestSheets} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Create test spreadsheet</button>
             </div>
           </div>
 

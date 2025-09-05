@@ -7,7 +7,7 @@ interface GoogleWorkspaceConfig {
   redirectUri: string
 }
 
-interface TaskWorkTask {
+interface TheGridHubTask {
   id: string
   title: string
   description?: string
@@ -57,7 +57,7 @@ export class GoogleWorkspaceIntegration {
    */
 
   // Create calendar event from TaskWork task
-  async createCalendarEventFromTask(task: TaskWorkTask, calendarId: string = 'primary'): Promise<string> {
+async createCalendarEventFromTask(task: TheGridHubTask, calendarId: string = 'primary'): Promise<string> {
     try {
       const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client })
 
@@ -144,9 +144,9 @@ TheGridHubPriority: task.priority
    */
 
   // Send task assignment email via Gmail
-  async sendTaskAssignmentEmail(
+async sendTaskAssignmentEmail(
     recipientEmail: string,
-    task: TaskWorkTask
+    task: TheGridHubTask
   ): Promise<void> {
     try {
       const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client })
@@ -247,7 +247,7 @@ This task was assigned to you via TheGridHub.
    */
 
   // Sync TaskWork task to Google Tasks
-  async syncTaskToGoogleTasks(task: TaskWorkTask, taskListId?: string): Promise<string> {
+async syncTaskToGoogleTasks(task: TheGridHubTask, taskListId?: string): Promise<string> {
     try {
       const tasks = google.tasks({ version: 'v1', auth: this.oauth2Client })
 
@@ -271,7 +271,7 @@ This task was assigned to you via TheGridHub.
 
       const googleTask = {
         title: task.title,
-        notes: `${task.description || ''}\n\nPriority: ${task.priority}\nView in TaskWork: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`,
+        notes: `${task.description || ''}\n\nPriority: ${task.priority}\nView in TheGridHub: ${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}`,
         due: task.dueDate?.toISOString(),
         status: task.status === 'completed' ? 'completed' : 'needsAction'
       }
@@ -369,9 +369,9 @@ description: `Shared folder for TheGridHub project: ${projectName}`
    */
 
   // Send task notification to Google Chat space
-  async sendTaskNotificationToChat(
+async sendTaskNotificationToChat(
     spaceName: string,
-    task: TaskWorkTask,
+    task: TheGridHubTask,
     action: 'created' | 'updated' | 'completed'
   ): Promise<void> {
     try {
@@ -394,7 +394,7 @@ description: `Shared folder for TheGridHub project: ${projectName}`
           header: {
             title: `${actionEmoji[action]} Task ${action.charAt(0).toUpperCase() + action.slice(1)}`,
             subtitle: task.title,
-            imageUrl: `${process.env.NEXT_PUBLIC_APP_URL}/icons/Favicon.svg`
+            imageUrl: `${process.env.NEXT_PUBLIC_APP_URL}/images/logo.svg`
           },
           sections: [{
             widgets: [
@@ -476,7 +476,7 @@ description: `Shared folder for TheGridHub project: ${projectName}`
       const spreadsheet = await sheets.spreadsheets.create({
         requestBody: {
           properties: {
-            title: `TaskWork - ${spreadsheetTitle}`,
+            title: `TheGridHub - ${spreadsheetTitle}`,
             locale: 'en_US',
             timeZone: 'UTC'
           },

@@ -4,7 +4,7 @@ interface JiraConfig {
   apiToken: string
 }
 
-interface TaskWorkTask {
+interface TheGridHubTask {
   id: string
   title: string
   description?: string
@@ -57,8 +57,8 @@ export class JiraIntegration {
    */
 
   // Create Jira issue from TaskWork task
-  async createIssueFromTask(
-    task: TaskWorkTask,
+async createIssueFromTask(
+    task: TheGridHubTask,
     projectKey: string,
     issueType: string = 'Task'
   ): Promise<JiraIssue> {
@@ -76,7 +76,7 @@ export class JiraIntegration {
                 content: [
                   {
                     type: 'text',
-                    text: task.description || 'Created from TaskWork'
+text: task.description || 'Created from TheGridHub'
                   }
                 ]
               }
@@ -104,7 +104,7 @@ export class JiraIntegration {
   }
 
   // Sync TaskWork task to existing Jira issue
-  async syncTaskToIssue(task: TaskWorkTask, issueKey: string): Promise<void> {
+async syncTaskToIssue(task: TheGridHubTask, issueKey: string): Promise<void> {
     try {
       const updateData = {
         fields: {
@@ -118,7 +118,7 @@ export class JiraIntegration {
                 content: [
                   {
                     type: 'text',
-                    text: task.description || 'Updated from TaskWork'
+text: task.description || 'Updated from TheGridHub'
                   }
                 ]
               }
@@ -148,8 +148,8 @@ export class JiraIntegration {
     }
   }
 
-  // Get Jira issues and convert to TaskWork tasks
-  async getIssuesAsTaskWorkTasks(projectKey: string): Promise<TaskWorkTask[]> {
+  // Get Jira issues and convert to TheGridHub tasks
+async getIssuesAsTheGridHubTasks(projectKey: string): Promise<TheGridHubTask[]> {
     try {
       const jql = `project = ${projectKey} ORDER BY created DESC`
       const response = await this.makeRequest('POST', '/search', {
@@ -158,13 +158,13 @@ export class JiraIntegration {
         maxResults: 100
       })
 
-      return response.issues.map((issue: any): TaskWorkTask => ({
+return response.issues.map((issue: any): TheGridHubTask => ({
         id: `jira_${issue.key}`,
         title: issue.fields.summary,
         description: this.extractDescriptionText(issue.fields.description),
         dueDate: issue.fields.duedate ? new Date(issue.fields.duedate) : undefined,
-        priority: this.mapJiraPriorityToTaskWork(issue.fields.priority?.name || 'Medium'),
-        status: this.mapJiraStatusToTaskWork(issue.fields.status?.name || 'To Do'),
+        priority: this.mapJiraPriorityToTheGridHub(issue.fields.priority?.name || 'Medium'),
+        status: this.mapJiraStatusToTheGridHub(issue.fields.status?.name || 'To Do'),
         assigneeEmail: issue.fields.assignee?.emailAddress
       }))
 
@@ -497,7 +497,7 @@ export class JiraIntegration {
     return mapping[priority] || 'Medium'
   }
 
-  private mapJiraPriorityToTaskWork(jiraPriority: string): 'High' | 'Medium' | 'Low' {
+  private mapJiraPriorityToTheGridHub(jiraPriority: string): 'High' | 'Medium' | 'Low' {
     const priority = jiraPriority.toLowerCase()
     if (priority.includes('high') || priority.includes('critical') || priority.includes('blocker')) {
       return 'High'
@@ -517,7 +517,7 @@ export class JiraIntegration {
     return mapping[status] || null
   }
 
-  private mapJiraStatusToTaskWork(jiraStatus: string): 'pending' | 'in_progress' | 'completed' {
+  private mapJiraStatusToTheGridHub(jiraStatus: string): 'pending' | 'in_progress' | 'completed' {
     const status = jiraStatus.toLowerCase()
     if (status.includes('progress') || status.includes('review')) {
       return 'in_progress'

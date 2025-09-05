@@ -154,7 +154,7 @@ export default function AdminSettings({
       category: 'Email',
       name: 'SMTP Server',
       description: 'SMTP server hostname',
-      value: 'smtp.TaskWork.com',
+      value: 'smtp.thegridhub.co',
       type: 'string'
     },
     {

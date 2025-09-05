@@ -1,4 +1,4 @@
-# 🔒 TaskWork Security Fixes Summary
+# 🔒 TheGridHub Security Fixes Summary
 
 ## Issues Resolved ✅
 
@@ -160,9 +160,9 @@ npm run pre-commit
 ## 📞 Security Contact
 
 For security issues or questions:
-- 🚨 **Critical Security Issues**: security@taskwork.io
-- 📧 **General Security**: security-team@taskwork.io
-- 🔒 **Bug Bounty**: https://taskwork.io/security/bug-bounty
+- 🚨 **Critical Security Issues**: security@thegridhub.co
+- 📧 **General Security**: security-team@thegridhub.co
+- 🔒 **Bug Bounty**: https://thegridhub.co/security/bug-bounty
 
 ---
 

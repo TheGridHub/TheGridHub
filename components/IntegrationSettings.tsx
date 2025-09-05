@@ -185,7 +185,7 @@ export default function IntegrationSettings() {
       <div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Integrations</h2>
         <p className="text-slate-600">
-          Connect TaskWork with your favorite productivity tools to streamline your workflow.
+          Connect TheGridHub with your favorite productivity tools to streamline your workflow.
         </p>
       </div>
 

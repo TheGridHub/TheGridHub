@@ -5,7 +5,7 @@ interface TeamsConfig {
   accessToken?: string
 }
 
-interface TaskWorkTask {
+interface TheGridHubTask {
   id: string
   title: string
   description?: string
@@ -46,7 +46,7 @@ export class TeamsIntegration {
   async sendTaskNotification(
     teamId: string,
     channelId: string,
-    task: TaskWorkTask,
+task: TheGridHubTask,
     action: 'created' | 'updated' | 'completed',
     userName?: string
   ): Promise<void> {
@@ -131,7 +131,7 @@ export class TeamsIntegration {
   // Send private task assignment message
   async sendTaskAssignment(
     userId: string,
-    task: TaskWorkTask,
+task: TheGridHubTask,
     assignerName?: string
   ): Promise<void> {
     try {

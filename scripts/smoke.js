@@ -42,11 +42,24 @@ async function main() {
     }
   }
 
+  const smokeMode = (process.env.SMOKE_MODE || 'auto').toLowerCase()
+  const hasCookie = !!COOKIE
+  const hasDbEnv = !!process.env.SUPABASE_URL
+
+  // Always check app health
   await run('health:app', () => check('/api/health/app'))
-  await run('health:db', () => check('/api/health/db'))
-  await run('integrations:slack:status', () => check('/api/integrations/slack/status', { auth: true }))
-  await run('projects:list', () => check('/api/projects', { auth: true }))
-  await run('tasks:list', () => check('/api/tasks', { auth: true }))
+
+  // DB health only when SUPABASE_URL exists or in full mode
+  if (smokeMode === 'full' || hasDbEnv) {
+    await run('health:db', () => check('/api/health/db'))
+  }
+
+  // Authenticated checks only when COOKIE provided or explicitly requested
+  if (smokeMode === 'full' || hasCookie) {
+    await run('integrations:slack:status', () => check('/api/integrations/slack/status', { auth: true }))
+    await run('projects:list', () => check('/api/projects', { auth: true }))
+    await run('tasks:list', () => check('/api/tasks', { auth: true }))
+  }
 
   console.table(results.map(r => ({
     check: r.name,

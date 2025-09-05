@@ -8,7 +8,7 @@ interface Office365Config {
   redirectUri: string
 }
 
-interface TaskWorkTask {
+interface TheGridHubTask {
   id: string
   title: string
   description?: string
@@ -57,7 +57,7 @@ export class Office365Integration {
    */
   
   // Create calendar event from TaskWork task
-  async createCalendarEventFromTask(task: TaskWorkTask, userEmail: string): Promise<string> {
+async createCalendarEventFromTask(task: TheGridHubTask, userEmail: string): Promise<string> {
     try {
       const event = {
         subject: `📋 ${task.title}`,
@@ -137,10 +137,10 @@ categories: ['TheGridHub', `Priority-${task.priority}`],
    */
 
   // Send task notification to Teams channel
-  async sendTaskNotificationToTeams(
+async sendTaskNotificationToTeams(
     teamId: string, 
     channelId: string, 
-    task: TaskWorkTask,
+    task: TheGridHubTask,
     action: 'created' | 'updated' | 'completed'
   ): Promise<void> {
     try {
@@ -249,10 +249,10 @@ categories: ['TheGridHub', `Priority-${task.priority}`],
    */
 
   // Send task assignment email
-  async sendTaskAssignmentEmail(
+async sendTaskAssignmentEmail(
     senderEmail: string,
     recipientEmail: string,
-    task: TaskWorkTask
+    task: TheGridHubTask
   ): Promise<void> {
     try {
       const message = {
@@ -287,12 +287,12 @@ categories: ['TheGridHub', `Priority-${task.priority}`],
                 <div style="margin-top: 20px; text-align: center;">
                   <a href="${process.env.NEXT_PUBLIC_APP_URL}/tasks/${task.id}" 
                      style="background: #007acc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                    View Task in TaskWork
+View Task in TheGridHub
                   </a>
                 </div>
                 
                 <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                  This task was assigned to you via TaskWork. 
+This task was assigned to you via TheGridHub.
                   <a href="${process.env.NEXT_PUBLIC_APP_URL}/settings/notifications">Manage notification preferences</a>
                 </p>
               </div>
@@ -322,7 +322,7 @@ categories: ['TheGridHub', `Priority-${task.priority}`],
    */
 
   // Sync TaskWork tasks to Microsoft To-Do
-  async syncTaskToMicrosoftToDo(userEmail: string, task: TaskWorkTask, listId?: string): Promise<string> {
+async syncTaskToMicrosoftToDo(userEmail: string, task: TheGridHubTask, listId?: string): Promise<string> {
     try {
       // Get or create TaskWork task list
       let taskListId = listId
@@ -369,9 +369,9 @@ displayName: 'TheGridHub Tasks'
    */
 
   // Trigger Power Automate flow for task events
-  async triggerPowerAutomateFlow(
+async triggerPowerAutomateFlow(
     flowUrl: string,
-    task: TaskWorkTask,
+    task: TheGridHubTask,
     action: string,
     userEmail: string
   ): Promise<void> {

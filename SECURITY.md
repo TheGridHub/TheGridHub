@@ -1,6 +1,6 @@
 # Security Policy
 
-TaskWork takes the security of our platform and our users' data seriously. We appreciate your efforts to responsibly disclose security vulnerabilities.
+TheGridHub takes the security of our platform and our users' data seriously. We appreciate your efforts to responsibly disclose security vulnerabilities.
 
 ## Supported Versions
 
@@ -17,7 +17,7 @@ We provide security updates for the following versions:
 
 ### How to Report
 
-Please report security vulnerabilities via email to: **security@taskwork.io**
+Please report security vulnerabilities via email to: **security@thegridhub.co**
 
 Include the following information:
 - Description of the vulnerability
@@ -60,14 +60,14 @@ Include the following information:
 
 1. **Use Strong Passwords**: Create unique, complex passwords
 2. **Enable 2FA**: Use two-factor authentication
-3. **Keep Software Updated**: Use the latest TaskWork version
+3. **Keep Software Updated**: Use the latest TheGridHub version
 4. **Secure Integrations**: Review third-party integrations
 5. **Report Suspicious Activity**: Contact us immediately
 
 ## Contact
 
-- **Security Email**: security@taskwork.io
-- **General Support**: support@taskwork.io
+- **Security Email**: security@thegridhub.co
+- **General Support**: support@thegridhub.co
 
-Thank you for helping keep TaskWork and our users safe!
+Thank you for helping keep TheGridHub and our users safe!
 

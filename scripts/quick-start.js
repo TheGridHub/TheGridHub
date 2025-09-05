@@ -146,10 +146,10 @@ CLERK_SECRET_KEY=sk_test_...
     console.log('✅ Database URL updated in .env.local');
     
   } else if (dbChoice === '2') {
-    console.log('\n💾 Local PostgreSQL setup:');
-    console.log('1. Install PostgreSQL from: https://www.postgresql.org/download/');
-    console.log('2. Create a database called "taskwork"');
-    console.log('3. Update the DATABASE_URL in your .env file');
+console.log('\n💾 Local PostgreSQL setup:');
+  console.log('1. Install PostgreSQL from: https://www.postgresql.org/download/');
+  console.log('2. Create a database called "thegridhub"');
+  console.log('3. Update the DATABASE_URL in your .env file');
     
     await question('\nPress Enter when your local PostgreSQL is ready...');
   }

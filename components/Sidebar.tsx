@@ -35,7 +35,7 @@ export default function Sidebar() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <CheckSquare className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-semibold text-gray-900">TaskWork</span>
+          <span className="text-xl font-semibold text-gray-900">TheGridHub</span>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export default function Sidebar() {
       {/* Trial Banner */}
       <div className="px-3 pb-6">
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white">
-          <div className="text-sm font-medium mb-2">TaskWork trial plan</div>
+          <div className="text-sm font-medium mb-2">TheGridHub trial plan</div>
           <div className="text-xs opacity-90 mb-3">
             Your plan only left 12-days, we will upgrade big plan soon
           </div>

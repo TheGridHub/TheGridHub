@@ -167,7 +167,7 @@ export default function ActivityLogs({ onExportLogs, onViewDetails }: ActivityLo
     {
       id: '4',
       userId: 'user_012',
-      userEmail: 'admin@TaskWork.com',
+      userEmail: 'admin@thegridhub.co',
       userName: 'Admin User',
       action: 'SYSTEM_CONFIG_CHANGE',
       category: 'system',

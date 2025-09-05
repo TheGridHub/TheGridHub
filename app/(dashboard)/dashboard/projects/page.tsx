@@ -14,22 +14,31 @@ function SlackChannelPicker({ value, onChange }: { value: string; onChange: (v: 
   const { t } = useI18n()
   const [channels, setChannels] = useState<Array<{id: string, name: string}>>([])
   const [loading, setLoading] = useState(false)
+  const [connected, setConnected] = useState<boolean | null>(null)
   useEffect(() => {
     let mounted = true
     ;(async () => {
       setLoading(true)
       try {
-        const res = await fetch('/api/integrations/slack/channels')
-        const data = await res.json()
-        if (mounted) setChannels(data.channels || [])
+        // Check Slack connection first
+        const statusRes = await fetch('/api/integrations/slack/status')
+        const status = await statusRes.json().catch(()=> ({}))
+        if (!mounted) return
+        setConnected(!!status?.connected)
+        if (status?.connected) {
+          const res = await fetch('/api/integrations/slack/channels')
+          const data = await res.json()
+          if (mounted) setChannels(data.channels || [])
+        }
       } catch {}
       setLoading(false)
     })()
     return () => { mounted = false }
   }, [])
+  const disabled = loading || connected === false
   return (
-    <select className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" value={value} onChange={(e) => onChange(e.target.value)} disabled={loading}>
-      <option value="">{t('projects.selectChannel') || 'Select a channel'}</option>
+    <select className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
+      <option value="">{connected === false ? 'Connect Slack in Settings' : (t('projects.selectChannel') || 'Select a channel')}</option>
       {channels.map((c) => (
         <option key={c.id} value={c.id}>#{c.name}</option>
       ))}

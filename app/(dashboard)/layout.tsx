@@ -52,6 +52,7 @@ export default async function DashboardLayout({
               {require('@/components/common/LanguageSwitcher').default()}
             </div>
           </div>
+          {require('@/components/common/AdminSchemaBanner').default()}
           {children}
         </div>
       </div>

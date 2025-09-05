@@ -9,6 +9,25 @@ export default function DiagnosticsPage() {
   const append = (msg: string) => setLog(prev => `${prev}${prev ? '\n' : ''}${msg}`)
 
   const checks: Array<{label: string, run: () => Promise<void>}> = [
+    // Health
+    { label: 'Health: App', run: async () => {
+        const r = await fetch('/api/health/app')
+        append(`Health App: ${r.status} ${r.statusText}`)
+        append(await r.text())
+      }
+    },
+    { label: 'Health: DB', run: async () => {
+        const r = await fetch('/api/health/db')
+        append(`Health DB: ${r.status} ${r.statusText}`)
+        append(await r.text())
+      }
+    },
+    { label: 'Health: Stripe (last webhook)', run: async () => {
+        const r = await fetch('/api/health/stripe')
+        append(`Health Stripe: ${r.status} ${r.statusText}`)
+        append(await r.text())
+      }
+    },
     // Integrations - Slack
     { label: 'Slack: Status', run: async () => {
         const r = await fetch('/api/integrations/slack/status')

@@ -44,7 +44,7 @@ export default function AdminInternalHome() {
   }
 
   useEffect(() => { loadEnvs() }, [])
-  useEffect(() => { if (selected) loadHealth(selected) }, [selected])
+  useEffect(() => { loadHealth(selected || undefined) }, [selected])
 
   return (
     <div className="space-y-6">

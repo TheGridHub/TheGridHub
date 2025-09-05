@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "TheGridHub Production API Checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Production validation for integrations and dashboard APIs"
+  },
+  "item": [
+    {
+      "name": "Integrations",
+      "item": [
+        {
+          "name": "Slack - Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "{{cookie}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/integrations/slack/status", "host": ["{{base_url}}"], "path": ["api","integrations","slack","status"] }
+          }
+        },
+        {
+          "name": "Slack - Test Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Cookie", "value": "{{cookie}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"channelId\": \"{{slack_channel_id}}\",\n  \"text\": \"TheGridHub test ✅\"\n}" },
+            "url": { "raw": "{{base_url}}/api/integrations/slack/test-message", "host": ["{{base_url}}"], "path": ["api","integrations","slack","test-message"] }
+          }
+        },
+        {
+          "name": "Google - Test Email",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Cookie", "value": "{{cookie}}" } ],
+            "url": { "raw": "{{base_url}}/api/integrations/google/test-email", "host": ["{{base_url}}"], "path": ["api","integrations","google","test-email"] }
+          }
+        },
+        {
+          "name": "Google - Test Calendar",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Cookie", "value": "{{cookie}}" } ],
+            "url": { "raw": "{{base_url}}/api/integrations/google/test-calendar", "host": ["{{base_url}}"], "path": ["api","integrations","google","test-calendar"] }
+          }
+        },
+        {
+          "name": "Google - Test Sheets",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Cookie", "value": "{{cookie}}" } ],
+            "url": { "raw": "{{base_url}}/api/integrations/google/test-sheets", "host": ["{{base_url}}"], "path": ["api","integrations","google","test-sheets"] }
+          }
+        },
+        {
+          "name": "Microsoft - Status",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Cookie", "value": "{{cookie}}" } ],
+            "url": { "raw": "{{base_url}}/api/integrations/office365/status", "host": ["{{base_url}}"], "path": ["api","integrations","office365","status"] }
+          }
+        },
+        {
+          "name": "Microsoft - Test Email",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Cookie", "value": "{{cookie}}" } ],
+            "url": { "raw": "{{base_url}}/api/integrations/office365/test-email", "host": ["{{base_url}}"], "path": ["api","integrations","office365","test-email"] }
+          }
+        },
+        {
+          "name": "Microsoft - Test Calendar",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Cookie", "value": "{{cookie}}" } ],
+            "url": { "raw": "{{base_url}}/api/integrations/office365/test-calendar", "host": ["{{base_url}}"], "path": ["api","integrations","office365","test-calendar"] }
+          }
+        },
+        {
+          "name": "Jira - Create Issue",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Cookie", "value": "{{cookie}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"taskId\": \"{{task_id}}\",\n  \"projectId\": \"{{project_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/integrations/jira/create-issue", "host": ["{{base_url}}"], "path": ["api","integrations","jira","create-issue"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/projects", "host": ["{{base_url}}"], "path": ["api","projects"] } } ,
+        { "name": "Create", "request": { "method": "POST", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"name\": \"Demo Project\",\n  \"description\": \"From Postman\",\n  \"color\": \"#7c3aed\"\n}"}, "url": {"raw": "{{base_url}}/api/projects", "host": ["{{base_url}}"], "path": ["api","projects"] } } },
+        { "name": "Update", "request": { "method": "PATCH", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"slackDefaultChannelId\": \"{{slack_channel_id}}\",\n  \"jiraProjectKey\": \"TGH\"\n}"}, "url": {"raw": "{{base_url}}/api/projects/{{project_id}}", "host": ["{{base_url}}"], "path": ["api","projects","{{project_id}}"] } } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/projects/{{project_id}}", "host": ["{{base_url}}"], "path": ["api","projects","{{project_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/tasks", "host": ["{{base_url}}"], "path": ["api","tasks"] } } ,
+        { "name": "Create", "request": { "method": "POST", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"title\": \"API Task\",\n  \"description\": \"From Postman\",\n  \"priority\": \"Medium\",\n  \"projectId\": \"{{project_id}}\"\n}"}, "url": {"raw": "{{base_url}}/api/tasks", "host": ["{{base_url}}"], "path": ["api","tasks"] } } },
+        { "name": "Update", "request": { "method": "PATCH", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"status\": \"in_progress\",\n  \"progress\": 50\n}"}, "url": {"raw": "{{base_url}}/api/tasks/{{task_id}}", "host": ["{{base_url}}"], "path": ["api","tasks","{{task_id}}"] } } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/tasks/{{task_id}}", "host": ["{{base_url}}"], "path": ["api","tasks","{{task_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Goals",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/goals", "host": ["{{base_url}}"], "path": ["api","goals"] } } ,
+        { "name": "Create", "request": { "method": "POST", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"title\": \"Hit 1K users\",\n  \"description\": \"Q4 target\",\n  \"target\": 1000,\n  \"current\": 100,\n  \"type\": \"CUSTOM\"\n}"}, "url": {"raw": "{{base_url}}/api/goals", "host": ["{{base_url}}"], "path": ["api","goals"] } } },
+        { "name": "Update", "request": { "method": "PATCH", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"current\": 200\n}"}, "url": {"raw": "{{base_url}}/api/goals/{{goal_id}}", "host": ["{{base_url}}"], "path": ["api","goals","{{goal_id}}"] } } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/goals/{{goal_id}}", "host": ["{{base_url}}"], "path": ["api","goals","{{goal_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/notifications", "host": ["{{base_url}}"], "path": ["api","notifications"] } } ,
+        { "name": "Mark Read", "request": { "method": "PATCH", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"isRead\": true\n}"}, "url": {"raw": "{{base_url}}/api/notifications/{{notification_id}}", "host": ["{{base_url}}"], "path": ["api","notifications","{{notification_id}}"] } } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/notifications/{{notification_id}}", "host": ["{{base_url}}"], "path": ["api","notifications","{{notification_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Team",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/team", "host": ["{{base_url}}"], "path": ["api","team"] } } ,
+        { "name": "Invite", "request": { "method": "POST", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"email\": \"invitee@example.com\",\n  \"role\": \"member\"\n}"}, "url": {"raw": "{{base_url}}/api/team", "host": ["{{base_url}}"], "path": ["api","team"] } } },
+        { "name": "Change Role", "request": { "method": "PATCH", "header": [{"key": "Cookie", "value": "{{cookie}}"},{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"role\": \"admin\"\n}"}, "url": {"raw": "{{base_url}}/api/team/{{membership_id}}", "host": ["{{base_url}}"], "path": ["api","team","{{membership_id}}"] } } },
+        { "name": "Remove", "request": { "method": "DELETE", "header": [{"key": "Cookie", "value": "{{cookie}}"}], "url": {"raw": "{{base_url}}/api/team/{{membership_id}}", "host": ["{{base_url}}"], "path": ["api","team","{{membership_id}}"] } } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "https://your-production-domain.com" },
+    { "key": "cookie", "value": "SESSION=...;" },
+    { "key": "slack_channel_id", "value": "C1234567890" },
+    { "key": "project_id", "value": "" },
+    { "key": "task_id", "value": "" },
+    { "key": "goal_id", "value": "" },
+    { "key": "notification_id", "value": "" },
+    { "key": "membership_id", "value": "" }
+  ]
+}
+

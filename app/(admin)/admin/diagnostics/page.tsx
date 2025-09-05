@@ -22,9 +22,30 @@ export default function DiagnosticsPage() {
         append(await r.text())
       }
     },
+    { label: 'Health: DB Latency', run: async () => {
+        const r = await fetch('/api/health/db/latency')
+        append(`Health DB Latency: ${r.status} ${r.statusText}`)
+        append(await r.text())
+      }
+    },
+    { label: 'Health: DB Schema', run: async () => {
+        const r = await fetch('/api/health/db/schema-check')
+        append(`Health DB Schema: ${r.status} ${r.statusText}`)
+        append(await r.text())
+      }
+    },
     { label: 'Health: Stripe (last webhook)', run: async () => {
         const r = await fetch('/api/health/stripe')
         append(`Health Stripe: ${r.status} ${r.statusText}`)
+        append(await r.text())
+      }
+    },
+    { label: 'Admin: Purge Stripe webhooks (> days)', run: async () => {
+        const daysStr = prompt('Purge events older than how many days? (default 30)') || '30'
+        const days = Number(daysStr)
+        if (!Number.isFinite(days) || days < 1) { append('Purge canceled (invalid days)'); return }
+        const r = await fetch('/api/admin/stripe/purge-webhooks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ days }) })
+        append(`Purge Stripe: ${r.status} ${r.statusText}`)
         append(await r.text())
       }
     },

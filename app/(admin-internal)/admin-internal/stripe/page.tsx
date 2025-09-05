@@ -91,8 +91,6 @@ export default function AdminStripePage() {
               <button className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Retry Event</button>
             </form>
           </div>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

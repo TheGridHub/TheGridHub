@@ -37,8 +37,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, description, priority, dueDate, projectId } = body
 
+    if (!title || typeof title !== 'string') {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 })
+    }
+
     const user = await getOrCreateUser(supabaseUser)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    // If linking to a project, ensure it belongs to the current user
+    if (projectId) {
+      const { data: proj } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('id', projectId)
+        .eq('userId', user.id)
+        .maybeSingle()
+      if (!proj) {
+        return NextResponse.json({ error: 'Invalid projectId' }, { status: 400 })
+      }
+    }
 
     const insert = await supabase
       .from('tasks')

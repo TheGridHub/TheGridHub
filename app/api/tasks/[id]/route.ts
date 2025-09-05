@@ -12,6 +12,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const dbUser = await getOrCreateUser(supabaseUser)
     if (!dbUser) return NextResponse.json({ error: 'Profile not initialized' }, { status: 400 })
 
+    // If linking to a project, ensure it belongs to the current user
+    if (body.projectId) {
+      const { data: proj } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('id', body.projectId)
+        .eq('userId', dbUser.id)
+        .maybeSingle()
+      if (!proj) {
+        return NextResponse.json({ error: 'Invalid projectId' }, { status: 400 })
+      }
+    }
+
     const updates: any = {
       title: body.title,
       description: body.description ?? null,

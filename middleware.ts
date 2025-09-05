@@ -21,7 +21,9 @@ const publicRoutes = [
   '/auth',
   // Internal admin (has its own credential guard)
   '/admin-internal',
-  '/internal-admin'
+  '/internal-admin',
+  // Internal admin API endpoints must be reachable without app auth
+  '/api/admin-internal'
 ]
 
 // Routes that should bypass onboarding checks (but still require auth)

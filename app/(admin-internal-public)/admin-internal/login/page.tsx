@@ -48,8 +48,10 @@ export default function AdminInternalLoginPage() {
           </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Username</label>
+              <label htmlFor="admin-username" className="block text-sm font-medium text-slate-700">Username</label>
               <input
+                id="admin-username"
+                name="username"
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 autoComplete="username"
                 value={username}
@@ -58,8 +60,10 @@ export default function AdminInternalLoginPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Password</label>
+              <label htmlFor="admin-password" className="block text-sm font-medium text-slate-700">Password</label>
               <input
+                id="admin-password"
+                name="password"
                 type="password"
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 autoComplete="current-password"

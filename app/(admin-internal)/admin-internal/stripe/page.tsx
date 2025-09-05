@@ -83,6 +83,14 @@ export default function AdminStripePage() {
                     <td className="px-3 py-2 text-xs text-slate-500">{e.created_at ? new Date(e.created_at).toLocaleString() : '—'}</td>
                   </tr>
                 ))}
+            </tbody>
+          </table>
+          <div className="mt-3 text-right">
+            <form onSubmit={async (ev)=>{ ev.preventDefault(); const id = (ev.currentTarget.elements.namedItem('event_id') as HTMLInputElement).value; if(!id) return; await fetch('/api/admin-internal/stripe/retry', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ event_id: id })}); await load(); }} className="inline-flex items-center gap-2">
+              <input name="event_id" placeholder="event_id" className="border rounded px-2 py-1 text-xs" />
+              <button className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Retry Event</button>
+            </form>
+          </div>
               </tbody>
             </table>
           </div>

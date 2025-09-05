@@ -30,7 +30,42 @@ async function ping(url: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const origin = req.nextUrl.origin
+  const { searchParams } = new URL(req.url)
+  const envKey = searchParams.get('env')
+  const originOverride = searchParams.get('origin')
+
+  let origin = req.nextUrl.origin
+  let slackToken: string | undefined = process.env.SLACK_BOT_TOKEN
+  let msCreds: { tenantId?: string, clientId?: string, clientSecret?: string } = {
+    tenantId: process.env.MICROSOFT_TENANT_ID,
+    clientId: process.env.MICROSOFT_CLIENT_ID,
+    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+  }
+  let googleSvc: { serviceAccountJson?: string } = {
+    serviceAccountJson: process.env.GOOGLE_SERVICE_ACCOUNT_JSON,
+  }
+
+  // Load environment preset from ADMIN_ENVIRONMENTS_JSON if envKey is provided
+  try {
+    const raw = process.env.ADMIN_ENVIRONMENTS_JSON
+    if (raw) {
+      const list = JSON.parse(raw)
+      if (Array.isArray(list) && envKey) {
+        const found = list.find((e:any) => String(e.key) === envKey)
+        if (found) {
+          origin = String(found.origin || origin)
+          slackToken = found.slackBotToken || slackToken
+          msCreds = found.microsoft || msCreds
+          googleSvc = found.google || googleSvc
+        }
+      }
+    }
+  } catch {}
+
+  if (originOverride && /^(https?:)\/\//i.test(originOverride)) {
+    origin = originOverride
+  }
+
   const env = process.env
   const envStatus = {
     DATABASE_URL: mask(env.DATABASE_URL),
@@ -79,25 +114,69 @@ export async function GET(req: NextRequest) {
     POSTHOG_KEY: mask(env.NEXT_PUBLIC_POSTHOG_KEY)
   }
 
-  const [supa, app, db, stripe, slack, google, ms] = await Promise.all([
+  // Service-token-based checks
+  async function checkSlack() {
+    if (!slackToken) return { ok: false, error: 'No Slack bot token' }
+    try {
+      const res = await fetch('https://slack.com/api/auth.test', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${slackToken}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({})
+      })
+      const j = await res.json()
+      return { ok: !!j.ok, status: res.status, team: j.team, user: j.user }
+    } catch (e:any) {
+      return { ok: false, error: e?.message || String(e) }
+    }
+  }
+
+  async function checkMicrosoft() {
+    if (!msCreds?.tenantId || !msCreds?.clientId || !msCreds?.clientSecret) return { ok: false, error: 'No Microsoft app credentials' }
+    try {
+      const tokenRes = await fetch(`https://login.microsoftonline.com/${msCreds.tenantId}/oauth2/v2.0/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: msCreds.clientId,
+          client_secret: msCreds.clientSecret,
+          scope: 'https://graph.microsoft.com/.default',
+          grant_type: 'client_credentials'
+        })
+      })
+      if (!tokenRes.ok) return { ok: false, status: tokenRes.status }
+      const j = await tokenRes.json()
+      return { ok: !!j.access_token, status: tokenRes.status }
+    } catch (e:any) {
+      return { ok: false, error: e?.message || String(e) }
+    }
+  }
+
+  async function checkGoogle() {
+    if (!googleSvc?.serviceAccountJson) return { ok: false, error: 'No Google service account configured' }
+    // Best-effort: presence check only; full token exchange requires domain delegation/scopes
+    return { ok: true }
+  }
+
+  const [supa, app, db, stripe, slackSvc, googleSvcCheck, msSvc] = await Promise.all([
     checkSupabase(),
     ping(`${origin}/api/health/app`),
     ping(`${origin}/api/health/db`),
     ping(`${origin}/api/health/stripe`),
-    ping(`${origin}/api/integrations/slack/status`),
-    ping(`${origin}/api/integrations/google/status`),
-    ping(`${origin}/api/integrations/office365/status`),
+    checkSlack(),
+    checkGoogle(),
+    checkMicrosoft(),
   ])
 
   return NextResponse.json({
     env: envStatus,
+    target: { origin },
     checks: {
       app,
       db,
       stripe,
-      slack,
-      google,
-      microsoft: ms,
+      slack: slackSvc,
+      google: googleSvcCheck,
+      microsoft: msSvc,
       supabase: supa,
     }
   })

@@ -13,10 +13,9 @@ async function getJSON(url: string) {
 }
 
 export default async function AdminDbPage() {
-  const base = process.env.NEXT_PUBLIC_APP_URL || ''
-  const schema = await getJSON(`${base}/api/health/db/schema-check`)
-  const latency = await getJSON(`${base}/api/health/db/latency`)
-  const rls = await getJSON(`${base}/api/admin-internal/db/rls`)
+  const schema = await getJSON(`/api/health/db/schema-check`)
+  const latency = await getJSON(`/api/health/db/latency`)
+  const rls = await getJSON(`/api/admin-internal/db/rls`)
 
   function Flag({ ok }: { ok?: boolean }) {
     return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{ok ? 'OK' : 'FAIL'}</span>

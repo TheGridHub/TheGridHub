@@ -4,8 +4,9 @@ export const dynamic = 'force-dynamic'
 
 async function getHealth() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/admin-internal/health`, { cache: 'no-store' })
-    if (!res.ok) throw new Error('Health fetch failed')
+    const res = await fetch('/api/admin-internal/health', { cache: 'no-store' })
+    const ct = res.headers.get('content-type') || ''
+    if (!res.ok || !ct.includes('application/json')) throw new Error('Health fetch failed')
     return res.json()
   } catch (e) {
     return null

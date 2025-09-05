@@ -32,6 +32,19 @@ export default function IntegrationsSettingsPage() {
     return res.json().catch(()=> ({}))
   }
 
+  const slackStatus = async () => {
+    try {
+      const status = await get('/api/integrations/slack/status')
+      if (!status?.connected) {
+        toast({ title: 'Slack not connected', description: 'Connect Slack under Integrations.', variant: 'destructive' })
+        return
+      }
+      toast({ title: 'Slack connected', description: status.workspace || '', variant: 'success' })
+    } catch (e:any) {
+      toast({ title: 'Slack status failed', description: e?.message || String(e), variant: 'destructive' })
+    }
+  }
+
   const slackTest = async () => {
     try {
       const status = await get('/api/integrations/slack/status')
@@ -42,6 +55,19 @@ export default function IntegrationsSettingsPage() {
       toast({ title: t('settings.integrations.slack.testMessage') || 'Send test message', variant: 'success' })
     } catch (e:any) {
       toast({ title: 'Slack test failed', description: e?.message || String(e), variant: 'destructive' })
+    }
+  }
+
+  const googleStatus = async () => {
+    try {
+      const status = await get('/api/integrations/google/status')
+      if (!status?.connected) {
+        toast({ title: 'Google not connected', description: 'Connect Google Workspace under Integrations.', variant: 'destructive' })
+        return
+      }
+      toast({ title: 'Google connected', description: status.userEmail || '', variant: 'success' })
+    } catch (e:any) {
+      toast({ title: 'Google status failed', description: e?.message || String(e), variant: 'destructive' })
     }
   }
 
@@ -116,6 +142,7 @@ export default function IntegrationsSettingsPage() {
           <div className="border rounded-lg p-4">
             <h2 className="font-medium mb-2">{t('settings.integrations.slack.title') || 'Slack'}</h2>
             <div className="flex gap-2 flex-wrap">
+              <button onClick={slackStatus} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Check status</button>
               <button onClick={slackTest} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.slack.testMessage') || 'Send test message'}</button>
             </div>
           </div>
@@ -123,6 +150,7 @@ export default function IntegrationsSettingsPage() {
           <div className="border rounded-lg p-4">
             <h2 className="font-medium mb-2">{t('settings.integrations.google.title') || 'Google Workspace'}</h2>
             <div className="flex gap-2 flex-wrap">
+              <button onClick={googleStatus} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">Check status</button>
               <button onClick={googleTestEmail} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testEmail') || 'Send test email'}</button>
               <button onClick={googleTestCalendar} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testCalendar') || 'Create test calendar event'}</button>
               <button onClick={googleTestSheets} className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50">{t('settings.integrations.google.testSheets') || 'Create test spreadsheet'}</button>

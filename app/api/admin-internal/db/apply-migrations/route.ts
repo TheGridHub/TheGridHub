@@ -8,8 +8,11 @@ import { promises as dns } from 'dns'
 
 export const runtime = 'nodejs'
 
-function getDbUrl() {
-  return process.env.DIRECT_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || ''
+function getDbUrl(): { url: string, source: 'DIRECT_URL' | 'DATABASE_URL' | 'SUPABASE_DB_URL' | '' } {
+  if (process.env.DIRECT_URL) return { url: process.env.DIRECT_URL, source: 'DIRECT_URL' }
+  if (process.env.DATABASE_URL) return { url: process.env.DATABASE_URL, source: 'DATABASE_URL' }
+  if (process.env.SUPABASE_DB_URL) return { url: process.env.SUPABASE_DB_URL, source: 'SUPABASE_DB_URL' }
+  return { url: '', source: '' }
 }
 
 async function connectPg(url: string) {
@@ -40,8 +43,8 @@ export async function POST(req: NextRequest) {
 
     const { dryRun } = await req.json().catch(() => ({ dryRun: false }))
 
-    const dbUrl = getDbUrl()
-    if (!dbUrl) {
+    const dbEnv = getDbUrl()
+    if (!dbEnv.url) {
       return NextResponse.json({ error: 'DATABASE_URL/DIRECT_URL/SUPABASE_DB_URL not configured' }, { status: 500 })
     }
 
@@ -59,7 +62,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, applied: [], skipped: [], note: 'No .sql files to apply' })
     }
 
-    const client = await connectPg(dbUrl)
+    // Preflight DNS check for helpful errors
+    let hostInfo: any = null
+    try {
+      const u = new URL(dbEnv.url)
+      hostInfo = { host: u.hostname }
+      await dns.resolve4(u.hostname)
+    } catch (e: any) {
+      // Continue to connect, but if connect fails with ENOTFOUND, we can surface this info
+      hostInfo = { ...(hostInfo||{}), dnsError: e?.code || e?.message }
+    }
+
+    const client = await connectPg(dbEnv.url)
 
     try {
       await client.query(`
@@ -106,12 +120,14 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      return NextResponse.json({ ok: true, applied, skipped })
+      return NextResponse.json({ ok: true, applied, skipped, dbSource: dbEnv.source })
     } finally {
       await client.end()
     }
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Migration apply failed' }, { status: 500 })
+    const message = e?.message || 'Migration apply failed'
+    const code = (e?.cause && e.cause.code) || e?.code
+    return NextResponse.json({ error: message, code }, { status: 500 })
   }
 }
 

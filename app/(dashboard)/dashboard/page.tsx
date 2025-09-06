@@ -366,15 +366,20 @@ export default function DashboardPage() {
           onCreated={(task)=> setTasks((prev)=>[task, ...prev])}
         />
       )}
-    </div>
-  )
-}
-          </div>
-        </div>
-          </>
-        )}
-      </main>
-      </div>
+
+      {/* Task Detail Modal */}
+      {selectedTask && (
+        <TaskDetailModal
+          open={detailOpen}
+          onClose={()=>setDetailOpen(false)}
+          task={selectedTask}
+          onUpdated={(next)=>{
+            setTasks(prev => prev.map(t => t.id === next.id ? { ...t, ...next } : t))
+            setSelectedTask(next)
+            setDetailOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }

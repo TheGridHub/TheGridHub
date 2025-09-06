@@ -123,7 +123,7 @@ export function AIAssistant({ userId, disabled }: { userId: string, disabled?: b
   )
 }
 
-export function IntegrationsPanel({ plan, statuses }: { plan: string | null, statuses?: { id?: string, type: string, status?: string, connectedAt?: string | null, lastSync?: string | null, userEmail?: string | null }[] }) {
+export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: string | null, statuses?: { id?: string, type: string, status?: string, connectedAt?: string | null, lastSync?: string | null, userEmail?: string | null }[], onRefetch?: ()=>void }) {
   const [busy, setBusy] = useState<Record<string, boolean>>({})
   const get = (type: string) => statuses?.find(s => s.type?.toLowerCase() === type)
   const Badge = ({ ok }: { ok: boolean }) => (
@@ -133,7 +133,15 @@ export function IntegrationsPanel({ plan, statuses }: { plan: string | null, sta
     if (!id) return
     setBusy(prev => ({ ...prev, [id]: true }))
     try { await fetch(`/api/integrations/${id}/sync`, { method: 'POST' }) } catch {}
-    setTimeout(() => setBusy(prev => ({ ...prev, [id!]: false })), 1500)
+    setBusy(prev => ({ ...prev, [id!]: false }))
+    try { onRefetch && onRefetch() } catch {}
+  }
+  const testAction = async (endpoint: string, id?: string) => {
+    if (!endpoint) return
+    const key = `${id || endpoint}-test`
+    setBusy(prev => ({ ...prev, [key]: true }))
+    try { await fetch(endpoint, { method: 'POST' }) } catch {}
+    setBusy(prev => ({ ...prev, [key]: false }))
   }
   return (
     <div className="grid gap-4 md:grid-cols-2">

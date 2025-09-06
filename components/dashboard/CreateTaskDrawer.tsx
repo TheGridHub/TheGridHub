@@ -186,7 +186,20 @@ export default function CreateTaskDrawer({
           {/* AI Suggestions */}
           <SubscriptionGate plan={plan}>
             <div className="mt-2 p-3 border rounded-lg">
-              <div className="text-sm font-medium mb-2">AI Suggestions</div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium">AI Suggestions</div>
+                {!!suggestions.length && (
+                  <label className="text-xs text-gray-600 flex items-center gap-2">
+                    <input type="checkbox" onChange={(e)=>{
+                      const checked = e.target.checked
+                      const all: Record<string, boolean> = {}
+                      suggestions.forEach((s, si)=> (s.subtasks||[]).forEach((_:any, ti:number)=> { all[`${si}:${ti}`]=checked }))
+                      setSelected(all)
+                    }} />
+                    Select all
+                  </label>
+                )}
+              </div>
               <div className="flex gap-2">
                 <input className="flex-1 border rounded-md px-3 py-2" placeholder="Ask AI: e.g. ‘Plan my week’" value={prompt} onChange={(e)=>setPrompt(e.target.value)} />
                 <button onClick={askAI} className="px-3 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800">{loadingAI ? '...' : 'Generate'}</button>

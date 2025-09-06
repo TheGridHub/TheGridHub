@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useI18n } from '@/components/i18n/I18nProvider'
 import { SectionTabs, AIAssistant, IntegrationsPanel, SubscriptionGate } from '@/components/dashboard'
 import CreateTaskDrawer from '@/components/dashboard/CreateTaskDrawer'
+import TaskDetailModal from '@/components/dashboard/TaskDetailModal'
 import { BasicBarChart, BasicLineChart } from '@/components/dashboard/charts'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
@@ -27,6 +28,12 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [integrations, setIntegrations] = useState<any[]>([])
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [globalQuery, setGlobalQuery] = useState('')
+  const [projectFilter, setProjectFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [priorityFilter, setPriorityFilter] = useState<string>('all')
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<any | null>(null)
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -64,12 +71,16 @@ export default function DashboardPage() {
           id: task.id,
           title: task.title,
           project: '',
+          projectId: task.projectId || '',
           priority: (task.priority || 'MEDIUM').toLowerCase(),
           status: (task.status || 'UPCOMING').toLowerCase().replace('_', '-'),
           progress: task.progress || 0,
           dueDate: task.dueDate ? format(new Date(task.dueDate), 'EEE, dd MMM yyyy') : '',
+          dueDateRaw: task.dueDate,
           createdAt: task.createdAt,
           updatedAt: task.updatedAt,
+          completedAt: task.completedAt,
+          description: task.description || '',
         }))
         setTasks(tasksData)
 
@@ -111,10 +122,11 @@ export default function DashboardPage() {
 
   const greeting = t('dashboard.greeting', { name: user?.firstName || 'there' })
 
-  const { bar14Labels, bar14Counts, trend14 } = useMemo(() => {
+  const { bar14Labels, bar14Counts, created14Counts, trend14, overdueCount, completedCount, avgCycleDays } = useMemo(() => {
     // Build 14-day series from tasks using updatedAt (completion) and createdAt
     const labels: string[] = []
     const counts: number[] = []
+    const createdCounts: number[] = []
     const trend: number[] = []
     const dayNames = ['S','M','T','W','T','F','S']
     const today = new Date()
@@ -129,15 +141,33 @@ export default function DashboardPage() {
       dayEnd.setHours(23,59,59,999)
       labels.push(dayNames[dayStart.getDay()])
 
-      const completed = tasks.filter(t => t.status === 'completed' && t.updatedAt && new Date(t.updatedAt) >= dayStart && new Date(t.updatedAt) <= dayEnd).length
+      const completed = tasks.filter(t => t.status === 'completed' && (t.completedAt || t.updatedAt) && new Date(t.completedAt || t.updatedAt) >= dayStart && new Date(t.completedAt || t.updatedAt) <= dayEnd).length
       counts.push(completed)
+      const created = tasks.filter(t => t.createdAt && new Date(t.createdAt) >= dayStart && new Date(t.createdAt) <= dayEnd).length
+      createdCounts.push(created)
 
       const createdTill = tasks.filter(t => t.createdAt && new Date(t.createdAt) <= dayEnd).length
-      const completedTill = tasks.filter(t => t.status === 'completed' && t.updatedAt && new Date(t.updatedAt) <= dayEnd).length
+      const completedTill = tasks.filter(t => t.status === 'completed' && (t.completedAt || t.updatedAt) && new Date(t.completedAt || t.updatedAt) <= dayEnd).length
       trend.push(createdTill > 0 ? Math.round((completedTill / createdTill) * 100) : 0)
     }
 
-    return { bar14Labels: labels, bar14Counts: counts, trend14: trend }
+    // Overdue vs Completed snapshot
+    const now = new Date()
+    const overdue = tasks.filter(t => t.dueDateRaw && new Date(t.dueDateRaw) < now && t.status !== 'completed').length
+    const completedNow = tasks.filter(t => t.status === 'completed').length
+
+    // Average cycle time (days)
+    const durations = tasks
+      .filter(t => t.createdAt && (t.completedAt || t.updatedAt))
+      .map(t => {
+        const end = new Date(t.completedAt || t.updatedAt)
+        const startAt = new Date(t.createdAt)
+        const diffMs = end.getTime() - startAt.getTime()
+        return Math.max(0, diffMs / (1000 * 60 * 60 * 24))
+      })
+    const avg = durations.length ? Math.round((durations.reduce((a, b) => a + b, 0) / durations.length) * 10) / 10 : 0
+
+    return { bar14Labels: labels, bar14Counts: counts, created14Counts: createdCounts, trend14: trend, overdueCount: overdue, completedCount: completedNow, avgCycleDays: avg }
   }, [tasks])
 
   return (
@@ -145,9 +175,12 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Top Bar */}
         <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{greeting}</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-semibold text-gray-900 truncate">{greeting}</h1>
             <p className="text-sm text-gray-600">Welcome back to TheGridHub.</p>
+          </div>
+          <div className="hidden md:block w-72">
+            <input value={globalQuery} onChange={(e)=>setGlobalQuery(e.target.value)} className="w-full border rounded-md px-3 py-2" placeholder="Search tasks, projects, goals..." />
           </div>
           <SectionTabs value={active} onChange={(v) => setActive(v as any)} />
         </div>
@@ -184,22 +217,47 @@ export default function DashboardPage() {
             {active === 'tasks' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white/80 backdrop-blur rounded-xl p-6 border">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
                     <h3 className="text-lg font-semibold">Tasks</h3>
-                    <button onClick={()=>setDrawerOpen(true)} className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">New Task</button>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <select value={projectFilter} onChange={(e)=>setProjectFilter(e.target.value)} className="border rounded-md px-2 py-1 text-sm">
+                        <option value="">All projects</option>
+                        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </select>
+                      <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="border rounded-md px-2 py-1 text-sm">
+                        <option value="all">All status</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="in-progress">In progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="overdue">Overdue</option>
+                      </select>
+                      <select value={priorityFilter} onChange={(e)=>setPriorityFilter(e.target.value)} className="border rounded-md px-2 py-1 text-sm">
+                        <option value="all">All priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                      </select>
+                      <button onClick={()=>setDrawerOpen(true)} className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">New Task</button>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     {tasks.length === 0 ? (
                       <div className="text-sm text-gray-600">No tasks yet. Create your first task.</div>
                     ) : (
-                      tasks.slice(0, 20).map((task) => (
-                        <div key={task.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                      tasks
+                        .filter(t => !globalQuery || t.title.toLowerCase().includes(globalQuery.toLowerCase()))
+                        .filter(t => projectFilter ? (t.projectId === projectFilter) : true)
+                        .filter(t => statusFilter === 'all' ? true : t.status === statusFilter)
+                        .filter(t => priorityFilter === 'all' ? true : t.priority === priorityFilter)
+                        .slice(0, 50)
+                        .map((task) => (
+                        <button key={task.id} onClick={()=>{ setSelectedTask(task); setDetailOpen(true) }} className="w-full text-left flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
                           <div>
-                            <div className="text-sm font-medium">{task.title}</div>
+                            <div className="text-sm font-medium truncate max-w-[42ch]">{task.title}</div>
                             <div className="text-xs text-gray-500">{task.project || 'No project'}{task.dueDate ? ` • ${task.dueDate}` : ''}</div>
                           </div>
-                          <div className="text-xs text-gray-600">{task.priority}</div>
-                        </div>
+                          <div className="text-xs text-gray-600 capitalize">{task.priority}</div>
+                        </button>
                       ))
                     )}
                   </div>
@@ -251,8 +309,35 @@ export default function DashboardPage() {
                     <BasicBarChart data={bar14Counts} labels={bar14Labels} />
                   </div>
                   <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                    <div className="text-sm text-gray-600 mb-2">Tasks created per day (last 14 days)</div>
+                    <BasicBarChart data={created14Counts} labels={bar14Labels} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
                     <div className="text-sm text-gray-600 mb-2">Completion ratio over time</div>
                     <BasicLineChart data={trend14} />
+                  </div>
+                  <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                    <div className="text-sm text-gray-600 mb-2">Overdue vs Completed</div>
+                    <div className="flex items-end gap-6 h-28">
+                      <div className="flex flex-col items-center">
+                        <div className="bg-red-400 w-6" style={{height: `${Math.min(100, overdueCount ? 60 + (overdueCount%40) : 10)}%`}} />
+                        <div className="text-xs text-gray-600 mt-1">Overdue ({overdueCount})</div>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="bg-green-400 w-6" style={{height: `${Math.min(100, completedCount ? 60 + (completedCount%40) : 10)}%`}} />
+                        <div className="text-xs text-gray-600 mt-1">Completed ({completedCount})</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">Quick snapshot of current state</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 mt-6">
+                  <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                    <div className="text-sm text-gray-600 mb-1">Average cycle time</div>
+                    <div className="text-2xl font-semibold">{avgCycleDays} days</div>
+                    <div className="text-xs text-gray-500">Average from creation to completion</div>
                   </div>
                 </div>
               </SubscriptionGate>
@@ -260,7 +345,10 @@ export default function DashboardPage() {
 
             {active === 'integrations' && (
               <div className="">
-                <IntegrationsPanel plan={plan} statuses={integrations} />
+                <IntegrationsPanel plan={plan} statuses={integrations} onRefetch={async ()=>{
+                  const { data } = await supabase.from('integrations').select('id, type, status, connectedAt, lastSync, userEmail').eq('userId', internalUserId!)
+                  setIntegrations(data || [])
+                }} />
               </div>
             )}
           </div>

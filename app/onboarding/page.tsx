@@ -211,7 +211,8 @@ export default function OnboardingPage() {
       .update({ name: [firstName, lastName].filter(Boolean).join(' ') || undefined })
       .eq('id', userId)
 
-    router.push('/dashboard')
+    try { localStorage.setItem('onboarded', '1') } catch {}
+    router.push('/welcome')
   }
 
   const StepHeader = (

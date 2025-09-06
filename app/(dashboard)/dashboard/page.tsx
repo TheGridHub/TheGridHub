@@ -63,6 +63,14 @@ export default function DashboardPage() {
         setLoading(true)
         const supabase = createClient()
 
+        // Resolve internal user row ID (users."id") from auth user (supabaseId)
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('id')
+          .eq('supabaseId', user.id)
+          .maybeSingle()
+        const internalUserId = userRow?.id
+
         const [
           { data: tasksData },
           { data: goalsData },
@@ -75,22 +83,22 @@ export default function DashboardPage() {
               *,
               project:projects(id, name, color)
             `)
-            .eq('userId', user.id)
+            .eq('userId', internalUserId)
             .order('createdAt', { ascending: false }),
           supabase
             .from('goals')
             .select('*')
-            .eq('userId', user.id)
+            .eq('userId', internalUserId)
             .order('createdAt', { ascending: false }),
           supabase
             .from('projects')
             .select('id, name, color')
-            .eq('userId', user.id)
+            .eq('userId', internalUserId)
             .order('createdAt', { ascending: false }),
           supabase
             .from('notifications')
             .select('*')
-            .eq('userId', user.id)
+            .eq('userId', internalUserId)
             .order('createdAt', { ascending: false })
         ])
 

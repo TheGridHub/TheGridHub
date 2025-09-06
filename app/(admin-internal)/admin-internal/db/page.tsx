@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,10 +13,19 @@ async function getJSON(url: string) {
   }
 }
 
+function getOrigin() {
+  const h = headers()
+  const host = h.get('x-forwarded-host') || h.get('host') || ''
+  const proto = h.get('x-forwarded-proto') || 'https'
+  if (!host) return process.env.NEXT_PUBLIC_APP_URL || ''
+  return `${proto}://${host}`
+}
+
 export default async function AdminDbPage() {
-  const schema = await getJSON(`/api/health/db/schema-check`)
-  const latency = await getJSON(`/api/health/db/latency`)
-  const rls = await getJSON(`/api/admin-internal/db/rls`)
+  const origin = getOrigin()
+  const schema = await getJSON(`${origin}/api/health/db/schema-check`)
+  const latency = await getJSON(`${origin}/api/health/db/latency`)
+  const rls = await getJSON(`${origin}/api/admin-internal/db/rls`)
 
   function Flag({ ok }: { ok?: boolean }) {
     return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{ok ? 'OK' : 'FAIL'}</span>

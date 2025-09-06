@@ -50,43 +50,64 @@ export default function DashboardPage() {
         if (!uid) { setInternalUserId(null); setTasks([]); setProjects([]); setGoals([]); setNotifications([]); setPlan('FREE'); return }
         setInternalUserId(uid)
 
-        // Load plan
+        // Load plan (robust to schema differences)
         const { data: sub } = await supabase
           .from('subscriptions')
-          .select('plan')
+          .select('*')
           .eq('userId', uid)
           .maybeSingle()
-        setPlan((sub?.plan as any) || 'FREE')
+        const inferredPlan = (() => {
+          const raw = (sub?.plan || (sub as any)?.tier || (sub as any)?.level || '').toString().toUpperCase()
+          if (raw === 'PRO' || raw === 'TEAM' || raw === 'ENTERPRISE') return raw as any
+          if (sub && (((sub as any).stripeSubscriptionId) || ((sub as any).stripe_subscription_id) || ((sub as any).priceId) || ((sub as any).price_id) || (sub as any).status === 'active')) return 'PRO'
+          return 'FREE'
+        })()
+        setPlan(inferredPlan)
 
-        // Parallel load core data
+        // Parallel load core data (no server-side order to avoid column mismatch; sort client-side)
         const [ tasksRes, goalsRes, projectsRes, notifsRes, intsRes ] = await Promise.all([
-          supabase.from('tasks').select('*').eq('userId', uid).order('createdAt', { ascending: false }),
-          supabase.from('goals').select('*').eq('userId', uid).order('createdAt', { ascending: false }),
-          supabase.from('projects').select('id, name, color').eq('userId', uid).order('createdAt', { ascending: false }),
-          supabase.from('notifications').select('*').eq('userId', uid).order('createdAt', { ascending: false }),
+          supabase.from('tasks').select('*').eq('userId', uid),
+          supabase.from('goals').select('*').eq('userId', uid),
+          supabase.from('projects').select('*').eq('userId', uid),
+          supabase.from('notifications').select('*').eq('userId', uid),
           supabase.from('integrations').select('id, type, status, connectedAt, lastSync, userEmail').eq('userId', uid)
         ])
 
-        const tasksData = (tasksRes.data || []).map((task: any) => ({
+        const byCreatedDesc = (a: any, b: any) => {
+          const aDate = new Date(a.createdAt || a.created_at || a.created || a.inserted_at || 0).getTime()
+          const bDate = new Date(b.createdAt || b.created_at || b.created || b.inserted_at || 0).getTime()
+          return bDate - aDate
+        }
+
+        const projectsList = Array.isArray(projectsRes.data) ? [...projectsRes.data] : []
+        projectsList.sort(byCreatedDesc)
+        const projectNameMap = new Map<string, string>()
+        projectsList.forEach((p: any) => { if (p?.id) projectNameMap.set(p.id, p.name || p.title || '') })
+
+        const tasksRaw = Array.isArray(tasksRes.data) ? [...tasksRes.data] : []
+        tasksRaw.sort(byCreatedDesc)
+        const tasksData = tasksRaw.map((task: any) => ({
           id: task.id,
-          title: task.title,
-          project: '',
-          projectId: task.projectId || '',
-          priority: (task.priority || 'MEDIUM').toLowerCase(),
-          status: (task.status || 'UPCOMING').toLowerCase().replace('_', '-'),
+          title: task.title || task.name || 'Untitled',
+          project: (task.projectId && projectNameMap.get(task.projectId)) || '',
+          projectId: task.projectId || task.project_id || '',
+          priority: ((task.priority || 'MEDIUM').toString()).toLowerCase(),
+          status: ((task.status || 'UPCOMING').toString()).toLowerCase().replace('_', '-'),
           progress: task.progress || 0,
-          dueDate: task.dueDate ? format(new Date(task.dueDate), 'EEE, dd MMM yyyy') : '',
-          dueDateRaw: task.dueDate,
-          createdAt: task.createdAt,
-          updatedAt: task.updatedAt,
-          completedAt: task.completedAt,
+          dueDate: (task.dueDate || task.due_date) ? format(new Date(task.dueDate || task.due_date), 'EEE, dd MMM yyyy') : '',
+          dueDateRaw: task.dueDate || task.due_date,
+          createdAt: task.createdAt || task.created_at,
+          updatedAt: task.updatedAt || task.updated_at,
+          completedAt: task.completedAt || task.completed_at,
           description: task.description || '',
         }))
         setTasks(tasksData)
 
-        setGoals((goalsRes.data || []).map((goal: any) => ({
+        const goalsRaw = Array.isArray(goalsRes.data) ? [...goalsRes.data] : []
+        goalsRaw.sort(byCreatedDesc)
+        setGoals(goalsRaw.map((goal: any) => ({
           id: goal.id,
-          title: goal.title,
+          title: goal.title || goal.name || 'Goal',
           progress: Math.round(((goal.current || 0) / (goal.target || 1)) * 100),
           target: goal.target || 100,
           current: goal.current || 0,
@@ -94,14 +115,16 @@ export default function DashboardPage() {
           year: new Date().getFullYear(),
         })))
 
-        setProjects(projectsRes.data || [])
+        setProjects(projectsList)
 
-        setNotifications((notifsRes.data || []).map((n: any) => ({
+        const notifsRaw = Array.isArray(notifsRes.data) ? [...notifsRes.data] : []
+        notifsRaw.sort(byCreatedDesc)
+        setNotifications(notifsRaw.map((n: any) => ({
           id: n.id,
           type: n.type,
-          message: n.message,
-          time: n.createdAt ? format(new Date(n.createdAt), 'MMM dd, yyyy') : '',
-          read: !!n.read,
+          message: n.message || n.title || '',
+          time: (n.createdAt || n.created_at) ? format(new Date(n.createdAt || n.created_at), 'MMM dd, yyyy') : '',
+          read: !!(n.read ?? n.is_read),
         })))
 
         setIntegrations(intsRes.data || [])

@@ -27,11 +27,12 @@ const publicRoutes = [
 ]
 
 // Routes that should bypass onboarding checks (but still require auth)
+// We keep payment flows accessible so a user can subscribe/restore even before onboarding.
+// Dashboard billing/settings pages SHOULD NOT bypass onboarding in a single-page dashboard system.
 const onboardingBypassPrefixes = [
-  '/billing',
-  '/settings/billing',
   '/stripe',
-  '/checkout'
+  '/checkout',
+  '/api/stripe',
 ]
 
 // Admin path prefixes for clarity

@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
+import { createClient } from '@/lib/supabase/client'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
@@ -14,8 +15,9 @@ export default function WelcomePage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
   const [secondsLeft, setSecondsLeft] = useState(5)
+  const params = useSearchParams()
 
-  // Check if user has completed onboarding with countdown
+  // Check onboarding in Supabase and decide whether to show this once
   useEffect(() => {
     let interval: any
     if (isLoaded && user) {
@@ -25,20 +27,41 @@ export default function WelcomePage() {
         // Trigger seeding in the background (idempotent)
         fetch('/api/onboarding/seed', { method: 'POST' }).catch(()=>{})
 
-        const hasOnboarded = typeof window !== 'undefined' ? localStorage.getItem('onboarded') : null
-        const target = hasOnboarded ? '/dashboard' : '/onboarding'
-
-        setSecondsLeft(5)
-        interval = setInterval(() => {
-          setSecondsLeft((s) => {
-            if (s <= 1) {
-              clearInterval(interval)
-              router.push(target)
-              return 0
+        let target = '/onboarding'
+        let showSeconds = 0
+        try {
+          const supabase = createClient()
+          const { data: u } = await supabase.from('users').select('id').eq('supabaseId', user.id).maybeSingle()
+          const uid = u?.id as string | undefined
+          if (uid) {
+            const { data: onboard } = await supabase.from('user_onboarding').select('id').eq('userId', uid).maybeSingle()
+            if (onboard) {
+              target = '/dashboard'
+              // Show the welcome screen only when explicitly coming from onboarding (first=1)
+              const first = params?.get('first') === '1'
+              if (first) {
+                showSeconds = 5
+                try { localStorage.setItem('onboarded', '1') } catch {}
+              }
             }
-            return s - 1
-          })
-        }, 1000)
+          }
+        } catch {}
+
+        if (showSeconds > 0) {
+          setSecondsLeft(showSeconds)
+          interval = setInterval(() => {
+            setSecondsLeft((s) => {
+              if (s <= 1) {
+                clearInterval(interval)
+                router.push(target)
+                return 0
+              }
+              return s - 1
+            })
+          }, 1000)
+        } else {
+          router.push(target)
+        }
       })()
     }
     return () => { if (interval) clearInterval(interval) }

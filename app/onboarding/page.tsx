@@ -234,8 +234,12 @@ export default function OnboardingPage() {
       .update({ name: [firstName, lastName].filter(Boolean).join(' ') || undefined })
       .eq('id', userId)
 
-    try { localStorage.setItem('onboarded', '1') } catch {}
-    router.push('/welcome')
+    try { 
+      localStorage.setItem('onboarded', '1')
+      // Mark that the welcome screen has not yet been shown on this device
+      localStorage.removeItem('welcomed')
+    } catch {}
+    router.push('/welcome?first=1')
   }
 
   const StepHeader = (

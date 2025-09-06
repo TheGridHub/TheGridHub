@@ -55,7 +55,7 @@ function LoginForm() {
           return
         }
         
-        router.push('/welcome')
+        router.push('/welcome?first=1')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,

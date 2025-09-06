@@ -53,6 +53,7 @@ export function SectionTabs({ value, onChange }: { value: string, onChange: (v: 
     { id: 'goals', label: 'Goals' },
     { id: 'analytics', label: 'Analytics' },
     { id: 'integrations', label: 'Integrations' },
+    { id: 'billing', label: 'Billing' },
   ]
   return (
     <div className="flex flex-wrap gap-2">

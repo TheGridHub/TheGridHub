@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/hooks/useUser'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { useI18n } from '@/components/i18n/I18nProvider'
@@ -60,6 +60,7 @@ export default function TasksPage() {
   const { user, isLoaded } = useUser()
   const { t } = useI18n()
   const supabase = useMemo(()=>createClient(),[])
+  const lastLoadedUserId = useRef<string | null>(null)
   const [internalUserId, setInternalUserId] = useState<string | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -87,6 +88,8 @@ export default function TasksPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return
+      if (lastLoadedUserId.current === user.id) return
+      lastLoadedUserId.current = user.id
       try {
         setLoading(true)
         const { data: u } = await supabase.from('users').select('id').eq('supabaseId', user.id).maybeSingle()
@@ -122,7 +125,7 @@ export default function TasksPage() {
       }
     }
     fetchData()
-  }, [user, supabase])
+  }, [user])
 
   // Filter and sort tasks
   const filteredTasks = tasks

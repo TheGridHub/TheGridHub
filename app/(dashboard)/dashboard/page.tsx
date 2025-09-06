@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/hooks/useUser'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useI18n } from '@/components/i18n/I18nProvider'
 import { SectionTabs, AIAssistant, IntegrationsPanel, SubscriptionGate } from '@/components/dashboard'
 import CreateTaskDrawer from '@/components/dashboard/CreateTaskDrawer'
@@ -17,10 +17,13 @@ export default function DashboardPage() {
   const { user, isLoaded } = useUser()
   const { t } = useI18n()
   const supabase = useMemo(() => createClient(), [])
+  const lastLoadedUserId = useRef<string | null>(null)
+  const mountedRef = useRef(true)
 
-  const [active, setActive] = useState<'overview' | 'tasks' | 'projects' | 'goals' | 'analytics' | 'integrations'>('overview')
+  const [active, setActive] = useState<'overview' | 'tasks' | 'projects' | 'goals' | 'analytics' | 'integrations' | 'billing'>('overview')
   const [loading, setLoading] = useState(true)
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [displayName, setDisplayName] = useState<string>('there')
 
   const [internalUserId, setInternalUserId] = useState<string | null>(null)
   type UITask = { id: string; title: string; project: string; projectId: string | null; priority: 'low' | 'medium' | 'high'; status: 'upcoming' | 'in-progress' | 'completed' | string; progress: number; dueDate: string; dueDateRaw?: string | null; createdAt?: string; updatedAt?: string; completedAt?: string | null; description?: string }
@@ -38,8 +41,16 @@ export default function DashboardPage() {
   const [selectedTask, setSelectedTask] = useState<any | null>(null)
 
   useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  useEffect(() => {
     const fetchAll = async () => {
       if (!user) return
+      // Prevent re-fetching for the same user repeatedly
+      if (lastLoadedUserId.current === user.id) return
+      lastLoadedUserId.current = user.id
       try {
         setLoading(true)
         // Resolve internal user id
@@ -49,8 +60,19 @@ export default function DashboardPage() {
           .eq('supabaseId', user.id)
           .maybeSingle()
         const uid = userRow?.id as string | undefined
-        if (!uid) { setInternalUserId(null); setTasks([]); setProjects([]); setGoals([]); setNotifications([]); setPlan('FREE'); return }
+        if (!uid) { if (mountedRef.current) { setInternalUserId(null); setTasks([]); setProjects([]); setGoals([]); setNotifications([]); setPlan('FREE'); setDisplayName(user?.firstName || 'there') } return }
         setInternalUserId(uid)
+
+        // Preferred greeting name from onboarding, fallback to auth metadata
+        try {
+          const { data: onboard } = await supabase
+            .from('user_onboarding')
+            .select('firstName')
+            .eq('userId', uid)
+            .maybeSingle()
+          const name = (onboard?.firstName || user?.firstName || 'there').toString()
+          if (mountedRef.current) setDisplayName(name)
+        } catch { setDisplayName(user?.firstName || 'there') }
 
         // Load plan via view if available; fallback to subscriptions inference
         let resolvedPlan: Plan = 'FREE'
@@ -149,13 +171,13 @@ export default function DashboardPage() {
 
         setIntegrations(intsRes.data || [])
       } finally {
-        setLoading(false)
+        if (mountedRef.current) setLoading(false)
       }
     }
     fetchAll()
-  }, [user, supabase])
+  }, [user])
 
-  const greeting = t('dashboard.greeting', { name: user?.firstName || 'there' })
+  const greeting = t('dashboard.greeting', { name: displayName })
 
   const { bar14Labels, bar14Counts, created14Counts, trend14, overdueCount, completedCount, avgCycleDays } = useMemo(() => {
     // Build 14-day series from tasks using updatedAt (completion) and createdAt
@@ -392,6 +414,35 @@ export default function DashboardPage() {
                   const { data } = await supabase.from('integrations').select('id, type, status, connectedAt, lastSync, userEmail').eq('userId', internalUserId!)
                   setIntegrations(data || [])
                 }} />
+              </div>
+            )}
+
+            {active === 'billing' && (
+              <div className="grid grid-cols-1 gap-6">
+                <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-gray-600">Current plan</div>
+                      <div className="text-2xl font-semibold mt-1">{plan || 'FREE'}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async ()=>{
+                          try {
+                            const res = await fetch('/api/stripe/billing-portal', { method: 'POST' })
+                            const json = await res.json().catch(()=>({}))
+                            if (json?.url) window.location.assign(json.url)
+                          } catch {}
+                        }}
+                        className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+                      >
+                        Manage Subscription
+                      </button>
+                      <a href="/pricing" className="px-4 py-2 border rounded-lg hover:bg-gray-50">View Plans</a>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-3">Manage payment method, invoices, and cancel/upgrade in the Stripe portal.</div>
+                </div>
               </div>
             )}
           </div>

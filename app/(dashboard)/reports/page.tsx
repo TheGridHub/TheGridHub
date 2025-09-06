@@ -298,7 +298,6 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SubscriptionGate plan={plan}>
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="px-6 py-4">
@@ -464,6 +463,27 @@ export default function ReportsPage() {
               </div>
             </div>
 
+            {plan === 'FREE' && (
+              <div className="bg-white rounded-lg p-4 shadow-sm border mb-8">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-900">7-day activity (teaser)</h3>
+                  <a href="/pricing" className="text-xs text-purple-600 hover:underline">Upgrade for full analytics</a>
+                </div>
+                <div className="h-24 flex items-end justify-between space-x-1">
+                  {chartData.dates.slice(-7).map((date) => {
+                    const idx = chartData.dates.indexOf(date)
+                    const taskCount = chartData.taskData[idx]
+                    const max = Math.max(1, ...chartData.taskData.slice(-7))
+                    const height = Math.round((taskCount / max) * 100)
+                    return (
+                      <div key={date} className="flex-1 bg-purple-200" style={{ height: `${Math.max(6, height)}%` }} />
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            <SubscriptionGate plan={plan}>
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Task Creation Chart */}
@@ -620,10 +640,12 @@ export default function ReportsPage() {
                 )}
               </div>
             </div>
+            </SubscriptionGate>
           </>
         )}
 
         {selectedView === 'tasks' && (
+          <SubscriptionGate plan={plan}>
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Task Analytics</h3>
@@ -643,9 +665,11 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
+          </SubscriptionGate>
         )}
 
         {selectedView === 'goals' && (
+          <SubscriptionGate plan={plan}>
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Goals Analytics</h3>
@@ -665,9 +689,11 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
+          </SubscriptionGate>
         )}
 
         {selectedView === 'productivity' && (
+          <SubscriptionGate plan={plan}>
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Productivity Insights</h3>
@@ -693,9 +719,9 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
+          </SubscriptionGate>
         )}
       </div>
-      </SubscriptionGate>
     </div>
   )
 }

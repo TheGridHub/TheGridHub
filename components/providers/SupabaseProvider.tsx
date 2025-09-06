@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
@@ -20,14 +20,18 @@ export default function SupabaseProvider({
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
+  // Ensure a stable client reference across renders
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+      // Update user only on meaningful events to avoid noisy rerenders
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
 
       // Handle sign in/out events
       if (event === 'SIGNED_IN') {
@@ -37,8 +41,8 @@ export default function SupabaseProvider({
       }
     })
 
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check active session once on mount
+    void supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })

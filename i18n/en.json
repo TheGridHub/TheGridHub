@@ -6,7 +6,7 @@
   "nav.goals": "Goals",
   "nav.settings": "Settings",
 
-  "dashboard.greeting": "Let's start today, {name}!",
+  "dashboard.greeting": "Hello {name}",
   "dashboard.searchPlaceholder": "Search...",
   "dashboard.weekly": "Weekly",
   "dashboard.customize": "Customize",

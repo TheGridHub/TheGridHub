@@ -1,9 +1,9 @@
 'use client'
 
 import { useUser } from '@/hooks/useUser'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subWeeks, subMonths, eachDayOfInterval, isToday, isSameDay } from 'date-fns'
+import { format, subDays, eachDayOfInterval } from 'date-fns'
 import { 
   BarChart3, 
   Calendar,
@@ -26,6 +26,8 @@ import {
   Users,
   Zap
 } from 'lucide-react'
+import { SubscriptionGate } from '@/components/dashboard'
+import type { Plan } from '@/types/db'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
@@ -74,6 +76,9 @@ interface AnalyticsData {
 
 export default function ReportsPage() {
   const { user, isLoaded } = useUser()
+  const supabase = useMemo(()=>createClient(),[])
+  const [plan, setPlan] = useState<Plan>('FREE')
+  const [internalUserId, setInternalUserId] = useState<string | null>(null)
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
@@ -84,28 +89,27 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       if (!user) return
-      
       try {
         setLoading(true)
-        const supabase = createClient()
-        
+        // Resolve internal user id
+        const { data: u } = await supabase.from('users').select('id').eq('supabaseId', user.id).maybeSingle()
+        const uid = u?.id as string | undefined
+        setInternalUserId(uid || null)
+        // Resolve plan via view with fallback
+        try {
+          const { data: v } = await supabase.from('user_effective_plan').select('plan').eq('userId', uid || '').maybeSingle()
+          const p = (v?.plan || 'FREE').toString().toUpperCase()
+          if (p==='FREE'||p==='PRO'||p==='TEAM'||p==='ENTERPRISE') setPlan(p as Plan)
+        } catch {}
+
         // Calculate date range
         const endDate = new Date()
         let startDate = new Date()
-        
         switch (dateRange) {
-          case '7d':
-            startDate = subDays(endDate, 7)
-            break
-          case '30d':
-            startDate = subDays(endDate, 30)
-            break
-          case '90d':
-            startDate = subDays(endDate, 90)
-            break
-          case '1y':
-            startDate = subDays(endDate, 365)
-            break
+          case '7d': startDate = subDays(endDate, 7); break
+          case '30d': startDate = subDays(endDate, 30); break
+          case '90d': startDate = subDays(endDate, 90); break
+          case '1y': startDate = subDays(endDate, 365); break
         }
 
         // Fetch all data in parallel
@@ -113,7 +117,7 @@ export default function ReportsPage() {
           supabase
             .from('tasks')
             .select('*')
-            .eq('userId', user.id)
+            .eq('userId', uid || '')
             .gte('createdAt', startDate.toISOString())
             .lte('createdAt', endDate.toISOString())
             .order('createdAt', { ascending: false }),
@@ -121,7 +125,7 @@ export default function ReportsPage() {
           supabase
             .from('goals')
             .select('*')
-            .eq('userId', user.id)
+            .eq('userId', uid || '')
             .gte('createdAt', startDate.toISOString())
             .lte('createdAt', endDate.toISOString())
             .order('createdAt', { ascending: false }),
@@ -129,7 +133,7 @@ export default function ReportsPage() {
           supabase
             .from('projects')
             .select('*')
-            .eq('userId', user.id)
+            .eq('userId', uid || '')
             .gte('createdAt', startDate.toISOString())
             .lte('createdAt', endDate.toISOString())
             .order('createdAt', { ascending: false })
@@ -160,9 +164,9 @@ export default function ReportsPage() {
         // Count tasks by date
         tasks.forEach(task => {
           const dateKey = format(new Date(task.createdAt), 'yyyy-MM-dd')
-          if (tasksByDate.hasOwnProperty(dateKey)) {
+          if (Object.prototype.hasOwnProperty.call(tasksByDate, dateKey)) {
             tasksByDate[dateKey]++
-            if (task.status === 'DONE') {
+            if (task.status === 'COMPLETED') {
               completedTasksByDate[dateKey]++
             }
           }
@@ -213,9 +217,9 @@ export default function ReportsPage() {
     
     // Task metrics
     const totalTasks = tasks.length
-    const completedTasks = tasks.filter(t => t.status === 'DONE').length
+    const completedTasks = tasks.filter(t => t.status === 'COMPLETED').length
     const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS').length
-    const overdueTasks = tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE').length
+    const overdueTasks = tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'COMPLETED').length
     const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
     // Goal metrics
@@ -294,6 +298,7 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SubscriptionGate plan={plan}>
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="px-6 py-4">
@@ -690,6 +695,7 @@ export default function ReportsPage() {
           </div>
         )}
       </div>
+      </SubscriptionGate>
     </div>
   )
 }

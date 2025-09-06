@@ -1,22 +1,18 @@
 'use client'
 
 import { useUser } from '@/hooks/useUser'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { format } from 'date-fns'
 import { useI18n } from '@/components/i18n/I18nProvider'
 import { 
   Target, 
   Plus, 
   Search, 
-  Calendar,
   TrendingUp,
-  MoreHorizontal,
   Edit,
   Trash2,
   CheckCircle,
   Clock,
-  Flag,
   BarChart3,
   ArrowUpDown,
   Filter,
@@ -24,27 +20,18 @@ import {
   Trophy,
   Zap
 } from 'lucide-react'
-import Link from 'next/link'
+import type { GoalRow } from '@/types/db'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
 
-interface Goal {
-  id: string
-  title: string
-  description?: string
-  target: number
-  current: number
-  type: 'TASK' | 'PROJECT' | 'CUSTOM'
-  deadline?: Date
-  createdAt: Date
-  updatedAt: Date
-  userId: string
-}
+type Goal = GoalRow
 
 export default function GoalsPage() {
   const { user, isLoaded } = useUser()
   const { t } = useI18n()
+  const supabase = useMemo(()=>createClient(),[])
+  const [internalUserId, setInternalUserId] = useState<string | null>(null)
   const [goals, setGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -67,30 +54,27 @@ export default function GoalsPage() {
   useEffect(() => {
     const fetchGoals = async () => {
       if (!user) return
-      
       try {
         setLoading(true)
-        const supabase = createClient()
-        
+        const { data: u } = await supabase.from('users').select('id').eq('supabaseId', user.id).maybeSingle()
+        const uid = u?.id as string | undefined
+        setInternalUserId(uid || null)
+        if (!uid) { setGoals([]); return }
         const { data: goalsData, error } = await supabase
           .from('goals')
           .select('*')
-          .eq('userId', user.id)
+          .eq('userId', uid)
           .order('createdAt', { ascending: false })
-
         if (error) throw error
-
         setGoals(goalsData || [])
-
       } catch (error) {
         console.error('Error fetching goals:', error)
       } finally {
         setLoading(false)
       }
     }
-
     fetchGoals()
-  }, [user])
+  }, [user, supabase])
 
   // Filter and sort goals
   const filteredGoals = goals
@@ -145,10 +129,8 @@ export default function GoalsPage() {
 
   // CRUD Functions
   const handleCreateGoal = async () => {
-    if (!user || !newGoal.title.trim()) return
-
+    if (!internalUserId || !newGoal.title.trim()) return
     try {
-      const supabase = createClient()
       const { data, error } = await supabase
         .from('goals')
         .insert({
@@ -158,22 +140,13 @@ export default function GoalsPage() {
           current: newGoal.current,
           type: newGoal.type,
           deadline: newGoal.deadline || null,
-          userId: user.id
+          userId: internalUserId
         })
-        .select()
+        .select('*')
         .single()
-
       if (error) throw error
-
-      setGoals([data, ...goals])
-      setNewGoal({
-        title: '',
-        description: '',
-        target: 100,
-        current: 0,
-        type: 'CUSTOM',
-        deadline: ''
-      })
+      setGoals([data as Goal, ...goals])
+      setNewGoal({ title: '', description: '', target: 100, current: 0, type: 'CUSTOM', deadline: '' })
       setShowCreateModal(false)
     } catch (error) {
       console.error('Error creating goal:', error)

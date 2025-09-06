@@ -9,6 +9,7 @@ import TaskDetailModal from '@/components/dashboard/TaskDetailModal'
 import { BasicBarChart, BasicLineChart } from '@/components/dashboard/charts'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
+import type { Plan, TaskRow, ProjectRow, GoalRow, NotificationRow, IntegrationSummary } from '@/types/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,14 +20,15 @@ export default function DashboardPage() {
 
   const [active, setActive] = useState<'overview' | 'tasks' | 'projects' | 'goals' | 'analytics' | 'integrations'>('overview')
   const [loading, setLoading] = useState(true)
-  const [plan, setPlan] = useState<'FREE' | 'PRO' | 'TEAM' | 'ENTERPRISE' | null>(null)
+  const [plan, setPlan] = useState<Plan | null>(null)
 
   const [internalUserId, setInternalUserId] = useState<string | null>(null)
-  const [tasks, setTasks] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
-  const [goals, setGoals] = useState<any[]>([])
-  const [notifications, setNotifications] = useState<any[]>([])
-  const [integrations, setIntegrations] = useState<any[]>([])
+  type UITask = { id: string; title: string; project: string; projectId: string | null; priority: 'low' | 'medium' | 'high'; status: 'upcoming' | 'in-progress' | 'completed' | string; progress: number; dueDate: string; dueDateRaw?: string | null; createdAt?: string; updatedAt?: string; completedAt?: string | null; description?: string }
+  const [tasks, setTasks] = useState<UITask[]>([])
+  const [projects, setProjects] = useState<ProjectRow[]>([])
+  const [goals, setGoals] = useState<Array<{ id: string; title: string; progress: number; target: number; current: number; quarter: number; year: number }>>([])
+  const [notifications, setNotifications] = useState<Array<{ id: string; type: string; message: string; time: string; read: boolean }>>([])
+  const [integrations, setIntegrations] = useState<IntegrationSummary[]>([])
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [globalQuery, setGlobalQuery] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('')
@@ -50,19 +52,37 @@ export default function DashboardPage() {
         if (!uid) { setInternalUserId(null); setTasks([]); setProjects([]); setGoals([]); setNotifications([]); setPlan('FREE'); return }
         setInternalUserId(uid)
 
-        // Load plan (robust to schema differences)
-        const { data: sub } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('userId', uid)
-          .maybeSingle()
-        const inferredPlan = (() => {
-          const raw = (sub?.plan || (sub as any)?.tier || (sub as any)?.level || '').toString().toUpperCase()
-          if (raw === 'PRO' || raw === 'TEAM' || raw === 'ENTERPRISE') return raw as any
-          if (sub && (((sub as any).stripeSubscriptionId) || ((sub as any).stripe_subscription_id) || ((sub as any).priceId) || ((sub as any).price_id) || (sub as any).status === 'active')) return 'PRO'
-          return 'FREE'
-        })()
-        setPlan(inferredPlan)
+        // Load plan via view if available; fallback to subscriptions inference
+        let resolvedPlan: Plan = 'FREE'
+        try {
+          const { data: v } = await supabase
+            .from('user_effective_plan')
+            .select('plan')
+            .eq('userId', uid)
+            .maybeSingle()
+          if (v?.plan) {
+            const p = v.plan.toString().toUpperCase()
+            if (p === 'FREE' || p === 'PRO' || p === 'TEAM' || p === 'ENTERPRISE') {
+              resolvedPlan = p as any
+            }
+          }
+        } catch {}
+        if (resolvedPlan === 'FREE') {
+          const { data: sub } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('userId', uid)
+            .maybeSingle()
+          const inferredPlan = (() => {
+            const raw = (sub?.plan || (sub as any)?.tier || (sub as any)?.level || '').toString().toUpperCase()
+            if (raw === 'PRO' || raw === 'TEAM' || raw === 'ENTERPRISE') return raw as any
+            const status = (sub && ((sub as any).status || (sub as any).subscription_status))?.toString().toLowerCase()
+            if (sub && ((((sub as any).stripeSubscriptionId) || ((sub as any).stripe_subscription_id) || ((sub as any).priceId) || ((sub as any).price_id)) || status === 'active' || status === 'trialing')) return 'PRO'
+            return 'FREE'
+          })()
+          resolvedPlan = inferredPlan
+        }
+        setPlan(resolvedPlan)
 
         // Parallel load core data (no server-side order to avoid column mismatch; sort client-side)
         const [ tasksRes, goalsRes, projectsRes, notifsRes, intsRes ] = await Promise.all([
@@ -79,31 +99,31 @@ export default function DashboardPage() {
           return bDate - aDate
         }
 
-        const projectsList = Array.isArray(projectsRes.data) ? [...projectsRes.data] : []
+        const projectsList: ProjectRow[] = Array.isArray(projectsRes.data) ? [...(projectsRes.data as ProjectRow[])] : []
         projectsList.sort(byCreatedDesc)
         const projectNameMap = new Map<string, string>()
         projectsList.forEach((p: any) => { if (p?.id) projectNameMap.set(p.id, p.name || p.title || '') })
 
-        const tasksRaw = Array.isArray(tasksRes.data) ? [...tasksRes.data] : []
+        const tasksRaw: TaskRow[] = Array.isArray(tasksRes.data) ? [...(tasksRes.data as TaskRow[])] : []
         tasksRaw.sort(byCreatedDesc)
-        const tasksData = tasksRaw.map((task: any) => ({
+        const tasksData: UITask[] = tasksRaw.map((task) => ({
           id: task.id,
-          title: task.title || task.name || 'Untitled',
+          title: task.title || 'Untitled',
           project: (task.projectId && projectNameMap.get(task.projectId)) || '',
-          projectId: task.projectId || task.project_id || '',
-          priority: ((task.priority || 'MEDIUM').toString()).toLowerCase(),
-          status: ((task.status || 'UPCOMING').toString()).toLowerCase().replace('_', '-'),
+          projectId: task.projectId || null,
+          priority: ((task.priority || 'MEDIUM').toString().toLowerCase()) as UITask['priority'],
+          status: ((task.status || 'UPCOMING').toString().toLowerCase().replace('_', '-')) as UITask['status'],
           progress: task.progress || 0,
-          dueDate: (task.dueDate || task.due_date) ? format(new Date(task.dueDate || task.due_date), 'EEE, dd MMM yyyy') : '',
-          dueDateRaw: task.dueDate || task.due_date,
-          createdAt: task.createdAt || task.created_at,
-          updatedAt: task.updatedAt || task.updated_at,
-          completedAt: task.completedAt || task.completed_at,
+          dueDate: task.dueDate ? format(new Date(task.dueDate), 'EEE, dd MMM yyyy') : '',
+          dueDateRaw: task.dueDate || null,
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+          completedAt: (task as any).completedAt || null,
           description: task.description || '',
         }))
         setTasks(tasksData)
 
-        const goalsRaw = Array.isArray(goalsRes.data) ? [...goalsRes.data] : []
+        const goalsRaw: GoalRow[] = Array.isArray(goalsRes.data) ? [...(goalsRes.data as GoalRow[])] : []
         goalsRaw.sort(byCreatedDesc)
         setGoals(goalsRaw.map((goal: any) => ({
           id: goal.id,
@@ -117,7 +137,7 @@ export default function DashboardPage() {
 
         setProjects(projectsList)
 
-        const notifsRaw = Array.isArray(notifsRes.data) ? [...notifsRes.data] : []
+        const notifsRaw: NotificationRow[] = Array.isArray(notifsRes.data) ? [...(notifsRes.data as NotificationRow[])] : []
         notifsRaw.sort(byCreatedDesc)
         setNotifications(notifsRaw.map((n: any) => ({
           id: n.id,
@@ -286,7 +306,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
-                  {internalUserId && <AIAssistant userId={internalUserId} />}
+                  <SubscriptionGate plan={plan}>
+                    {internalUserId && <AIAssistant userId={internalUserId} />}
+                  </SubscriptionGate>
                 </div>
               </div>
             )}

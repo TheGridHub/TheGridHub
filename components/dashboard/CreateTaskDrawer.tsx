@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { SubscriptionGate } from '@/components/dashboard'
+import type { Plan, ProjectRow } from '@/types/db'
 
-export type Project = { id: string, name: string }
+export type Project = Pick<ProjectRow, 'id' | 'name'>
 
 export default function CreateTaskDrawer({
   open,
@@ -18,7 +19,7 @@ export default function CreateTaskDrawer({
   onClose: () => void
   userId: string
   projects: Project[]
-  plan: 'FREE' | 'PRO' | 'TEAM' | 'ENTERPRISE' | null
+  plan: Plan | null
   onCreated: (task: any) => void
 }) {
   const supabase = useMemo(() => createClient(), [])

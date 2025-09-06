@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/hooks/useUser'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { useI18n } from '@/components/i18n/I18nProvider'
@@ -59,6 +59,8 @@ interface Project {
 export default function TasksPage() {
   const { user, isLoaded } = useUser()
   const { t } = useI18n()
+  const supabase = useMemo(()=>createClient(),[])
+  const [internalUserId, setInternalUserId] = useState<string | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,11 +87,12 @@ export default function TasksPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return
-      
       try {
         setLoading(true)
-        const supabase = createClient()
-        
+        const { data: u } = await supabase.from('users').select('id').eq('supabaseId', user.id).maybeSingle()
+        const uid = u?.id as string | undefined
+        setInternalUserId(uid || null)
+        if (!uid) { setTasks([]); setProjects([]); return }
         // Fetch tasks with projects
         const { data: tasksData, error: tasksError } = await supabase
           .from('tasks')
@@ -97,14 +100,14 @@ export default function TasksPage() {
             *,
             project:projects(id, name, color)
           `)
-          .eq('userId', user.id)
+          .eq('userId', uid)
           .order('createdAt', { ascending: false })
 
         // Fetch projects for dropdown
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select('id, name, color')
-          .eq('userId', user.id)
+          .eq('userId', uid)
           .order('name')
 
         if (tasksError) throw tasksError
@@ -112,16 +115,14 @@ export default function TasksPage() {
 
         setTasks(tasksData || [])
         setProjects(projectsData || [])
-
       } catch (error) {
         console.error('Error fetching tasks data:', error)
       } finally {
         setLoading(false)
       }
     }
-
     fetchData()
-  }, [user])
+  }, [user, supabase])
 
   // Filter and sort tasks
   const filteredTasks = tasks
@@ -188,10 +189,8 @@ export default function TasksPage() {
 
   // CRUD Functions
   const handleCreateTask = async () => {
-    if (!user || !newTask.title.trim()) return
-
+    if (!internalUserId || !newTask.title.trim()) return
     try {
-      const supabase = createClient()
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -200,7 +199,7 @@ export default function TasksPage() {
           priority: newTask.priority,
           projectId: newTask.projectId || null,
           dueDate: newTask.dueDate || null,
-          userId: user.id,
+          userId: internalUserId,
           status: 'UPCOMING',
           progress: 0
         })
@@ -209,17 +208,9 @@ export default function TasksPage() {
           project:projects(id, name, color)
         `)
         .single()
-
       if (error) throw error
-
       setTasks([data, ...tasks])
-      setNewTask({
-        title: '',
-        description: '',
-        priority: 'MEDIUM',
-        projectId: '',
-        dueDate: ''
-      })
+      setNewTask({ title: '', description: '', priority: 'MEDIUM', projectId: '', dueDate: '' })
       setShowCreateModal(false)
     } catch (error) {
       console.error('Error creating task:', error)
@@ -230,7 +221,6 @@ export default function TasksPage() {
     if (!editingTask) return
 
     try {
-      const supabase = createClient()
       const { data, error } = await supabase
         .from('tasks')
         .update({
@@ -281,7 +271,6 @@ export default function TasksPage() {
     const newProgress = task.status === 'COMPLETED' ? task.progress : 100
 
     try {
-      const supabase = createClient()
       const { data, error } = await supabase
         .from('tasks')
         .update({

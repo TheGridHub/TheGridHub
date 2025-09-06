@@ -26,9 +26,10 @@ import {
   Trash2,
   Users,
 } from 'lucide-react'
+import type { Plan, IntegrationSummary } from '@/types/db'
 
 // Subscription gate: hides Pro-only UI or shows an upgrade nudge
-export function SubscriptionGate({ plan, children }: { plan: 'FREE' | 'PRO' | 'TEAM' | 'ENTERPRISE' | null, children: React.ReactNode }) {
+export function SubscriptionGate({ plan, children }: { plan: Plan | null, children: React.ReactNode }) {
   if (plan && plan !== 'FREE') return <>{children}</>
   return (
     <div className="relative">
@@ -123,7 +124,7 @@ export function AIAssistant({ userId, disabled }: { userId: string, disabled?: b
   )
 }
 
-export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: string | null, statuses?: { id?: string, type: string, status?: string, connectedAt?: string | null, lastSync?: string | null, userEmail?: string | null }[], onRefetch?: ()=>void }) {
+export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: Plan | null, statuses?: IntegrationSummary[], onRefetch?: ()=>void }) {
   const [busy, setBusy] = useState<Record<string, boolean>>({})
   const get = (type: string) => statuses?.find(s => s.type?.toLowerCase() === type)
   const Badge = ({ ok }: { ok: boolean }) => (

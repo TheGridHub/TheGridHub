@@ -143,6 +143,15 @@ export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: string 
     try { await fetch(endpoint, { method: 'POST' }) } catch {}
     setBusy(prev => ({ ...prev, [key]: false }))
   }
+  const startAuth = async (provider: 'slack' | 'google' | 'office365') => {
+    try {
+      const res = await fetch(`/api/integrations/${provider}/auth`, { method: 'POST' })
+      if (!res.ok) return
+      const json = await res.json().catch(()=>({}))
+      const url = json?.authUrl
+      if (url) window.location.assign(url)
+    } catch {}
+  }
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Slack */}
@@ -157,7 +166,7 @@ export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: string 
             {get('slack')?.id && (
               <button onClick={()=>syncNow(get('slack')!.id)} className={`text-sm px-3 py-1.5 border rounded-md ${busy[get('slack')!.id!] ? 'opacity-60' : 'hover:bg-gray-50'}`}>{busy[get('slack')!.id!] ? 'Syncing...' : 'Sync now'}</button>
             )}
-            <Link href="/api/integrations/slack/auth" className="text-sm px-3 py-1.5 border rounded-md hover:bg-gray-50">{get('slack')? 'Manage' : 'Connect'}</Link>
+            <button onClick={()=>startAuth('slack')} className="text-sm px-3 py-1.5 border rounded-md hover:bg-gray-50">{get('slack')? 'Manage' : 'Connect'}</button>
           </div>
         </div>
         <p className="text-sm text-gray-600 mt-2">Send notifications to channels.</p>
@@ -194,7 +203,7 @@ export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: string 
             {get('google')?.id && (
               <button onClick={()=>syncNow(get('google')!.id)} className={`text-sm px-3 py-1.5 border rounded-md ${busy[get('google')!.id!] ? 'opacity-60' : 'hover:bg-gray-50'}`}>{busy[get('google')!.id!] ? 'Syncing...' : 'Sync now'}</button>
             )}
-            <Link href="/api/integrations/google/auth" className="text-sm px-3 py-1.5 border rounded-md hover:bg-gray-50">{get('google')? 'Manage' : 'Connect'}</Link>
+            <button onClick={()=>startAuth('google')} className="text-sm px-3 py-1.5 border rounded-md hover:bg-gray-50">{get('google')? 'Manage' : 'Connect'}</button>
           </div>
         </div>
         <p className="text-sm text-gray-600 mt-2">Docs, Sheets, Calendar, Meets.</p>
@@ -212,7 +221,7 @@ export function IntegrationsPanel({ plan, statuses, onRefetch }: { plan: string 
             {get('office365')?.id && (
               <button onClick={()=>syncNow(get('office365')!.id)} className={`text-sm px-3 py-1.5 border rounded-md ${busy[get('office365')!.id!] ? 'opacity-60' : 'hover:bg-gray-50'}`}>{busy[get('office365')!.id!] ? 'Syncing...' : 'Sync now'}</button>
             )}
-            <Link href="/api/integrations/office365/auth" className="text-sm px-3 py-1.5 border rounded-md hover:bg-gray-50">{get('office365')? 'Manage' : 'Connect'}</Link>
+            <button onClick={()=>startAuth('office365')} className="text-sm px-3 py-1.5 border rounded-md hover:bg-gray-50">{get('office365')? 'Manage' : 'Connect'}</button>
           </div>
         </div>
         <p className="text-sm text-gray-600 mt-2">Teams, Outlook, Calendar.</p>

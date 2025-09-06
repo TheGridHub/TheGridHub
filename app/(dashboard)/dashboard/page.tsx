@@ -263,9 +263,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
-                  <SubscriptionGate plan={plan}>
-                    {internalUserId && <AIAssistant userId={internalUserId} />}
-                  </SubscriptionGate>
+                  {internalUserId && <AIAssistant userId={internalUserId} />}
                 </div>
               </div>
             )}

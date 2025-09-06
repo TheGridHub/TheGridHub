@@ -104,13 +104,12 @@ export default function PricingPage() {
       <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center">
               <img 
                 src="/images/logo.svg" 
                 alt="TheGridHub" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">TheGridHub</span>
             </Link>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -297,7 +296,6 @@ export default function PricingPage() {
                   alt="TheGridHub" 
                   className="h-8 w-auto brightness-0 invert"
                 />
-                <span className="text-xl font-bold text-white">TheGridHub</span>
               </div>
               <p className="text-gray-400 max-w-md">
                 AI-powered task management that helps teams stay organized and productive. 

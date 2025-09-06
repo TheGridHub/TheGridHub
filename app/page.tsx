@@ -1,12 +1,55 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, Star, ArrowRight, Users, Zap, Shield, Brain, BarChart3, Clock, CheckSquare, Briefcase, Home, TrendingUp, MessageSquare, Timer, Layers, GitBranch, Slack, Chrome, Figma, Calendar, CreditCard } from 'lucide-react'
+import { Check, Star, ArrowRight, Users, Zap, Shield, Brain, BarChart3, Clock, CheckSquare, Briefcase, Home, TrendingUp, MessageSquare, Timer, Layers, GitBranch, Slack, Chrome, Figma, Calendar, CreditCard, MoveRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { SUBSCRIPTION_PLANS, ANNUAL_PRICING } from '@/lib/pricing'
 
 // Make this page dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic'
+
+function MiniDashboardDemo() {
+  const [columns, setColumns] = useState({
+    todo: ['Design hero section', 'Write onboarding copy'],
+    doing: ['Implement auth'],
+    done: ['Set up Supabase']
+  })
+  const move = (from: keyof typeof columns, to: keyof typeof columns, index: number) => {
+    setColumns(prev => {
+      const item = prev[from][index]
+      const fromCol = prev[from].slice(); fromCol.splice(index,1)
+      const toCol = prev[to].slice(); toCol.unshift(item)
+      return { ...prev, [from]: fromCol, [to]: toCol }
+    })
+  }
+  const Col = ({title, keyId}: {title:string, keyId: keyof typeof columns}) => (
+    <div className="bg-white rounded-xl p-4 border w-56">
+      <div className="font-medium text-gray-800 mb-3">{title}</div>
+      <div className="space-y-2 min-h-[6rem]">
+        {columns[keyId].map((t, i) => (
+          <div key={t} className="bg-gray-50 border rounded-lg p-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700 mr-2 truncate" title={t}>{t}</span>
+              <div className="flex items-center gap-1">
+                {keyId !== 'todo' && <button className="text-xs text-gray-400 hover:text-gray-600" onClick={()=>move(keyId,'todo',i)} title="Move to To Do">←</button>}
+                {keyId !== 'doing' && <button className="text-xs text-gray-400 hover:text-gray-600" onClick={()=>move(keyId,'doing',i)} title="Move to In Progress">•</button>}
+                {keyId !== 'done' && <button className="text-xs text-gray-400 hover:text-gray-600" onClick={()=>move(keyId,'done',i)} title="Move to Done">→</button>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+  return (
+    <div className="flex gap-4">
+      <Col title="To Do" keyId="todo" />
+      <Col title="In Progress" keyId="doing" />
+      <Col title="Done" keyId="done" />
+    </div>
+  )
+}
 
 export default function LandingPage() {
   const [billingCycle, setBillingCycle] = useState('monthly')
@@ -85,55 +128,48 @@ export default function LandingPage() {
 
   const plans = [
     {
-      name: 'Personal',
-      price: { monthly: 0, yearly: 0 },
-      description: 'Perfect for individuals getting started',
+      name: SUBSCRIPTION_PLANS.PERSONAL.name,
+      price: { monthly: SUBSCRIPTION_PLANS.PERSONAL.price, yearly: ANNUAL_PRICING.PERSONAL.price },
+      description: SUBSCRIPTION_PLANS.PERSONAL.description,
       features: [
-        'Up to 3 team members',
-        '2 active projects',
-        'Basic task management',
-        'AI task suggestions (10/day)',
-        'Basic analytics',
-        'Mobile app access',
-        'Email support'
+        'Up to 1 member',
+        '20 projects',
+        '1,000 tasks',
+        '100 AI suggestions / month',
+        'Analytics & integrations',
+        'Time tracking'
       ],
-      cta: 'Start Free',
+      cta: 'Get Personal',
       popular: false,
-      href: '/login'
+      href: '/pricing'
     },
     {
-      name: 'Pro',
-      price: { monthly: 12, yearly: 10 },
-      description: 'For growing teams and businesses',
+      name: SUBSCRIPTION_PLANS.PRO.name,
+      price: { monthly: SUBSCRIPTION_PLANS.PRO.price, yearly: ANNUAL_PRICING.PRO.price },
+      description: SUBSCRIPTION_PLANS.PRO.description,
       features: [
-        'Unlimited team members',
+        'Unlimited members',
         'Unlimited projects',
         'Advanced task management',
         'Unlimited AI suggestions',
         'Advanced analytics & reports',
-        'Time tracking',
-        'Custom workflows',
-        'Priority support',
-        'Integration with 50+ apps'
+        'Time tracking & automations',
+        'Priority support'
       ],
-      cta: 'Start Pro Trial',
+      cta: 'Start Pro',
       popular: true,
-      href: '/login'
+      href: '/pricing'
     },
     {
-      name: 'Enterprise',
-      price: { monthly: 25, yearly: 20 },
-      description: 'For large organizations with advanced needs',
+      name: SUBSCRIPTION_PLANS.ENTERPRISE.name,
+      price: { monthly: SUBSCRIPTION_PLANS.ENTERPRISE.price, yearly: ANNUAL_PRICING.ENTERPRISE.price },
+      description: SUBSCRIPTION_PLANS.ENTERPRISE.description,
       features: [
         'Everything in Pro',
         'Advanced security & compliance',
         'Custom integrations',
-        'Dedicated account manager',
-        'On-premise deployment',
-        'Custom AI training',
-        'SLA guarantee',
-        'Phone support',
-        'Custom contracts'
+        'Dedicated support',
+        'On‑prem option'
       ],
       cta: 'Contact Sales',
       popular: false,
@@ -152,9 +188,8 @@ export default function LandingPage() {
       <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center">
               {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={112} height={32} className="h-8 w-auto" /> })()}
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">TheGridHub</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -238,16 +273,9 @@ export default function LandingPage() {
             
             {/* Right side - Illustration */}
             <div className="relative lg:block hidden">
-              <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
-                {/* Octopus-like illustration placeholder */}
-                <div className="w-full h-96 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-32 h-32 bg-purple-300/50 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <Layers className="w-16 h-16 text-purple-600" />
-                    </div>
-                    <p className="text-purple-600 font-medium">Interactive Dashboard</p>
-                  </div>
-                </div>
+              <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-white/20">
+                {/* Mini interactive dashboard (demo only, no persistence) */}
+                <MiniDashboardDemo />
               </div>
             </div>
           </div>
@@ -558,7 +586,6 @@ export default function LandingPage() {
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-4">
                 {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={112} height={32} className="h-8 w-auto brightness-0 invert" /> })()}
-                <span className="text-xl font-bold text-white">TheGridHub</span>
               </div>
               <p className="text-gray-400 max-w-md">
                 AI-powered task management that helps teams stay organized and productive. 

@@ -243,7 +243,6 @@ export default function DashboardPage() {
           {/* Logo */}
           <div className="flex items-center px-6 py-4 border-b">
             {(() => { const Image = require('next/image').default; return <Image src="/images/logo.svg" alt="TheGridHub" width={112} height={32} className="h-8 w-auto" /> })()}
-            <span className="ml-2 text-xl font-bold text-purple-600">TheGridHub</span>
           </div>
           
           {/* Navigation */}

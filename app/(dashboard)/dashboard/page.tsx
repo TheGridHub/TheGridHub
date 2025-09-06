@@ -112,14 +112,6 @@ export default function DashboardPage() {
     fetchAll()
   }, [user, supabase])
 
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-2 border-purple-600 border-t-transparent rounded-full"></div>
-      </div>
-    )
-  }
-
   const greeting = t('dashboard.greeting', { name: user?.firstName || 'there' })
 
   const { bar14Labels, bar14Counts, created14Counts, trend14, overdueCount, completedCount, avgCycleDays } = useMemo(() => {
@@ -169,6 +161,14 @@ export default function DashboardPage() {
 
     return { bar14Labels: labels, bar14Counts: counts, created14Counts: createdCounts, trend14: trend, overdueCount: overdue, completedCount: completedNow, avgCycleDays: avg }
   }, [tasks])
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-2 border-purple-600 border-t-transparent rounded-full"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-fuchsia-50">

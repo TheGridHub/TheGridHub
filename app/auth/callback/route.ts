@@ -1,16 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const redirect = requestUrl.searchParams.get('redirect') || '/dashboard'
+  const redirectParam = requestUrl.searchParams.get('redirect') || '/dashboard'
 
+  // Exchange the code for a session
+  const supabase = createClient()
   if (code) {
-    const supabase = createClient()
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Redirect to the specified URL or dashboard
-  return NextResponse.redirect(new URL(redirect, request.url))
+  // Get the authenticated user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Ensure a users row exists (service role bypasses RLS)
+  const service = createServiceClient()
+
+  let internalUserId: string | null = null
+  try {
+    const byId = await service
+      .from('users')
+      .select('id')
+      .eq('supabaseId', user.id)
+      .maybeSingle()
+    internalUserId = byId.data?.id || null
+
+    if (!internalUserId) {
+      const email = user.email || null
+      if (email) {
+        const byEmail = await service
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle()
+        if (byEmail.data?.id) {
+          const updated = await service
+            .from('users')
+            .update({ supabaseId: user.id })
+            .eq('id', byEmail.data.id)
+            .select('id')
+            .single()
+          internalUserId = updated.data?.id || null
+        }
+      }
+    }
+
+    if (!internalUserId) {
+      const md: any = user.user_metadata || {}
+      const name = md.full_name || md.first_name || (user.email ? user.email.split('@')[0] : 'User')
+      const avatar = md.avatar_url || (user.email ? `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D9488&color=fff` : null)
+      const created = await service
+        .from('users')
+        .insert({ supabaseId: user.id, email: user.email, name, avatar })
+        .select('id')
+        .single()
+      internalUserId = created.data?.id || null
+    }
+  } catch {}
+
+  // If not onboarded, send to Welcome (which flows to Onboarding). Otherwise, respect redirect param
+  if (internalUserId) {
+    try {
+      const { data: onboard } = await supabase
+        .from('user_onboarding')
+        .select('id')
+        .eq('userId', internalUserId)
+        .maybeSingle()
+      const dest = onboard ? redirectParam : '/welcome'
+      return NextResponse.redirect(new URL(dest, request.url))
+    } catch {
+      // On error, fall back to welcome for safety
+      return NextResponse.redirect(new URL('/welcome', request.url))
+    }
+  }
+
+  // Fallback: go to welcome
+  return NextResponse.redirect(new URL('/welcome', request.url))
 }

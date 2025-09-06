@@ -262,17 +262,75 @@ export default function OnboardingPage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC]">
-      <div className="mx-auto grid max-w-6xl md:grid-cols-2 gap-0">
-        {/* Left: form */}
-        <div className="p-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-            {StepHeader}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-fuchsia-50">
+      <div className="grid md:grid-cols-2 min-h-screen">
+        {/* Left: Brand/hero */}
+        <div className="relative hidden md:flex flex-col justify-between bg-gradient-to-br from-gray-900 via-purple-900 to-fuchsia-900 text-white p-10 overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-80 h-80 bg-fuchsia-500/30 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-8">
+              <Image src="/images/logo.svg" alt="TheGridHub" width={140} height={36} />
+            </div>
+            <h2 className="text-3xl font-semibold leading-tight">Build smarter workflows</h2>
+            <p className="mt-3 text-white/80">Set up your workspace, invite teammates, and personalize your dashboard. We'll have you productive in minutes.</p>
+            <div className="mt-8 grid grid-cols-1 gap-3">
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span>
+                <span className="text-sm text-white/80">Modern, accessible UI</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span>
+                <span className="text-sm text-white/80">AI-powered suggestions</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span>
+                <span className="text-sm text-white/80">Integrates with your tools</span>
+              </div>
+            </div>
+          </div>
+          <div className="relative z-10 text-xs text-white/60">© {new Date().getFullYear()} TheGridHub</div>
+        </div>
+
+        {/* Right: Form */}
+        <div className="flex items-center justify-center p-6 md:p-10">
+          <div className="w-full max-w-xl bg-white/80 backdrop-blur rounded-2xl shadow-lg border border-white/60 p-8">
+            <div className="flex items-center justify-between mb-6">
+              {/* Stepper */}
+              <div className="flex items-center gap-3">
+                {steps.map((label, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i <= currentStep ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}>{i+1}</div>
+                    {i < steps.length - 1 && (
+                      <div className={`h-0.5 w-8 ${i < currentStep ? 'bg-purple-600' : 'bg-gray-200'}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Language selector */}
+              <div className="relative" ref={langMenuRef}>
+                <button onClick={()=>setShowLang(v=>!v)} className="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm">
+                  <Globe className="w-4 h-4" /> {lang.toUpperCase()} <ChevronDown className="w-4 h-4" />
+                </button>
+                {showLang && (
+                  <div className="absolute right-0 mt-2 w-28 rounded-md shadow bg-white border border-gray-200 z-10">
+                    {(['en','fr','es','de'] as LangKey[]).map(l => (
+                      <button key={l} onClick={() => { setLang(l); setShowLang(false) }} className={`block w-full text-left px-3 py-2 text-sm ${lang===l?'bg-gray-100':''}`}>{l.toUpperCase()}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Titles */}
+            <div className="mb-6">
+              <h1 className="text-xl font-semibold text-gray-900 mb-1">{steps[currentStep]}</h1>
+              <p className="text-sm text-gray-600">{currentStep+1} {t.of} {steps.length}</p>
+            </div>
 
             {/* Step content */}
             {currentStep === 0 && (
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.companyQuestion}</h1>
                 <p className="text-gray-600 mb-4 text-sm">{t.companyHelp}</p>
                 <input
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -288,7 +346,6 @@ export default function OnboardingPage() {
 
             {currentStep === 1 && (
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.workingQuestion}</h1>
                 <p className="text-gray-600 mb-4 text-sm">{t.workingHelp}</p>
                 <input
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -304,9 +361,7 @@ export default function OnboardingPage() {
 
             {currentStep === 2 && (
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.whoQuestion}</h1>
                 <p className="text-gray-600 mb-4 text-sm">{t.whoHelp}</p>
-                {/* Tabs simplified to input as per screenshot */}
                 <div className="text-sm text-gray-700 font-medium mb-2">{t.inviteByEmail}</div>
                 <textarea
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -324,7 +379,6 @@ export default function OnboardingPage() {
 
             {currentStep === 3 && (
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.almostDone}</h1>
                 <p className="text-gray-600 mb-4 text-sm">{t.almostHelp}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.firstName} value={firstName} onChange={(e)=>setFirstName(e.target.value)} />
@@ -357,15 +411,6 @@ export default function OnboardingPage() {
                 <ArrowRight className="h-5 w-5 ml-2" />
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Right: illustration/information */}
-        <div className="hidden md:flex items-center justify-center p-8 bg-gradient-to-br from-purple-50 via-white to-purple-50">
-          <div className="max-w-md text-center">
-            <Image src="/images/illustrations/onboarding.svg" alt="Onboarding" width={420} height={320} className="mx-auto mb-6" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Seamless Team Collaboration</h3>
-            <p className="text-gray-600 text-sm">Connect, collaborate, and conquer together. Communicate effortlessly and keep everyone aligned.</p>
           </div>
         </div>
       </div>

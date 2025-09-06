@@ -42,6 +42,11 @@ export async function middleware(request: NextRequest) {
   const supabase = createMiddlewareClient(request, response)
   const pathname = request.nextUrl.pathname
 
+  // Skip middleware for API routes (let API handlers enforce auth & return JSON)
+  if (pathname.startsWith('/api/')) {
+    return response
+  }
+
   // Allow public routes
   const isPublicRoute = publicRoutes.some(route => 
     pathname === route || pathname.startsWith(`${route}/`)

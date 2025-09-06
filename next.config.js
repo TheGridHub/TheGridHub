@@ -46,7 +46,7 @@ const baseConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https: https://api.openai.com https://graph.microsoft.com https://slack.com https://www.googleapis.com",
+              "connect-src 'self' https: https://api.openai.com https://graph.microsoft.com https://slack.com https://www.googleapis.com https://*.supabase.co",
               "frame-src 'none'",
               "object-src 'none'",
               "base-uri 'self'",

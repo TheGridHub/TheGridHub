@@ -17,6 +17,9 @@ export default function WelcomePage() {
   // Check if user has completed onboarding
   useEffect(() => {
     if (isLoaded && user) {
+      // Trigger seeding in the background (idempotent)
+      fetch('/api/onboarding/seed', { method: 'POST' }).catch(()=>{})
+
       const hasOnboarded = localStorage.getItem('onboarded')
       const timer = setTimeout(() => {
         if (hasOnboarded) {
@@ -24,7 +27,7 @@ export default function WelcomePage() {
         } else {
           router.push('/onboarding')
         }
-      }, 12000)
+      }, 4000)
 
       return () => clearTimeout(timer)
     }

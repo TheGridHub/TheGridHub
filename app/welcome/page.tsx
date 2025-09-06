@@ -17,27 +17,31 @@ export default function WelcomePage() {
 
   // Check if user has completed onboarding with countdown
   useEffect(() => {
+    let interval: any
     if (isLoaded && user) {
-      // Trigger seeding in the background (idempotent)
-      fetch('/api/onboarding/seed', { method: 'POST' }).catch(()=>{})
+      ;(async () => {
+        // Ensure a users row exists before any other calls
+        try { await fetch('/api/users/ensure', { method: 'POST' }) } catch {}
+        // Trigger seeding in the background (idempotent)
+        fetch('/api/onboarding/seed', { method: 'POST' }).catch(()=>{})
 
-      const hasOnboarded = typeof window !== 'undefined' ? localStorage.getItem('onboarded') : null
-      const target = hasOnboarded ? '/dashboard' : '/onboarding'
+        const hasOnboarded = typeof window !== 'undefined' ? localStorage.getItem('onboarded') : null
+        const target = hasOnboarded ? '/dashboard' : '/onboarding'
 
-      setSecondsLeft(5)
-      const interval = setInterval(() => {
-        setSecondsLeft((s) => {
-          if (s <= 1) {
-            clearInterval(interval)
-            router.push(target)
-            return 0
-          }
-          return s - 1
-        })
-      }, 1000)
-
-      return () => clearInterval(interval)
+        setSecondsLeft(5)
+        interval = setInterval(() => {
+          setSecondsLeft((s) => {
+            if (s <= 1) {
+              clearInterval(interval)
+              router.push(target)
+              return 0
+            }
+            return s - 1
+          })
+        }, 1000)
+      })()
     }
+    return () => { if (interval) clearInterval(interval) }
   }, [router, isLoaded, user])
 
   if (!isLoaded) {

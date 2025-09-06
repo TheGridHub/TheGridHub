@@ -70,6 +70,7 @@ export default function DashboardPage() {
           .eq('supabaseId', user.id)
           .maybeSingle()
         const internalUserId = userRow?.id
+        if (!internalUserId) { setTasks([]); setGoals([]); setProjects([]); setNotifications([]); return }
 
         const [
           { data: tasksData },

@@ -139,10 +139,12 @@ export default function OnboardingPage() {
   useEffect(() => {
     const check = async () => {
       if (!user) return
+      const uid = await getUserId()
+      if (!uid) return
       const { data } = await supabase
         .from('user_onboarding')
         .select('id')
-        .eq('userId', (await getUserId()))
+        .eq('userId', uid)
         .maybeSingle()
       if (data) router.push('/dashboard')
     }
@@ -163,22 +165,14 @@ export default function OnboardingPage() {
 
   const getUserId = async (): Promise<string | null> => {
     if (!user) return null
-    // Ensure a users row exists then get its id
-    const up = await supabase
-      .from('users')
-      .upsert({
-        supabaseId: user.id,
-        email: user.email!,
-        name: [firstName, lastName].filter(Boolean).join(' ') || user.email!,
-        avatar: (user as any)?.user_metadata?.avatar_url || null,
-      }, { onConflict: 'supabaseId' })
-    if (up.error) console.error(up.error)
-    const { data } = await supabase
-      .from('users')
-      .select('id')
-      .eq('supabaseId', user.id)
-      .single()
-    return data?.id ?? null
+    try {
+      const res = await fetch('/api/users/ensure', { method: 'POST' })
+      if (!res.ok) return null
+      const json = await res.json().catch(()=>({}))
+      return json?.id || null
+    } catch {
+      return null
+    }
   }
 
   const isEmail = (s:string) => /.+@.+\..+/.test(s)

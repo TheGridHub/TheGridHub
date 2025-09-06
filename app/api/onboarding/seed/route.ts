@@ -91,17 +91,50 @@ export async function POST(_req: NextRequest) {
       .insert(tasks)
     if (tErr) throw tErr
 
-    // Seed a welcome notification
+    // Seed a quick-start goal if none exists
+    const { data: existingGoals, error: gChkErr } = await supabase
+      .from('goals')
+      .select('id')
+      .eq('userId', userId)
+      .limit(1)
+    if (gChkErr) throw gChkErr
+
+    if (!existingGoals || existingGoals.length === 0) {
+      const { error: gErr } = await supabase
+        .from('goals')
+        .insert({
+          id: crypto.randomUUID(),
+          userId,
+          title: 'Complete your first 5 tasks',
+          description: 'Focus on quick wins to build momentum',
+          target: 5,
+          current: 0,
+          type: 'TASK'
+        })
+      if (gErr) throw gErr
+    }
+
+    // Seed welcome notifications
     await supabase
       .from('notifications')
-      .insert({
-        id: crypto.randomUUID(),
-        userId,
-        type: 'info',
-        title: 'Welcome to TheGridHub',
-        message: 'We created a starter project and a few example tasks to help you begin.',
-        read: false,
-      })
+      .insert([
+        {
+          id: crypto.randomUUID(),
+          userId,
+          type: 'info',
+          title: 'Welcome to TheGridHub',
+          message: 'We created a starter project and a few example tasks to help you begin.',
+          read: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          userId,
+          type: 'tip',
+          title: 'Pro tip: Invite your team',
+          message: 'Head to Workspace to invite teammates and collaborate in real-time with comments.',
+          read: false,
+        }
+      ])
 
     return NextResponse.json({ ok: true, seeded: true, projectId })
   } catch (e: any) {

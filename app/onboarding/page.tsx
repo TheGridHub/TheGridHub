@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
@@ -122,6 +122,8 @@ export default function OnboardingPage() {
   const supabase = useMemo(() => createClient(), [])
   const { user } = useUser()
   const [lang, setLang] = useState<LangKey>('en')
+  const [showLang, setShowLang] = useState(false)
+  const langMenuRef = useRef<HTMLDivElement|null>(null)
   const t = translations[lang]
 
   const [currentStep, setCurrentStep] = useState(0)
@@ -147,6 +149,18 @@ export default function OnboardingPage() {
     void check()
   }, [user, supabase, router])
 
+  // Close language dropdown on outside click
+  useEffect(()=>{
+    if (!showLang) return
+    const onClick = (e: MouseEvent) => {
+      if (!langMenuRef.current) return
+      if (!(e.target instanceof Node)) return
+      if (!langMenuRef.current.contains(e.target)) setShowLang(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [showLang])
+
   const getUserId = async (): Promise<string | null> => {
     if (!user) return null
     // Ensure a users row exists then get its id
@@ -167,7 +181,20 @@ export default function OnboardingPage() {
     return data?.id ?? null
   }
 
+  const isEmail = (s:string) => /.+@.+\..+/.test(s)
+  const isValidStep = () => {
+    if (currentStep === 0) return companyName.trim().length >= 2
+    if (currentStep === 1) return focus.trim().length >= 2
+    if (currentStep === 2) {
+      if (!invites.trim()) return true
+      return invites.split(/[,\s]+/).filter(Boolean).every(isEmail)
+    }
+    if (currentStep === 3) return firstName.trim().length >= 2
+    return true
+  }
+
   const handleNext = async () => {
+    if (!isValidStep()) return
     if (currentStep < steps.length - 1) {
       setCurrentStep((s) => s + 1)
     } else {
@@ -205,7 +232,9 @@ export default function OnboardingPage() {
       })
     if (error) console.error(error)
 
-    // Update user name
+    // Update auth profile metadata & users table name
+    try { await supabase.auth.updateUser({ data: { first_name: firstName, last_name: lastName, phone } }) } catch {}
+
     await supabase
       .from('users')
       .update({ name: [firstName, lastName].filter(Boolean).join(' ') || undefined })
@@ -223,99 +252,126 @@ export default function OnboardingPage() {
         <span className="text-sm text-gray-600">{t.step} {currentStep + 1} {t.of} {steps.length}</span>
       </div>
       {/* Language selector */}
-      <div className="relative">
-        <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm">
+      <div className="relative" ref={langMenuRef}>
+        <button onClick={()=>setShowLang(v=>!v)} className="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm">
           <Globe className="w-4 h-4" /> {lang.toUpperCase()} <ChevronDown className="w-4 h-4" />
         </button>
-        <div className="absolute right-0 mt-2 w-28 rounded-md shadow bg-white border border-gray-200 z-10">
-          {(['en','fr','es','de'] as LangKey[]).map(l => (
-            <button key={l} onClick={() => setLang(l)} className={`block w-full text-left px-3 py-2 text-sm ${lang===l?'bg-gray-100':''}`}>{l.toUpperCase()}</button>
-          ))}
-        </div>
+        {showLang && (
+          <div className="absolute right-0 mt-2 w-28 rounded-md shadow bg-white border border-gray-200 z-10">
+            {(['en','fr','es','de'] as LangKey[]).map(l => (
+              <button key={l} onClick={() => { setLang(l); setShowLang(false) }} className={`block w-full text-left px-3 py-2 text-sm ${lang===l?'bg-gray-100':''}`}>{l.toUpperCase()}</button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC] flex items-center justify-center">
-      <div className="w-full max-w-2xl p-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          {StepHeader}
+    <div className="min-h-screen bg-[#FAFBFC]">
+      <div className="mx-auto grid max-w-6xl md:grid-cols-2 gap-0">
+        {/* Left: form */}
+        <div className="p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            {StepHeader}
 
-          {/* Step content */}
-          {currentStep === 0 && (
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.companyQuestion}</h1>
-              <p className="text-gray-600 mb-4 text-sm">{t.companyHelp}</p>
-              <input
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                placeholder={t.companyPlaceholder}
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </div>
-          )}
-
-          {currentStep === 1 && (
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.workingQuestion}</h1>
-              <p className="text-gray-600 mb-4 text-sm">{t.workingHelp}</p>
-              <input
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                placeholder={t.workingPlaceholder}
-                value={focus}
-                onChange={(e) => setFocus(e.target.value)}
-              />
-            </div>
-          )}
-
-          {currentStep === 2 && (
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.whoQuestion}</h1>
-              <p className="text-gray-600 mb-4 text-sm">{t.whoHelp}</p>
-              {/* Tabs simplified to input as per screenshot */}
-              <div className="text-sm text-gray-700 font-medium mb-2">{t.inviteByEmail}</div>
-              <textarea
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                rows={3}
-                placeholder={t.invitePlaceholder}
-                value={invites}
-                onChange={(e) => setInvites(e.target.value)}
-              />
-              <p className="text-xs text-gray-500 mt-2">Separate emails with commas , or spaces.</p>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.almostDone}</h1>
-              <p className="text-gray-600 mb-4 text-sm">{t.almostHelp}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.firstName} value={firstName} onChange={(e)=>setFirstName(e.target.value)} />
-                <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.lastName} value={lastName} onChange={(e)=>setLastName(e.target.value)} />
+            {/* Step content */}
+            {currentStep === 0 && (
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.companyQuestion}</h1>
+                <p className="text-gray-600 mb-4 text-sm">{t.companyHelp}</p>
+                <input
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  placeholder={t.companyPlaceholder}
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+                {companyName && companyName.trim().length < 2 && (
+                  <div className="text-xs text-red-600 mt-1">Please enter at least 2 characters.</div>
+                )}
               </div>
-              <div className="mt-3">
-                <input className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.phoneNumber} value={phone} onChange={(e)=>setPhone(e.target.value)} />
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-8">
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 0}
-              className={`flex items-center px-5 py-2 rounded-lg font-medium ${currentStep===0? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" /> {t.back}
-            </button>
-            <button
-              onClick={handleNext}
-              className="flex items-center px-5 py-2 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-700"
-            >
-              {currentStep === steps.length - 1 ? t.getStarted : t.continue}
-              <ArrowRight className="h-5 w-5 ml-2" />
-            </button>
+            {currentStep === 1 && (
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.workingQuestion}</h1>
+                <p className="text-gray-600 mb-4 text-sm">{t.workingHelp}</p>
+                <input
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  placeholder={t.workingPlaceholder}
+                  value={focus}
+                  onChange={(e) => setFocus(e.target.value)}
+                />
+                {focus && focus.trim().length < 2 && (
+                  <div className="text-xs text-red-600 mt-1">Please enter at least 2 characters.</div>
+                )}
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.whoQuestion}</h1>
+                <p className="text-gray-600 mb-4 text-sm">{t.whoHelp}</p>
+                {/* Tabs simplified to input as per screenshot */}
+                <div className="text-sm text-gray-700 font-medium mb-2">{t.inviteByEmail}</div>
+                <textarea
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  rows={3}
+                  placeholder={t.invitePlaceholder}
+                  value={invites}
+                  onChange={(e) => setInvites(e.target.value)}
+                />
+                {invites.trim() && !invites.split(/[ ,\n]+/).filter(Boolean).every(v=>/.+@.+\..+/.test(v)) && (
+                  <div className="text-xs text-red-600 mt-1">Enter valid emails separated by commas or spaces.</div>
+                )}
+                <p className="text-xs text-gray-500 mt-2">Separate emails with commas , or spaces.</p>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900 mb-2">{t.almostDone}</h1>
+                <p className="text-gray-600 mb-4 text-sm">{t.almostHelp}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.firstName} value={firstName} onChange={(e)=>setFirstName(e.target.value)} />
+                  <input className="px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.lastName} value={lastName} onChange={(e)=>setLastName(e.target.value)} />
+                </div>
+                {firstName && firstName.trim().length < 2 && (
+                  <div className="text-xs text-red-600 mt-1">Please enter at least 2 characters for first name.</div>
+                )}
+                <div className="mt-3">
+                  <input className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-200" placeholder={t.phoneNumber} value={phone} onChange={(e)=>setPhone(e.target.value)} />
+                </div>
+              </div>
+            )}
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-8">
+              <button
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                className={`flex items-center px-5 py-2 rounded-lg font-medium ${currentStep===0? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" /> {t.back}
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!isValidStep()}
+                className={`flex items-center px-5 py-2 rounded-lg font-medium ${isValidStep()? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                {currentStep === steps.length - 1 ? t.getStarted : t.continue}
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: illustration/information */}
+        <div className="hidden md:flex items-center justify-center p-8 bg-gradient-to-br from-purple-50 via-white to-purple-50">
+          <div className="max-w-md text-center">
+            <Image src="/images/illustrations/onboarding.svg" alt="Onboarding" width={420} height={320} className="mx-auto mb-6" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Seamless Team Collaboration</h3>
+            <p className="text-gray-600 text-sm">Connect, collaborate, and conquer together. Communicate effortlessly and keep everyone aligned.</p>
           </div>
         </div>
       </div>

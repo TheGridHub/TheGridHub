@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
 
@@ -13,23 +13,30 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 export default function WelcomePage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
+  const [secondsLeft, setSecondsLeft] = useState(5)
 
-  // Check if user has completed onboarding
+  // Check if user has completed onboarding with countdown
   useEffect(() => {
     if (isLoaded && user) {
       // Trigger seeding in the background (idempotent)
       fetch('/api/onboarding/seed', { method: 'POST' }).catch(()=>{})
 
-      const hasOnboarded = localStorage.getItem('onboarded')
-      const timer = setTimeout(() => {
-        if (hasOnboarded) {
-          router.push('/dashboard')
-        } else {
-          router.push('/onboarding')
-        }
-      }, 4000)
+      const hasOnboarded = typeof window !== 'undefined' ? localStorage.getItem('onboarded') : null
+      const target = hasOnboarded ? '/dashboard' : '/onboarding'
 
-      return () => clearTimeout(timer)
+      setSecondsLeft(5)
+      const interval = setInterval(() => {
+        setSecondsLeft((s) => {
+          if (s <= 1) {
+            clearInterval(interval)
+            router.push(target)
+            return 0
+          }
+          return s - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(interval)
     }
   }, [router, isLoaded, user])
 
@@ -91,7 +98,7 @@ export default function WelcomePage() {
           </Link>
           
           <p className="text-xs text-gray-500">
-            Redirecting automatically in 12 seconds...
+            Redirecting automatically in {secondsLeft} second{secondsLeft !== 1 ? 's' : ''}...
           </p>
         </div>
       </div>

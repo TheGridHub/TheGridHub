@@ -6,7 +6,7 @@ import SkipToContent from '@/components/common/SkipToContent'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher'
 import AdminSchemaBanner from '@/components/common/AdminSchemaBanner'
 import ErrorReporter from '@/components/common/ErrorReporter'
-import DevA11y from '@/components/dev/DevA11y'
+import DevA11yBoundary from '@/components/dev/DevA11yBoundary'
 
 export default async function DashboardLayout({
   children,
@@ -60,7 +60,7 @@ export default async function DashboardLayout({
           </div>
           <AdminSchemaBanner />
           <ErrorReporter />
-          <DevA11y />
+          <DevA11yBoundary />
           <main id="main-content">
             {children}
           </main>

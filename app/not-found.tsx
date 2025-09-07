@@ -12,15 +12,15 @@ export default function NotFound() {
   useEffect(() => setMounted(true), [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f9f9]">
-      <div className="max-w-xl w-full bg-white shadow-[0px_4px_200px_#e8f9f733] rounded-2xl p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#f9f9f9] px-6">
+      <div className="w-full max-w-xl text-center">
         <div className="flex items-center justify-center mb-4">
           {mounted && (
             <DotLottieReact
               src="/animations/lonely-404.lottie"
               autoplay
-              loop={false}
-              style={{ width: 260, height: 260 }}
+              loop
+              style={{ width: 260, height: 260, background: 'transparent' }}
             />
           )}
         </div>
@@ -44,4 +44,3 @@ export default function NotFound() {
     </div>
   )
 }
-

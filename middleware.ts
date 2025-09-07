@@ -1,34 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createMiddlewareClient } from '@/lib/supabase/server'
 
+// Minimal set of public routes now that marketing/site pages are removed.
+// - Admin internal (has its own credential guard)
+// - Auth callback routes
 const publicRoutes = [
-  '/',
-  '/login',
-  '/sign-in',
-  '/sign-up',
-  '/welcome',
-  '/onboarding',
-  '/api/webhook',
-  '/api/currency',
-  '/contact',
-  '/pricing',
-  '/privacy-policy',
-  '/terms-of-service',
-  '/why-thegridhub',
-  '/careers',
-  '/about',
-  '/api/auth',
-  '/auth',
-  // Internal admin (has its own credential guard)
   '/admin-internal',
   '/internal-admin',
-  // Internal admin API endpoints must be reachable without app auth
-  '/api/admin-internal'
+  '/auth',
 ]
 
 // Routes that should bypass onboarding checks (but still require auth)
-// We keep payment flows accessible so a user can subscribe/restore even before onboarding.
-// Dashboard billing/settings pages SHOULD NOT bypass onboarding in a single-page dashboard system.
+// Keep payment/API paths here if reintroduced in the future.
 const onboardingBypassPrefixes = [
   '/stripe',
   '/checkout',
@@ -60,11 +43,9 @@ export async function middleware(request: NextRequest) {
   // Check if user is authenticated (use getUser for verified auth)
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Redirect to login if not authenticated
+  // If not authenticated, block access by returning 401 instead of redirecting to a removed login page
   if (!user) {
-    const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(redirectUrl)
+    return new NextResponse('Unauthorized', { status: 401 })
   }
 
   // Skip onboarding guard for admin paths and onboarding-bypass prefixes
@@ -75,35 +56,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Onboarding guard: if user authenticated but hasn't completed onboarding,
-  // redirect to /onboarding (except when already on /onboarding or allowed paths above)
-  if (!pathname.startsWith('/onboarding')) {
-    // Find users row by supabaseId
-    const { data: userRow } = await supabase
-      .from('users')
-      .select('id')
-      .eq('supabaseId', user.id)
-      .maybeSingle()
-
-    const userId = userRow?.id
-
-    if (!userId) {
-      // No users row yet -> treat as not onboarded
-      const url = new URL('/onboarding', request.url)
-      return NextResponse.redirect(url)
-    }
-
-    const { data: onboard } = await supabase
-      .from('user_onboarding')
-      .select('id')
-      .eq('userId', userId)
-      .maybeSingle()
-
-    if (!onboard) {
-      const url = new URL('/onboarding', request.url)
-      return NextResponse.redirect(url)
-    }
-  }
-
+  // Previously redirected to /onboarding (now removed). For non-admin pages, simply allow.
   return response
 }
 

@@ -8,6 +8,7 @@ const publicRoutes = [
   '/admin-internal',
   '/internal-admin',
   '/auth',
+  '/pricing',
 ]
 
 // Routes that should bypass onboarding checks (but still require auth)

@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import {
   Avatar,
   AvatarFallback,
@@ -125,6 +127,39 @@ export const TestimonialSection = (): JSX.Element => {
     ));
   };
 
+  const slides = testimonialData.flat();
+  const [index, setIndex] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const slideTo = (i: number, smooth = true) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const target = Math.max(0, Math.min(i, slides.length - 1));
+    const behavior = smooth ? "smooth" : "auto";
+    el.scrollTo({ left: el.clientWidth * target, behavior });
+    setIndex(target);
+  };
+  const start = () => {
+    if (timerRef.current) return;
+    timerRef.current = setInterval(() => {
+      setIndex((prev) => {
+        const next = (prev + 1) % slides.length;
+        slideTo(next);
+        return next;
+      });
+    }, 4000);
+  };
+  const stop = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  useEffect(() => {
+    start();
+    return stop;
+  }, []);
+
   return (
     <section className="flex flex-col items-center justify-center gap-12 px-4 sm:px-6 md:px-20 py-16 md:py-24 w-full bg-white">
       <header className="flex flex-col items-center justify-center gap-4 w-full translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:0ms]">
@@ -137,30 +172,58 @@ export const TestimonialSection = (): JSX.Element => {
         </p>
       </header>
 
-      {/* Mobile grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full md:hidden translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
-        {testimonialData.flat().map((testimonial, idx) => (
-          <Card key={`m-${idx}`} className="flex flex-col w-full items-start gap-5 p-6 bg-white rounded-lg border border-solid border-[#e4e4e4]">
-            <CardContent className="p-0 flex flex-col gap-4 w-full">
-              <div className="flex items-start gap-1 w-full">
-                {renderStars(testimonial.rating)}
+      {/* Mobile carousel */}
+      <div
+        className="md:hidden w-full translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]"
+        onMouseEnter={stop}
+        onMouseLeave={start}
+        onTouchStart={stop}
+        onTouchEnd={start}
+      >
+        <div
+          ref={containerRef}
+          className="relative w-full overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+          style={{ scrollbarWidth: 'none' as any }}
+        >
+          <div className="flex w-full">
+            {slides.map((testimonial, idx) => (
+              <div key={`c-${idx}`} className="min-w-full snap-center px-1">
+                <Card className="flex flex-col w-full items-start gap-5 p-6 bg-white rounded-lg border border-solid border-[#e4e4e4]">
+                  <CardContent className="p-0 flex flex-col gap-4 w-full">
+                    <div className="flex items-start gap-1 w-full">
+                      {renderStars(testimonial.rating)}
+                    </div>
+                    <div className="flex items-center gap-3 w-full">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} className="rounded-[100px] object-cover" />
+                        <AvatarFallback className="rounded-[100px]">
+                          {testimonial.name.split(" ").map((n) => n[0]).join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="inline-flex flex-col items-start justify-center gap-[3px]">
+                        <div className="w-fit font-body-large-medium text-black">{testimonial.name}</div>
+                        <div className="w-fit font-body-base-regular text-[#aeaeae]">{testimonial.title}</div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700">{testimonial.text}</p>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="flex items-center gap-3 w-full">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={testimonial.avatar} alt={testimonial.name} className="rounded-[100px] object-cover" />
-                  <AvatarFallback className="rounded-[100px]">
-                    {testimonial.name.split(" ").map((n) => n[0]).join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="inline-flex flex-col items-start justify-center gap-[3px]">
-                  <div className="w-fit font-body-large-medium text-black">{testimonial.name}</div>
-                  <div className="w-fit font-body-base-regular text-[#aeaeae]">{testimonial.title}</div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-700">{testimonial.text}</p>
-            </CardContent>
-          </Card>
-        ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Dots */}
+        <div className="mt-4 flex items-center justify-center gap-2">
+          {slides.map((_, i) => (
+            <button
+              key={`dot-${i}`}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-2 w-2 rounded-full ${i === index ? 'bg-gray-800' : 'bg-gray-300'} transition-colors`}
+              onClick={() => slideTo(i)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Desktop rows */}

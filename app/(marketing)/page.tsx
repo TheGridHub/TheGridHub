@@ -1,5 +1,5 @@
 import React from 'react'
-import { Homepage } from '@/components/homepage/Homepage'
+import { Homepage } from '@/app/homepage/Homepage'
 
 export const dynamic = 'force-dynamic'
 

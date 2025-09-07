@@ -126,7 +126,7 @@ export const TestimonialSection = (): JSX.Element => {
   };
 
   return (
-    <section className="flex flex-col items-center justify-center gap-12 px-20 py-24 w-full bg-white">
+    <section className="flex flex-col items-center justify-center gap-12 px-4 sm:px-6 md:px-20 py-16 md:py-24 w-full bg-white">
       <header className="flex flex-col items-center justify-center gap-4 w-full translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:0ms]">
         <h2 className="w-full mt-[-1.00px] font-heading-desktop-h2 font-[number:var(--heading-desktop-h2-font-weight)] text-black text-[length:var(--heading-desktop-h2-font-size)] text-center tracking-[var(--heading-desktop-h2-letter-spacing)] leading-[var(--heading-desktop-h2-line-height)] [font-style:var(--heading-desktop-h2-font-style)]">
           Used by more than 10K+ Business
@@ -137,7 +137,34 @@ export const TestimonialSection = (): JSX.Element => {
         </p>
       </header>
 
-      <div className="flex flex-col items-center justify-center gap-6 w-full overflow-hidden translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
+      {/* Mobile grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full md:hidden translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
+        {testimonialData.flat().map((testimonial, idx) => (
+          <Card key={`m-${idx}`} className="flex flex-col w-full items-start gap-5 p-6 bg-white rounded-lg border border-solid border-[#e4e4e4]">
+            <CardContent className="p-0 flex flex-col gap-4 w-full">
+              <div className="flex items-start gap-1 w-full">
+                {renderStars(testimonial.rating)}
+              </div>
+              <div className="flex items-center gap-3 w-full">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={testimonial.avatar} alt={testimonial.name} className="rounded-[100px] object-cover" />
+                  <AvatarFallback className="rounded-[100px]">
+                    {testimonial.name.split(" ").map((n) => n[0]).join("")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="inline-flex flex-col items-start justify-center gap-[3px]">
+                  <div className="w-fit font-body-large-medium text-black">{testimonial.name}</div>
+                  <div className="w-fit font-body-base-regular text-[#aeaeae]">{testimonial.title}</div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-700">{testimonial.text}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop rows */}
+      <div className="hidden md:flex flex-col items-center justify-center gap-6 w-full overflow-hidden translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
         {testimonialData.map((row, rowIndex) => (
           <div
             key={rowIndex}

@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 
 export const HeroSection = (): JSX.Element => {
   return (
-    <section className="flex items-center gap-8 pl-20 pr-0 py-0 relative self-stretch w-full flex-[0_0_auto] z-[7] bg-white shadow-[0px_4px_200px_#e8f9f733]">
+    <section className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8 px-4 sm:px-6 md:pl-20 md:pr-0 py-8 md:py-0 self-stretch w-full z-[7] bg-white shadow-[0px_4px_200px_#e8f9f733] overflow-hidden">
       <img
-        className="absolute w-[1440px] h-[680px] top-0 left-0"
+        className="absolute inset-0 w-full h-full object-cover"
         alt="Pattern"
         src="/images/migrated-homepage/pattern.svg"
       />
 
-      <div className="flex flex-col w-[624px] items-start gap-9 relative">
+      <div className="flex flex-col w-full md:w-[624px] items-start gap-6 md:gap-9 relative">
         <div className="flex flex-col items-start gap-4 relative self-stretch w-full flex-[0_0_auto]">
           <h1 className="relative self-stretch mt-[-2.00px] ml-[-1.00px] [-webkit-text-stroke:1px_#000000] font-display-display-1 font-[number:var(--display-display-1-font-weight)] text-black text-[length:var(--display-display-1-font-size)] tracking-[var(--display-display-1-letter-spacing)] leading-[var(--display-display-1-line-height)] [font-style:var(--display-display-1-font-style)] translate-y-[-1rem] animate-fade-in opacity-0">
             Dedicated to teams. Growth without the limits.
@@ -87,7 +87,17 @@ export const HeroSection = (): JSX.Element => {
         </div>
       </div>
 
-      <div className="relative w-[704px] h-[680px] rounded-3xl translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:800ms]">
+      {/* Mobile image preview */}
+      <div className="w-full md:hidden translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:600ms]">
+        <img
+          src="/images/migrated-homepage/image-194.png"
+          alt="Dashboard interface mockup"
+          className="w-full rounded-2xl border border-[#e4e4e4] shadow-lg"
+        />
+      </div>
+
+      {/* Desktop framed mockup */}
+      <div className="hidden md:block relative w-full md:w-[704px] h-[360px] md:h-[680px] rounded-3xl translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:800ms]">
         <div className="relative w-[896px] h-[627px] top-[63px] -left-px bg-white rounded-[14px] overflow-hidden border-[1.43px] border-solid border-[#e4e4e4] shadow-[0px_41.59px_48.76px_4.3px_#efeff47a]">
           <div className="absolute w-[895px] h-[37px] top-0 left-0 bg-white rounded-[13.51px_13.51px_0px_0px] border-[0.84px] border-solid border-[#e8ecf3]">
             <div className="relative w-11 h-2.5 top-[17px] left-[18px]">

@@ -9,15 +9,15 @@ const footerData = {
 
 export const FooterSection = (): JSX.Element => {
   return (
-    <footer className="flex flex-col items-start gap-14 px-[120px] py-16 relative self-stretch w-full flex-[0_0_auto] z-0 bg-white translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:0ms]">
+    <footer className="flex flex-col items-start gap-10 md:gap-14 px-4 sm:px-6 md:px-10 lg:px-20 xl:px-[120px] py-12 md:py-16 relative self-stretch w-full flex-[0_0_auto] z-0 bg-white translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:0ms]">
       <div className="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
         <img
-          className="relative flex-1 self-stretch grow translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]"
+          className="hidden md:block relative flex-1 self-stretch grow translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]"
           alt="Frame"
           src="/images/migrated-homepage/frame-48233.svg"
         />
 
-        <div className="items-start gap-4 inline-flex relative flex-[0_0_auto]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-start relative flex-[0_0_auto]">
           <div className="flex flex-col w-[200px] items-start gap-4 relative translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms]">
             <div className="relative w-fit mt-[-1.00px] font-body-extra-large-semibold font-[number:var(--body-extra-large-semibold-font-weight)] text-black text-[length:var(--body-extra-large-semibold-font-size)] tracking-[var(--body-extra-large-semibold-letter-spacing)] leading-[var(--body-extra-large-semibold-line-height)] whitespace-nowrap [font-style:var(--body-extra-large-semibold-font-style)]">
               Pages

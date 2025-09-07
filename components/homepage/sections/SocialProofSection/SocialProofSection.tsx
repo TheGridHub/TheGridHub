@@ -2,13 +2,13 @@ import React from "react";
 
 export const SocialProofSection = (): JSX.Element => {
   return (
-    <section className="flex w-full items-center justify-center gap-10 px-20 py-24 relative bg-white backdrop-blur-[2px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(2px)_brightness(100%)]">
-      <div className="flex flex-col w-full max-w-[584px] items-start gap-4 relative">
+    <section className="flex w-full items-center justify-center gap-8 px-4 sm:px-6 md:px-20 py-16 md:py-24 relative bg-white backdrop-blur-[2px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(2px)_brightness(100%)]">
+      <div className="flex flex-col w-full max-w-[720px] items-start md:items-start gap-4 relative">
         <h2 className="translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms] relative self-stretch mt-[-1.00px] font-heading-desktop-h2 font-[number:var(--heading-desktop-h2-font-weight)] text-black text-[length:var(--heading-desktop-h2-font-size)] tracking-[var(--heading-desktop-h2-letter-spacing)] leading-[var(--heading-desktop-h2-line-height)] [font-style:var(--heading-desktop-h2-font-style)]">
           Partners By Established Companies
         </h2>
 
-        <div className="translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms] relative w-full max-w-[406px] flex flex-col gap-3">
+        <div className="translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms] relative w-full max-w-[520px] flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded-full bg-[#873bff] flex items-center justify-center flex-shrink-0">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

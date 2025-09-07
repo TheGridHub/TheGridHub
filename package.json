@@ -58,6 +58,7 @@
     "googleapis": "^159.0.0",
     "isomorphic-dompurify": "^2.26.0",
     "lucide-react": "^0.469.0",
+    "@lottiefiles/dotlottie-react": "^0.15.2",
     "next": "^15.2.4",
     "pg": "^8.11.3",
     "postcss": "^8.4.49",

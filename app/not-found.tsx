@@ -1,24 +1,37 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
+  const router = useRouter()
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-gray-100 rounded-full mb-4">
-          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.291-1.005-5.824-2.563M15 11.25a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+    <div className="min-h-screen flex items-center justify-center bg-[#f9f9f9]">
+      <div className="max-w-xl w-full bg-white shadow-[0px_4px_200px_#e8f9f733] rounded-2xl p-8 text-center">
+        <div className="flex items-center justify-center mb-4">
+          <DotLottieReact
+            src="/animations/lonely-404.lottie"
+            autoplay
+            loop
+            style={{ width: 260, height: 260 }}
+          />
         </div>
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Page Not Found</h2>
-          <p className="text-gray-600 mb-4">
-            The page you're looking for doesn't exist.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Page Not Found</h2>
+        <p className="text-gray-600 mb-6">The page you're looking for doesn't exist or has been moved.</p>
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="px-4 py-2 bg-white border border-black hover:bg-gray-50"
           >
-            Go back home
+            Go Back
+          </Button>
+          <Link href="/">
+            <Button className="px-4 py-2 bg-[#873bff] text-white overflow-hidden border-none shadow-[0px_0px_0px_4px_#0000000a,inset_0px_10px_12px_#ffffff42] hover:bg-[#7a35e6] relative before:content-[''] before:absolute before:inset-0 before:p-px before:rounded before:[background:linear-gradient(180deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.07)_100%)] before:[-webkit-mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[-webkit-mask-composite:xor] before:[mask-composite:exclude] before:z-[1] before:pointer-events-none">
+              Go to Home
+            </Button>
           </Link>
         </div>
       </div>

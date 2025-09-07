@@ -8,6 +8,7 @@ import CreateTaskDrawer from '@/components/dashboard/CreateTaskDrawer'
 import TaskDetailModal from '@/components/dashboard/TaskDetailModal'
 import { BasicBarChart, BasicLineChart } from '@/components/dashboard/charts'
 import { createClient } from '@/lib/supabase/client'
+import { SUBSCRIPTION_PLANS, ANNUAL_PRICING } from '@/lib/pricing'
 import { format } from 'date-fns'
 import type { Plan, TaskRow, ProjectRow, GoalRow, NotificationRow, IntegrationSummary } from '@/types/db'
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [plan, setPlan] = useState<Plan | null>(null)
   const [displayName, setDisplayName] = useState<string>('there')
+  const [billingPeriod, setBillingPeriod] = useState<'month'|'year'>('month')
 
   const [internalUserId, setInternalUserId] = useState<string | null>(null)
   type UITask = { id: string; title: string; project: string; projectId: string | null; priority: 'low' | 'medium' | 'high'; status: 'upcoming' | 'in-progress' | 'completed' | string; progress: number; dueDate: string; dueDateRaw?: string | null; createdAt?: string; updatedAt?: string; completedAt?: string | null; description?: string }
@@ -419,13 +421,32 @@ export default function DashboardPage() {
 
             {active === 'billing' && (
               <div className="grid grid-cols-1 gap-6">
+                {/* Current Plan Summary */}
                 <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                      <div className="text-sm text-gray-600">Current plan</div>
-                      <div className="text-2xl font-semibold mt-1">{plan || 'FREE'}</div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="text-sm text-gray-600">Current plan</div>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          plan === 'ENTERPRISE' ? 'bg-purple-100 text-purple-700' :
+                          plan === 'TEAM' || plan === 'BUSINESS' ? 'bg-blue-100 text-blue-700' :
+                          plan === 'PRO' ? 'bg-emerald-100 text-emerald-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {plan || 'FREE'}
+                        </span>
+                      </div>
+                      <div className="text-2xl font-semibold">
+                        {plan && plan !== 'FREE' ? (
+                          <span>
+                            ${(SUBSCRIPTION_PLANS as any)[plan]?.price || 0}<span className="text-sm font-normal text-gray-500">/month</span>
+                          </span>
+                        ) : (
+                          'Free Forever'
+                        )}
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={async ()=>{
                           try {
@@ -434,14 +455,275 @@ export default function DashboardPage() {
                             if (json?.url) window.location.assign(json.url)
                           } catch {}
                         }}
-                        className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+                        className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2"
                       >
-                        Manage Subscription
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Manage Billing
                       </button>
-                      <a href="/pricing" className="px-4 py-2 border rounded-lg hover:bg-gray-50">View Plans</a>
+                      {plan !== 'FREE' && (
+                        <button
+                          onClick={async ()=>{
+                            try {
+                              const res = await fetch('/api/stripe/billing-portal', { method: 'POST' })
+                              const json = await res.json().catch(()=>({}))
+                              if (json?.url) window.location.assign(json.url)
+                            } catch {}
+                          }}
+                          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          View Invoices
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-3">Manage payment method, invoices, and cancel/upgrade in the Stripe portal.</div>
+                  
+                  {/* Usage Summary */}
+                  {plan && (
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <div className="text-sm font-medium text-gray-900 mb-4">Usage & Limits</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-600">Projects</span>
+                            <span className="text-xs font-medium">
+                              {projects.length} / {(SUBSCRIPTION_PLANS as any)[plan]?.features?.maxProjects === -1 ? '∞' : (SUBSCRIPTION_PLANS as any)[plan]?.features?.maxProjects || 0}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all ${
+                                projects.length >= ((SUBSCRIPTION_PLANS as any)[plan]?.features?.maxProjects || 0) ? 'bg-red-500' : 'bg-purple-500'
+                              }`} 
+                              style={{ 
+                                width: `${Math.min(100, (projects.length / ((SUBSCRIPTION_PLANS as any)[plan]?.features?.maxProjects || 1)) * 100)}%` 
+                              }} 
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-600">Tasks</span>
+                            <span className="text-xs font-medium">
+                              {tasks.length} / {(SUBSCRIPTION_PLANS as any)[plan]?.features?.maxTasks === -1 ? '∞' : (SUBSCRIPTION_PLANS as any)[plan]?.features?.maxTasks || 0}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all ${
+                                tasks.length >= ((SUBSCRIPTION_PLANS as any)[plan]?.features?.maxTasks || 0) ? 'bg-red-500' : 'bg-purple-500'
+                              }`} 
+                              style={{ 
+                                width: `${Math.min(100, (tasks.length / ((SUBSCRIPTION_PLANS as any)[plan]?.features?.maxTasks || 1)) * 100)}%` 
+                              }} 
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-600">AI Suggestions</span>
+                            <span className="text-xs font-medium">
+                              Used this month
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="bg-purple-500 h-2 rounded-full" style={{ width: '20%' }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upgrade Options */}
+                <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <div className="text-lg font-semibold">Available Plans</div>
+                      <div className="text-sm text-gray-600">Upgrade or downgrade anytime</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 mr-2">Billing cycle:</span>
+                      <button
+                        onClick={()=>setBillingPeriod('month')}
+                        className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-all ${billingPeriod==='month'?'bg-purple-600 text-white border-purple-600':'bg-white border-gray-300 hover:bg-gray-50'}`}
+                      >Monthly</button>
+                      <button
+                        onClick={()=>setBillingPeriod('year')}
+                        className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-all ${billingPeriod==='year'?'bg-purple-600 text-white border-purple-600':'bg-white border-gray-300 hover:bg-gray-50'}`}
+                      >
+                        Yearly
+                        <span className="ml-1 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">-20%</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {(['FREE','PRO','BUSINESS','ENTERPRISE'] as const).map((k) => {
+                      const cfg = billingPeriod==='year' && k !== 'FREE' ? (ANNUAL_PRICING as any)[k] : (SUBSCRIPTION_PLANS as any)[k]
+                      const priceId = cfg?.stripePriceId
+                      const price = cfg?.price
+                      const features = cfg?.features || {}
+                      const isCurrent = plan === k
+                      const isDowngrade = plan && ['ENTERPRISE','BUSINESS','TEAM','PRO'].indexOf(plan) < ['ENTERPRISE','BUSINESS','TEAM','PRO'].indexOf(k)
+                      
+                      return (
+                        <div key={k} className={`border rounded-xl p-4 ${isCurrent ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium text-lg">{cfg?.name || k}</div>
+                            {isCurrent && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-600 text-white">Current</span>}
+                            {cfg?.popular && !isCurrent && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Popular</span>}
+                          </div>
+                          
+                          <div className="mb-4">
+                            {price !== undefined ? (
+                              <>
+                                <span className="text-3xl font-bold">${price}</span>
+                                <span className="text-gray-600">/{billingPeriod === 'year' ? 'mo' : 'month'}</span>
+                                {billingPeriod === 'year' && k !== 'FREE' && cfg?.annualSavings && (
+                                  <div className="text-xs text-green-600 mt-1">Save ${cfg.annualSavings}/year</div>
+                                )}
+                              </>
+                            ) : k === 'ENTERPRISE' ? (
+                              <div className="text-2xl font-semibold">Contact sales</div>
+                            ) : (
+                              <div className="text-3xl font-bold">Free</div>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center gap-2 text-sm">
+                              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              <span>{features.maxProjects === -1 ? 'Unlimited' : features.maxProjects} projects</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              <span>{features.maxTasks === -1 ? 'Unlimited' : features.maxTasks?.toLocaleString()} tasks</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              <span>{features.aiSuggestions === -1 ? 'Unlimited' : features.aiSuggestions} AI/mo</span>
+                            </div>
+                          </div>
+                          
+                          {isCurrent ? (
+                            <button disabled className="w-full px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed">
+                              Current Plan
+                            </button>
+                          ) : k === 'FREE' ? (
+                            <button
+                              onClick={async ()=>{
+                                if (confirm('Downgrade to Free? You\'ll lose access to premium features.')) {
+                                  try {
+                                    const res = await fetch('/api/stripe/billing-portal', { method: 'POST' })
+                                    const json = await res.json().catch(()=>({}))
+                                    if (json?.url) window.location.assign(json.url)
+                                  } catch {}
+                                }
+                              }}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                              Downgrade to Free
+                            </button>
+                          ) : k === 'ENTERPRISE' ? (
+                            <a href="mailto:sales@thegridhub.com?subject=Enterprise%20Plan%20Inquiry" className="block w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-center transition-colors">
+                              Contact Sales
+                            </a>
+                          ) : (
+                            <button
+                              disabled={!priceId}
+                              onClick={async ()=>{
+                                try {
+                                  const res = await fetch('/api/stripe/create-checkout', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ priceId, planName: k })
+                                  })
+                                  const json = await res.json().catch(()=>({}))
+                                  if (json?.url) window.location.assign(json.url)
+                                } catch {}
+                              }}
+                              className={`w-full px-4 py-2 rounded-lg transition-colors ${
+                                priceId
+                                  ? isDowngrade 
+                                    ? 'border border-gray-300 hover:bg-gray-50' 
+                                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                                  : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                              }`}
+                            >
+                              {isDowngrade ? 'Downgrade' : 'Upgrade'} to {cfg?.name || k}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  
+                  {billingPeriod === 'year' && (
+                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <svg className="w-5 h-5 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <div>
+                          <div className="text-sm font-medium text-green-900">20% annual discount applied</div>
+                          <div className="text-xs text-green-700">All yearly plans include 2 months free</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional Info */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      Security & Compliance
+                    </h3>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                        PCI-compliant payment processing
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                        Secure cancellation anytime
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                        No hidden fees or charges
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white/80 backdrop-blur rounded-xl p-6 border">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Need help?
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Our support team is here to help you choose the right plan.</p>
+                    <div className="flex gap-2">
+                      <a href="mailto:support@thegridhub.com" className="text-sm text-purple-600 hover:text-purple-700 font-medium">Email support</a>
+                      <span className="text-gray-400">•</span>
+                      <a href="/pricing" className="text-sm text-purple-600 hover:text-purple-700 font-medium">Compare plans</a>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

@@ -100,3 +100,141 @@ body {
 .hover-lift:hover {
   transform: translateY(-2px);
 }
+
+/* Homepage migration: CSS variables and animations required by the new UI */
+:root {
+  --action-colormain: rgba(249, 158, 38, 1);
+  --active-colormain: rgba(249, 158, 38, 1);
+  --backgroundmain: rgba(255, 255, 255, 1);
+  --basewhite: rgba(255, 255, 255, 1);
+  --body-base-medium-font-family: "Inter", Helvetica;
+  --body-base-medium-font-size: 14px;
+  --body-base-medium-font-style: normal;
+  --body-base-medium-font-weight: 500;
+  --body-base-medium-letter-spacing: 0px;
+  --body-base-medium-line-height: 150%;
+  --body-base-regular-font-family: "Inter", Helvetica;
+  --body-base-regular-font-size: 14px;
+  --body-base-regular-font-style: normal;
+  --body-base-regular-font-weight: 400;
+  --body-base-regular-letter-spacing: 0px;
+  --body-base-regular-line-height: 150%;
+  --body-base-underlined-font-family: "Inter", Helvetica;
+  --body-base-underlined-font-size: 14px;
+  --body-base-underlined-font-style: normal;
+  --body-base-underlined-font-weight: 500;
+  --body-base-underlined-letter-spacing: 0px;
+  --body-base-underlined-line-height: 150%;
+  --body-extra-large-medium-font-family: "Inter", Helvetica;
+  --body-extra-large-medium-font-size: 18px;
+  --body-extra-large-medium-font-style: normal;
+  --body-extra-large-medium-font-weight: 500;
+  --body-extra-large-medium-letter-spacing: 0px;
+  --body-extra-large-medium-line-height: 150%;
+  --body-extra-large-regular-font-family: "Inter", Helvetica;
+  --body-extra-large-regular-font-size: 18px;
+  --body-extra-large-regular-font-style: normal;
+  --body-extra-large-regular-font-weight: 400;
+  --body-extra-large-regular-letter-spacing: 0px;
+  --body-extra-large-regular-line-height: 150%;
+  --body-extra-large-semibold-font-family: "Inter", Helvetica;
+  --body-extra-large-semibold-font-size: 18px;
+  --body-extra-large-semibold-font-style: normal;
+  --body-extra-large-semibold-font-weight: 600;
+  --body-extra-large-semibold-letter-spacing: 0px;
+  --body-extra-large-semibold-line-height: 150%;
+  --body-extra-large-underlined-font-family: "Inter", Helvetica;
+  --body-extra-large-underlined-font-size: 18px;
+  --body-extra-large-underlined-font-style: normal;
+  --body-extra-large-underlined-font-weight: 500;
+  --body-extra-large-underlined-letter-spacing: 0px;
+  --body-extra-large-underlined-line-height: 150%;
+  --body-large-medium-font-family: "Inter", Helvetica;
+  --body-large-medium-font-size: 16px;
+  --body-large-medium-font-style: normal;
+  --body-large-medium-font-weight: 500;
+  --body-large-medium-letter-spacing: 0px;
+  --body-large-medium-line-height: 150%;
+  --body-large-regular-font-family: "Inter", Helvetica;
+  --body-large-regular-font-size: 16px;
+  --body-large-regular-font-style: normal;
+  --body-large-regular-font-weight: 400;
+  --body-large-regular-letter-spacing: 0px;
+  --body-large-regular-line-height: 150%;
+  --body-small-medium-font-family: "Inter", Helvetica;
+  --body-small-medium-font-size: 12px;
+  --body-small-medium-font-style: normal;
+  --body-small-medium-font-weight: 500;
+  --body-small-medium-letter-spacing: 0px;
+  --body-small-medium-line-height: 140%;
+  --body-small-regular-font-family: "Inter", Helvetica;
+  --body-small-regular-font-size: 12px;
+  --body-small-regular-font-style: normal;
+  --body-small-regular-font-weight: 400;
+  --body-small-regular-letter-spacing: 0px;
+  --body-small-regular-line-height: 140%;
+  --display-display-1-font-family: "Inter", Helvetica;
+  --display-display-1-font-size: 84px;
+  --display-display-1-font-style: normal;
+  --display-display-1-font-weight: 500;
+  --display-display-1-letter-spacing: 0px;
+  --display-display-1-line-height: 100%;
+  --greyscale-300: rgba(218, 221, 230, 1);
+  --heading-desktop-h2-font-family: "Inter", Helvetica;
+  --heading-desktop-h2-font-size: 48px;
+  --heading-desktop-h2-font-style: normal;
+  --heading-desktop-h2-font-weight: 500;
+  --heading-desktop-h2-letter-spacing: 0px;
+  --heading-desktop-h2-line-height: 120.00000762939453%;
+  --heading-desktop-h3-font-family: "Inter", Helvetica;
+  --heading-desktop-h3-font-size: 32px;
+  --heading-desktop-h3-font-style: normal;
+  --heading-desktop-h3-font-weight: 500;
+  --heading-desktop-h3-letter-spacing: 0px;
+  --heading-desktop-h3-line-height: 120.00000762939453%;
+  --heading-desktop-h6-font-family: "Inter", Helvetica;
+  --heading-desktop-h6-font-size: 20px;
+  --heading-desktop-h6-font-style: normal;
+  --heading-desktop-h6-font-weight: 500;
+  --heading-desktop-h6-letter-spacing: 0px;
+  --heading-desktop-h6-line-height: 120.00000762939453%;
+  --iconbase: rgba(146, 154, 181, 1);
+  --iconlightbase: rgba(146, 154, 181, 1);
+  --inputdefault: rgba(184, 184, 184, 1);
+  --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --textdarksubtle: rgba(146, 154, 181, 1);
+  --textsubtle: rgba(128, 128, 128, 1);
+  --themedarklighter-background: rgba(50, 56, 73, 1);
+}
+
+:root { --animate-spin: spin 1s linear infinite; }
+
+.animate-fade-in {
+  animation: fade-in 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 1s var(--animation-delay, 0s) ease forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}

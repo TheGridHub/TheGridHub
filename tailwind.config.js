@@ -33,6 +33,8 @@ module.exports = {
           500: '#0ea5e9',
           600: '#0284c7',
           700: '#0369a1',
+          DEFAULT: '#0284c7',
+          foreground: '#ffffff',
         },
         gray: {
           50: '#f9fafb',
@@ -45,6 +47,36 @@ module.exports = {
           700: '#374151',
           800: '#1f2937',
           900: '#111827',
+        },
+        // Additional tokens used by UI components
+        border: '#e5e7eb',
+        input: '#e5e7eb',
+        ring: '#94a3b8',
+        background: '#ffffff',
+        foreground: '#111827',
+        secondary: {
+          DEFAULT: '#f3f4f6',
+          foreground: '#111827',
+        },
+        destructive: {
+          DEFAULT: '#ef4444',
+          foreground: '#ffffff',
+        },
+        muted: {
+          DEFAULT: '#f3f4f6',
+          foreground: '#6b7280',
+        },
+        accent: {
+          DEFAULT: '#f3f4f6',
+          foreground: '#111827',
+        },
+        popover: {
+          DEFAULT: '#ffffff',
+          foreground: '#111827',
+        },
+        card: {
+          DEFAULT: 'transparent',
+          foreground: '#111827',
         },
       },
       fontFamily: {

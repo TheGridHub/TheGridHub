@@ -1,0 +1,1 @@
+export { BrandGithubColorBrandedSizeMedium } from "./BrandGithubColorBrandedSizeMedium";

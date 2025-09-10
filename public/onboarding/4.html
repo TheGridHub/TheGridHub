@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TheGridHub · Onboarding (Step 4 of 6)</title>
+    <style>
+      :root {
+        /* White theme (kept consistent with Step 3) */
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #873bff;
+        --primary-dark: #7a35e6;
+        --border: #e5e7eb;
+        --panel: #f7f8fb;
+        --input: #ffffff;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      /* Progress header */
+      .progress_indicator--progressIndicator {
+        --progress: 66.67%; /* Step 4 of 6 */
+        position: sticky; top: 0; z-index: 1000;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+      }
+      .progress_indicator--row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+      .progress_indicator--label { font-size:14px; font-weight:600; color: var(--text); }
+      .progress_indicator--steps { font-size:12px; color: var(--muted); }
+      .progress_indicator--track { height:6px; background:#eef0f4; border-radius:999px; overflow:hidden; }
+      .progress_indicator--bar { height:100%; width: var(--progress); background: var(--primary); border-radius:999px; transition: width .25s ease; }
+
+      /* Two-screen shell */
+      .shell { display:grid; grid-template-columns: minmax(360px, 560px) 1fr; height: calc(100vh - 78px); }
+      .left {
+        position: relative;
+        padding: 20px 28px;
+        background: var(--bg);
+      }
+      .left-wrap { height: 100%; display: grid; place-items: center; }
+      .left-inner { width: 100%; max-width: 520px; }
+
+      .right {
+        background: radial-gradient(1200px 600px at 20% -10%, rgba(135,59,255,0.12), rgba(135,59,255,0) 60%),
+                    var(--panel);
+        border-left: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      h1.page { margin: 0 0 10px; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+      p.lead  { margin: 0 0 24px; color: var(--muted); font-size: 15px; }
+
+      /* Back button (arrow) */
+      .back { position: absolute; top: 18px; left: 18px; display:inline-flex; align-items:center; gap:8px; color: var(--text);
+              background: transparent; border: none; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+      .back:hover { background:#f4f5f7; }
+
+      /* Inputs */
+      .text-input { width:100%; height:44px; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+                    background: var(--input); color: var(--text); font-size:14px; }
+      .text-input::placeholder { color:#9aa0a6; }
+      .text-input:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(135,59,255,.20); }
+      .stack { display:flex; flex-direction:column; gap:10px; margin: 8px 0 12px; }
+
+      /* Copy link */
+      .copy-link { display:inline-flex; align-items:center; gap:8px; color: var(--primary); font-weight:600; font-size:13px; cursor:pointer; text-decoration:none; }
+      .copy-link:hover { text-decoration: underline; }
+
+      /* Actions */
+      .actions-floating { position: absolute; bottom: 28px; right: 28px; display: flex; gap: 8px; }
+      .btn { cursor:pointer; padding:10px 16px; border-radius:10px; font-weight:600; font-size:14px; border:1px solid #000; background:#fff; color:#111827; }
+      .btn:hover { background:#f6f6f6; }
+      .btn-primary { color:#fff; background: var(--primary); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--primary-dark); }
+
+      /* Lottie sizing on right */
+      lottie-player { width: 520px; max-width: 90%; height: 380px; }
+      @media (max-width: 1100px) { lottie-player { height: 320px; } }
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: 1fr; }
+        .right { display:none; }
+        .actions-floating { position: static; justify-content: flex-end; padding-top: 16px; }
+        .left-wrap { place-items: start; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Progress header -->
+    <div class="progress_indicator--progressIndicator" style="--progress: 66.67%;">
+      <div class="progress_indicator--row">
+        <div class="progress_indicator--label">Onboarding</div>
+        <div class="progress_indicator--steps">Step 4 of 6</div>
+      </div>
+      <div class="progress_indicator--track"><div class="progress_indicator--bar"></div></div>
+    </div>
+
+    <div class="shell">
+      <!-- Left pane -->
+      <div class="left">
+        <button class="back" type="button" aria-label="Back" onclick="history.back()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span style="font-size:13px; color: var(--muted);">Back</span>
+        </button>
+
+        <div class="left-wrap">
+          <div class="left-inner">
+            <h1 class="page">Will anyone else be joining you?</h1>
+            <p class="lead">You can invite others to jam, design, and build things with you.</p>
+
+            <form id="inviteForm" onsubmit="event.preventDefault();">
+              <div class="stack">
+                <label for="email1" class="sr-only" aria-hidden="true" style="position:absolute;left:-10000px;">Email 1</label>
+                <input class="text-input" id="email1" name="email1" type="email" autocomplete="email" placeholder="sneha@example.com" />
+
+                <label for="email2" class="sr-only" aria-hidden="true" style="position:absolute;left:-10000px;">Email 2</label>
+                <input class="text-input" id="email2" name="email2" type="email" autocomplete="email" placeholder="oscar@example.com" />
+
+                <label for="email3" class="sr-only" aria-hidden="true" style="position:absolute;left:-10000px;">Email 3</label>
+                <input class="text-input" id="email3" name="email3" type="email" autocomplete="email" placeholder="molly@example.com" />
+              </div>
+
+              <a id="copyInvite" href="#" class="copy-link" role="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M16 8h3a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-7a3 3 0 0 1-3-3v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="2" y="2" width="12" height="12" rx="3" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Copy link to invite
+              </a>
+            </form>
+          </div>
+        </div>
+
+        <!-- Actions bottom-right -->
+        <div class="actions-floating">
+          <button class="btn" type="button" id="skipBtn">Skip</button>
+          <button class="btn btn-primary" type="button" id="continueBtn">Continue</button>
+        </div>
+      </div>
+
+      <!-- Right pane: Lottie animation (no SVG fallback) -->
+      <div class="right" aria-hidden="true">
+        <div id="tg-lottie-4" style="width:520px;max-width:90%;height:380px"></div>
+        <script>
+          (function() {
+            var host = document.getElementById('tg-lottie-4');
+            var LOTTIE_URL = '/animations/team.lottie';
+
+            function mount() {
+              if (!host) return;
+              var el = document.createElement('lottie-player');
+              el.setAttribute('src', LOTTIE_URL);
+              el.setAttribute('background', 'transparent');
+              el.setAttribute('speed', '1');
+              el.setAttribute('loop', '');
+              el.setAttribute('autoplay', '');
+              el.setAttribute('aria-label', 'Team animation');
+              el.style.width = '100%';
+              el.style.height = '100%';
+              host.innerHTML = '';
+              host.appendChild(el);
+            }
+
+            if (customElements && customElements.get('lottie-player')) {
+              mount();
+            } else {
+              var s = document.createElement('script');
+              s.src = 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js';
+              s.async = true;
+              s.onload = mount;
+              document.head.appendChild(s);
+            }
+          })();
+        </script>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        var inputs = [
+          document.getElementById('email1'),
+          document.getElementById('email2'),
+          document.getElementById('email3')
+        ];
+        var skipBtn = document.getElementById('skipBtn');
+        var contBtn = document.getElementById('continueBtn');
+        var copyBtn = document.getElementById('copyInvite');
+
+        function getEmails() {
+          var emails = inputs.map(function(i){ return (i && i.value || '').trim(); })
+                             .filter(function(v){ return v.length > 0; });
+          return emails;
+        }
+
+        function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+        contBtn.addEventListener('click', function(){
+          var emails = getEmails();
+          var invalid = emails.filter(function(e){ return !isValidEmail(e); });
+          if (invalid.length) {
+            alert('Please check these emails: ' + invalid.join(', '));
+            return;
+          }
+          console.log('Inviting emails:', emails);
+          // TODO: send to backend, then navigate
+          // location.href = '5.html';
+        });
+
+        skipBtn.addEventListener('click', function(){
+          // location.href = '5.html';
+          console.log('Skipped invitations');
+        });
+
+        copyBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          var url = window.location.origin + '/invite';
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function(){ console.log('Invite link copied'); });
+          } else {
+            var ta = document.createElement('textarea');
+            ta.value = url; document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); console.log('Invite link copied'); } catch(err) {}
+            document.body.removeChild(ta);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+

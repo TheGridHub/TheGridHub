@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TheGridHub · Onboarding</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #873bff;
+        --primary-dark: #7a35e6;
+        --border: #e5e7eb;
+        --panel: #f7f8fb;
+        --input: #ffffff;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      /* Progress indicator */
+      .progress_indicator--progressIndicator {
+        --progress: 0%;
+        position: sticky; top: 0; z-index: 1000;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+      }
+      .progress_indicator--row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+      .progress_indicator--label { font-size:14px; font-weight:600; color: var(--text); }
+      .progress_indicator--steps { font-size:12px; color: var(--muted); }
+      .progress_indicator--track { height:6px; background:#eef0f4; border-radius:999px; overflow:hidden; }
+      .progress_indicator--bar { height:100%; width: var(--progress); background: var(--primary); border-radius:999px; transition: width .25s ease; }
+
+      /* Two-screen shell */
+      .shell { display:grid; grid-template-columns: minmax(360px, 560px) 1fr; height: calc(100vh - 78px); }
+      .left {
+        position: relative;
+        padding: 20px 28px;
+        background: var(--bg);
+        overflow: auto;
+      }
+      .left-wrap { height: 100%; display: grid; place-items: center; }
+      .left-inner { width: 100%; max-width: 520px; }
+
+      .right {
+        background: radial-gradient(1200px 600px at 20% -10%, rgba(135,59,255,0.12), rgba(135,59,255,0) 60%), var(--panel);
+        border-left: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      h1.page { margin: 0 0 10px; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+      p.lead  { margin: 0 0 24px; color: var(--muted); font-size: 15px; }
+
+      .stack { display:flex; flex-direction:column; gap: 16px; }
+      .field { display:flex; flex-direction:column; gap:6px; }
+      .label { font-size:13px; color: var(--muted); }
+      .input {
+        width:100%; height:44px; padding:10px 12px; border-radius:10px;
+        border:1px solid var(--border); background: var(--input); color: var(--text); font-size:14px;
+      }
+      .input::placeholder { color:#9aa0a6; }
+      .input:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(135,59,255,.20); }
+
+      .optin { display:flex; align-items:flex-start; gap:10px; }
+      .checkbox { width:18px; height:18px; border-radius:4px; border:1px solid var(--border); background:#ffffff; appearance:none; -webkit-appearance:none; cursor:pointer; position: relative; }
+      .checkbox:checked { background: var(--primary); border-color: var(--primary); }
+      .checkbox:checked::after {
+        content:""; position:absolute; inset:3px; background:#fff; border-radius:2px;
+        mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23000" d="M20 6L9 17l-5-5" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>') center/contain no-repeat;
+      }
+
+      .chip-input { position: absolute; opacity: 0; pointer-events: none; }
+      .chip {
+        display:inline-flex; align-items:center; justify-content:center; height: 40px;
+        padding: 0 14px; border-radius: 10px; cursor: pointer;
+        border: 1px solid var(--border); background: #fff; color: var(--text);
+        font-size: 14px; transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+      }
+      .chip:hover { background:#fafafa; }
+      .chip-input:focus + .chip { outline: 2px solid rgba(135,59,255,.35); outline-offset: 2px; }
+      .chip-input:checked + .chip { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(135,59,255,.20); background: #f7f2ff; }
+
+      .actions { display:flex; justify-content: space-between; align-items:center; margin-top: 16px; }
+      .actions-floating { position: absolute; bottom: 28px; right: 28px; display: flex; gap: 8px; }
+      .btn { cursor:pointer; padding:10px 16px; border-radius:10px; font-weight:600; font-size:14px; border:1px solid #000; background:#fff; color:#111827; }
+      .btn:hover { background:#f6f6f6; }
+      .btn-primary { color:#fff; background: var(--primary); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--primary-dark); }
+      .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+      .small { font-size:12px; color: var(--muted); line-height:1.6; }
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      /* Lottie sizing on right */
+      lottie-player { width: 520px; max-width: 90%; height: 380px; }
+      @media (max-width: 1100px) { lottie-player { height: 320px; } }
+
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: 1fr; }
+        .right { display:none; }
+        .left-wrap { place-items: start; }
+      }
+
+      /* Step 5 full-width adjustments */
+      .shell.fullstep5 { grid-template-columns: 1fr; }
+      .left.fullstep5 { padding: 0; }
+      .left-wrap.fullstep5 { place-items: stretch; }
+      .left-inner.fullstep5 { max-width: none; width: 100%; }
+
+      .error { color: #b91c1c; font-size: 12px; margin-top: 6px; }
+      .sr-only { position:absolute; left:-10000px; }
+
+      /* Plan cards (Step 5) */
+      .plans { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-top: 10px; }
+      .plan-card { border:1px solid var(--border); border-radius:12px; padding:14px; background:#fff; cursor:pointer; }
+      .plan-card:hover { background:#fafafa; }
+      .plan-card.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(135,59,255,.15); background:#f7f2ff; }
+      .plan-title { font-weight:700; margin: 0 0 6px; }
+      .plan-price { color:#4b5563; font-size:14px; margin: 0 0 8px; }
+      .plan-features { color:#6b7280; font-size:12px; }
+    </style>
+  </head>
+  <body>
+    <!-- Progress header -->
+    <div class="progress_indicator--progressIndicator" id="progress">
+      <div class="progress_indicator--row">
+        <div class="progress_indicator--label">Onboarding</div>
+        <div class="progress_indicator--steps" id="progress-steps">Step 1 of 5</div>
+      </div>
+      <div class="progress_indicator--track"><div class="progress_indicator--bar" id="progress-bar"></div></div>
+    </div>
+
+    <div class="shell">
+      <!-- Left pane (dynamic) -->
+      <div class="left">
+        <div class="left-wrap">
+          <div class="left-inner" id="content"></div>
+        </div>
+        <div class="actions-floating">
+          <button class="btn" id="btnBack">Back</button>
+          <button class="btn btn-primary" id="btnNext">Continue</button>
+        </div>
+      </div>
+
+      <!-- Right pane (Lottie host, hidden on step 5) -->
+      <div class="right" id="rightPane" aria-hidden="true">
+        <div id="lottieHost" style="width:520px;max-width:90%;height:380px"></div>
+      </div>
+    </div>
+
+
+    <!-- Step 5 overlay (inline content) -->
+    <div id="step5-overlay" style="display:none; position:fixed; left:0; right:0; top:78px; bottom:0; z-index:9999; background:#fff; overflow:auto;">
+      <div id="step5-host" style="min-height:100%;"></div>
+    </div>
+    <!-- Inline Step 5 raw HTML (coded directly into page.html) -->
+    <script id="step5_raw" type="text/plain"><!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Choose your plan</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #873bff;
+        --primary-dark: #7a35e6;
+        --border: #e5e7eb;
+        --card: #ffffff;
+        --ok: #10b981;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container { 
+        max-width: 1000px; 
+        margin: 0 auto; 
+        padding: 24px 24px 32px;
+      }
+      header { 
+        text-align: center; 
+        padding: 16px 0 12px;
+        margin-bottom: 4px;
+      }
+      h1 { margin: 0 0 6px; font-size: 28px; font-weight: 700; }
+      .lead { margin: 0; color: var(--muted); font-size: 15px; }
+
+      .grid { 
+        display: flex;
+        justify-content: center;
+        gap: 20px; 
+        margin-top: 24px;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      @media (max-width: 900px) { 
+        .grid { 
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+          margin-top: 32px;
+        }
+        .card {
+          width: 100%;
+          max-width: 400px;
+        }
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        transition: all .2s ease;
+        cursor: pointer;
+        width: 280px;
+        display: flex;
+        flex-direction: column;
+      }
+      .card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 24px rgba(135,59,255,.08); 
+        border-color: rgba(135,59,255,.2); 
+      }
+
+      .pill { display:inline-block; font-size:12px; padding:4px 10px; border-radius:999px; background:#f3f1ff; color:#5222c9; font-weight:600; }
+      .title { 
+        margin: 0 0 6px; 
+        font-size: 18px; 
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .price { 
+        margin: 0 0 12px; 
+        font-size: 20px; 
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .note { color: var(--muted); font-size: 12px; }
+
+      .features { 
+        list-style: none; 
+        padding: 0; 
+        margin: 12px 0 0;
+        display: grid; 
+        gap: 6px;
+      }
+      .li { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 8px;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+      .li svg { 
+        margin-top: 1px; 
+        color: var(--ok);
+        flex-shrink: 0;
+        width: 14px;
+        height: 14px;
+      }
+
+      .btns { display:flex; gap:10px; flex-wrap: wrap; }
+      .btn { cursor:pointer; padding:10px 16px; border-radius:10px; font-weight:600; font-size:14px; border:1px solid #000; background:#fff; }
+      .btn:hover { background:#f6f6f6; }
+      .btn-primary { color:#fff; background: var(--primary); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--primary-dark); }
+
+      .footer { text-align:center; color:#9aa0a6; font-size:12px; margin: 32px 0 10px; }
+
+      /* Additional dark UI and plan picker styles */
+      body { background: var(--bg); color: var(--text); }
+      .container { padding-bottom: 80px; }
+      header h1 { letter-spacing: -0.01em; }
+      .card { background: var(--card); border-color: var(--border); }
+      .card .title { color: var(--text); }
+      .note { color: var(--muted); }
+
+      /* Plan radio affordance */
+      .plan { 
+        position: relative; 
+        display: block; 
+        cursor: pointer; 
+      }
+      .plan input[type="radio"] { 
+        position: absolute; 
+        inset: 0; 
+        opacity: 0; 
+        cursor: pointer; 
+        z-index: 10;
+      }
+      .plan .dot { 
+        position: absolute; 
+        top: 20px; 
+        right: 20px; 
+        width: 18px; 
+        height: 18px; 
+        border-radius: 50%; 
+        border: 2px solid #d1d5db; 
+        background: #fff;
+        z-index: 5;
+        transition: all .2s ease; 
+      }
+      .plan input[type="radio"]:checked ~ .dot { 
+        border-color: var(--primary); 
+        background: var(--primary);
+        box-shadow: inset 0 0 0 2px #fff;
+      }
+      .plan input[type="radio"]:checked ~ .content .card,
+      .plan.selected .card { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 1px var(--primary), 0 4px 12px rgba(135,59,255,.1); 
+        background: var(--card);
+      }
+      .plan input[type="radio"]:checked ~ .content .card:hover,
+      .plan.selected .card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 0 0 1px var(--primary), 0 8px 20px rgba(135,59,255,.15); 
+      }
+
+      /* Seats table */
+      .seats { margin: 12px 0 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+      .row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); }
+      .row + .row { margin-top: 4px; }
+
+      /* Actions area */
+      .actions { 
+        display: flex; 
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+      .btn { background:#ffffff; color: #111827; border-color:#000; }
+      .btn:hover { background:#f6f6f6; }
+      .btn-primary { color:#fff; background: var(--primary); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--primary-dark); }
+    </style>
+  </head>
+  <body>
+    <!-- Progress indicator inserted -->
+    <style>
+      .progress_indicator--progressIndicator {
+        --progress: 33%;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 16px;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      .progress_indicator--row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+      .progress_indicator--label { font-size: 14px; font-weight: 600; color: #111827; }
+      .progress_indicator--steps { font-size: 12px; color: #6b7280; }
+      .progress_indicator--track { height: 6px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
+      .progress_indicator--bar { height: 100%; width: var(--progress); background: #873bff; border-radius: 999px; transition: width .25s ease; }
+    </style>
+    <div class="container">
+      <header>
+        <h1>Which plan would you like?</h1>
+        <p class="lead">Pick the option that fits your team today. You can change anytime.</p>
+      </header>
+
+      <section class="grid" aria-label="Pricing options">
+        <!-- Personal (Free) -->
+        <label class="card plan" aria-labelledby="personal-title">
+          <input type="radio" name="plan" value="personal" checked />
+          <div class="content">
+            <h2 id="personal-title" class="title">Personal (Free)</h2>
+            <div class="price">$0 <span class="note">/month forever</span></div>
+            <ul class="features">
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 10 team members</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>5 active projects</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic task management</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>AI task suggestions (10/day)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic analytics</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic time tracking (personal tracking only)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>1GB file storage</li>
+              <li class="li" style="margin-top:6px; font-weight:600;">Full integrations with:</li>
+              <li class="li" style="margin-left:28px;">Slack</li>
+              <li class="li" style="margin-left:28px;">Jira</li>
+              <li class="li" style="margin-left:28px;">Google Workspace (Docs, Sheets, Calendar, Meet)</li>
+              <li class="li" style="margin-left:28px;">Microsoft Teams</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Public sharing/embedding (with "Powered by TheGridHub")</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Email support</li>
+            </ul>
+          </div>
+          <span class="dot" aria-hidden="true"></span>
+        </label>
+
+        <!-- Pro -->
+        <label class="card plan" aria-labelledby="pro-title">
+          <input type="radio" name="plan" value="pro" />
+          <div class="content">
+            <h2 id="pro-title" class="title">Pro</h2>
+            <div class="price">$25<span class="note">/month</span> <span class="note" style="margin-left:6px;">or $20/month (billed yearly - save 20%)</span></div>
+            <ul class="features">
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited team members (scale beyond 10)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited projects (vs 5 on free)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced task management</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited AI suggestions (vs 10/day)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced analytics & reports</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Team time tracking with reports</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited file storage (vs 1GB)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom fields and tags</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Automation rules (e.g., \"When task done → Slack notification\")</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Guest users (clients/contractors don't count toward limit)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom workflows</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Priority support</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>White-label sharing (remove \"Powered by\")</li>
+            </ul>
+          </div>
+          <span class="dot" aria-hidden="true"></span>
+        </label>
+      </section>
+
+      <div class="actions">
+        <button class="btn" type="button" onclick="window.parent.postMessage({action: 'back'}, '*')">Back</button>
+        <button class="btn btn-primary" type="button">Continue</button>
+      </div>
+
+      <div class="footer">© 2025 TheGridHub</div>
+    </div>
+  </body>
+</html></script>
+
+    <!-- Embedded Step 5 content (base64-encoded) -->
+    <script id="step5_b64" type="application/octet-stream">PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KICA8aGVhZD4KICAgIDxtZXRhIGNoYXJzZXQ9InV0Zi04IiAvPgogICAgPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xIiAvPgogICAgPHRpdGxlPkNob29zZSB5b3VyIHBsYW48L3RpdGxlPgogICAgPHN0eWxlPgogICAgICA6cm9vdCB7CiAgICAgICAgLS1iZzogI2ZmZmZmZjsKICAgICAgICAtLXRleHQ6ICMxMTE4Mjc7CiAgICAgICAgLS1tdXRlZDogIzZiNzI4MDsKICAgICAgICAtLXByaW1hcnk6ICM4NzNiZmY7CiAgICAgICAgLS1wcmltYXJ5LWRhcms6ICM3YTM1ZTY7CiAgICAgICAgLS1ib3JkZXI6ICNlNWU3ZWI7CiAgICAgICAgLS1jYXJkOiAjZmZmZmZmOwogICAgICAgIC0tb2s6ICMxMGI5ODE7CiAgICAgIH0KICAgICAgKiB7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IH0KICAgICAgYm9keSB7CiAgICAgICAgbWFyZ2luOiAwOwogICAgICAgIGZvbnQtZmFtaWx5OiBzeXN0ZW0tdWksIC1hcHBsZS1zeXN0ZW0sIFNlZ29lIFVJLCBSb2JvdG8sIEhlbHZldGljYSwgQXJpYWwsICJBcHBsZSBDb2xvciBFbW9qaSIsICJTZWdvZSBVSSBFbW9qaSI7CiAgICAgICAgYmFja2dyb3VuZDogdmFyKC0tYmcpOwogICAgICAgIGNvbG9yOiB2YXIoLS10ZXh0KTsKICAgICAgfQogICAgICAuY29udGFpbmVyIHsgbWF4LXdpZHRoOiAxMDAwcHg7IG1hcmdpbjogMCBhdXRvOyBwYWRkaW5nOiAyNHB4OyB9CiAgICAgIGhlYWRlciB7IHRleHQtYWxpZ246IGNlbnRlcjsgcGFkZGluZzogMjhweCAwIDhweDsgfQogICAgICBoMSB7IG1hcmdpbjogMCAwIDZweDsgZm9udC1zaXplOiAyOHB4OyBmb250LXdlaWdodDogNzAwOyB9CiAgICAgIC5sZWFkIHsgbWFyZ2luOiAwOyBjb2xvcjogdmFyKC0tbXV0ZWQpOyBmb250LXNpemU6IDE1cHg7IH0KCiAgICAgIC5ncmlkIHsgZGlzcGxheTogZ3JpZDsgZ2FwOiAxNnB4OyBtYXJnaW4tdG9wOiAyMnB4OyB9CiAgICAgIEBtZWRpYSAobWluLXdpZHRoOiA5MDBweCkgeyAuZ3JpZCB7IGdyaWQtdGVtcGxhdGUtY29sdW1uczogMWZyIDFmcjsgfSB9CgogICAgICAuY2FyZCB7CiAgICAgICAgYmFja2dyb3VuZDogdmFyKC0tY2FyZCk7CiAgICAgICAgYm9yZGVyOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsKICAgICAgICBib3JkZXItcmFkaXVzOiAxNHB4OwogICAgICAgIHBhZGRpbmc6IDIwcHg7CiAgICAgICAgdHJhbnNpdGlvbjogdHJhbnNmb3JtIC4xNXMgZWFzZSwgYm94LXNoYWRvdyAuMnMgZWFzZSwgYm9yZGVyLWNvbG9yIC4ycyBlYXNlOwogICAgICB9CiAgICAgIC5jYXJkOmhvdmVyIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0ycHgpOyBib3gtc2hhZG93OiAwIDEycHggMjhweCByZ2JhKDEzNSw1OSwyNTUsLjEwKTsgYm9yZGVyLWNvbG9yOiByZ2JhKDEzNSw1OSwyNTUsLjI0KTsgfQoKICAgICAgLnBpbGwgeyBkaXNwbGF5OmlubGluZS1ibG9jazsgZm9udC1zaXplOjEycHg7IHBhZGRpbmc6NHB4IDEwcHg7IGJvcmRlci1yYWRpdXM6OTk5cHg7IGJhY2tncm91bmQ6I2YzZjFmZjsgY29sb3I6IzUyMjJjOTsgZm9udC13ZWlnaHQ6NjAwOyB9CiAgICAgIC50aXRsZSB7IG1hcmdpbjo4cHggMCA2cHg7IGZvbnQtc2l6ZToyMHB4OyBmb250LXdlaWdodDo3MDA7IH0KICAgICAgLnByaWNlIHsgbWFyZ2luOiAycHggMCAxMHB4OyBmb250LXNpemU6IDI0cHg7IGZvbnQtd2VpZ2h0OiA3MDA7IH0KICAgICAgLm5vdGUgeyBjb2xvcjogdmFyKC0tbXV0ZWQpOyBmb250LXNpemU6IDEzcHg7IH0KCiAgICAgIC5mZWF0dXJlcyB7IGxpc3Qtc3R5bGU6IG5vbmU7IHBhZGRpbmc6IDA7IG1hcmdpbjogMTZweCAwIDE4cHg7IGRpc3BsYXk6IGdyaWQ7IGdhcDogOHB4OyB9CiAgICAgIC5saSB7IGRpc3BsYXk6ZmxleDsgYWxpZ24taXRlbXM6ZmxleC1zdGFydDsgZ2FwOjhweDsgfQogICAgICAubGkgc3ZnIHsgbWFyZ2luLXRvcDoycHg7IGNvbG9yOiB2YXIoLS1vayk7IH0KCiAgICAgIC5idG5zIHsgZGlzcGxheTpmbGV4OyBnYXA6MTBweDsgZmxleC13cmFwOiB3cmFwOyB9CiAgICAgIC5idG4geyBjdXJzb3I6cG9pbnRlcjsgcGFkZGluZzoxMHB4IDE2cHg7IGJvcmRlci1yYWRpdXM6MTBweDsgZm9udC13ZWlnaHQ6NjAwOyBmb250LXNpemU6MTRweDsgYm9yZGVyOjFweCBzb2xpZCAjMDAwOyBiYWNrZ3JvdW5kOiNmZmY7IH0KICAgICAgLmJ0bjpob3ZlciB7IGJhY2tncm91bmQ6I2Y2ZjZmNjsgfQogICAgICAuYnRuLXByaW1hcnkgeyBjb2xvcjojZmZmOyBiYWNrZ3JvdW5kOiB2YXIoLS1wcmltYXJ5KTsgYm9yZGVyLWNvbG9yOiB2YXIoLS1wcmltYXJ5KTsgfQogICAgICAuYnRuLXByaW1hcnk6aG92ZXIgeyBiYWNrZ3JvdW5kOiB2YXIoLS1wcmltYXJ5LWRhcmspOyB9CgogICAgICAuZm9vdGVyIHsgdGV4dC1hbGlnbjpjZW50ZXI7IGNvbG9yOiM5YWEwYTY7IGZvbnQtc2l6ZToxMnB4OyBtYXJnaW46IDMycHggMCAxMHB4OyB9CgogICAgICAvKiBBZGRpdGlvbmFsIGRhcmsgVUkgYW5kIHBsYW4gcGlja2VyIHN0eWxlcyAqLwogICAgICBib2R5IHsgYmFja2dyb3VuZDogdmFyKC0tYmcpOyBjb2xvcjogdmFyKC0tdGV4dCk7IH0KICAgICAgLmNvbnRhaW5lciB7IHBhZGRpbmctYm90dG9tOiA4MHB4OyB9CiAgICAgIGhlYWRlciBoMSB7IGxldHRlci1zcGFjaW5nOiAtMC4wMWVtOyB9CiAgICAgIC5jYXJkIHsgYmFja2dyb3VuZDogdmFyKC0tY2FyZCk7IGJvcmRlci1jb2xvcjogdmFyKC0tYm9yZGVyKTsgfQogICAgICAuY2FyZCAudGl0bGUgeyBjb2xvcjogdmFyKC0tdGV4dCk7IH0KICAgICAgLm5vdGUgeyBjb2xvcjogdmFyKC0tbXV0ZWQpOyB9CgogICAgICAvKiBQbGFuIHJhZGlvIGFmZm9yZGFuY2UgKi8KICAgICAgLnBsYW4geyBwb3NpdGlvbjogcmVsYXRpdmU7IGRpc3BsYXk6IGJsb2NrOyBjdXJzb3I6IHBvaW50ZXI7IH0KICAgICAgLnBsYW4gaW5wdXRbdHlwZT0icmFkaW8iXSB7IHBvc2l0aW9uOiBhYnNvbHV0ZTsgaW5zZXQ6IDA7IG9wYWNpdHk6IDA7IGN1cnNvcjogcG9pbnRlcjsgfQogICAgICAucGxhbiAuZG90IHsgcG9zaXRpb246IGFic29sdXRlOyB0b3A6IDEycHg7IHJpZ2h0OiAxMnB4OyB3aWR0aDogMTZweDsgaGVpZ2h0OiAxNnB4OyBib3JkZXItcmFkaXVzOiA1MCU7IGJvcmRlcjogMnB4IHNvbGlkICM2YjcyODA7IGJveC1zaGFkb3c6IGluc2V0IDAgMCAwIDRweCB0cmFuc3BhcmVudDsgdHJhbnNpdGlvbjogYm94LXNoYWRvdyAuMTVzIGVhc2UsIGJvcmRlci1jb2xvciAuMTVzIGVhc2U7IH0KICAgICAgLnBsYW4gaW5wdXRbdHlwZT0icmFkaW8iXTpjaGVja2VkIH4gLmRvdCB7IGJvcmRlci1jb2xvcjogdmFyKC0tcHJpbWFyeSk7IGJveC1zaGFkb3c6IGluc2V0IDAgMCAwIDRweCB2YXIoLS1wcmltYXJ5KTsgfQogICAgICAucGxhbi5zZWxlY3RlZCwgLnBsYW4gaW5wdXRbdHlwZT0icmFkaW8iXTpjaGVja2VkIH4gLmNvbnRlbnQgeyB9CgogICAgICAvKiBTZWF0cyB0YWJsZSAqLwogICAgICAuc2VhdHMgeyBtYXJnaW46IDEycHggMCA4cHg7IGJvcmRlci10b3A6IDFweCBzb2xpZCB2YXIoLS1ib3JkZXIpOyBwYWRkaW5nLXRvcDogOHB4OyB9CiAgICAgIC5yb3cgeyBkaXNwbGF5OiBmbGV4OyBqdXN0aWZ5LWNvbnRlbnQ6IHNwYWNlLWJldHdlZW47IGdhcDogMTJweDsgZm9udC1zaXplOiAxMnB4OyBjb2xvcjogdmFyKC0tbXV0ZWQpOyB9CiAgICAgIC5yb3cgKyAucm93IHsgbWFyZ2luLXRvcDogNHB4OyB9CgogICAgICAvKiBBY3Rpb25zIGFyZWEgKi8KICAgICAgLmFjdGlvbnMgeyBkaXNwbGF5OiBmbGV4OyBqdXN0aWZ5LWNvbnRlbnQ6IGZsZXgtZW5kOyBtYXJnaW4tdG9wOiAyNHB4OyB9CiAgICAgIC5idG4geyBiYWNrZ3JvdW5kOiNmZmZmZmY7IGNvbG9yOiAjMTExODI3OyBib3JkZXItY29sb3I6IzAwMDsgfQogICAgICAuYnRuOmhvdmVyIHsgYmFja2dyb3VuZDojZjZmNmY2OyB9CiAgICAgIC5idG4tcHJpbWFyeSB7IGNvbG9yOiNmZmY7IGJhY2tncm91bmQ6IHZhcigtLXByaW1hcnkpOyBib3JkZXItY29sb3I6IHZhcigtLXByaW1hcnkpOyB9CiAgICAgIC5idG4tcHJpbWFyeTpob3ZlciB7IGJhY2tncm91bmQ6IHZhcigtLXByaW1hcnktZGFyayk7IH0KICAgIDwvc3R5bGU+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPCEtLSBQcm9ncmVzcyBpbmRpY2F0b3IgaW5zZXJ0ZWQgLS0+CiAgICA8c3R5bGU+CiAgICAgIC5wcm9ncmVzc19pbmRpY2F0b3ItLXByb2dyZXNzSW5kaWNhdG9yIHsKICAgICAgICAtLXByb2dyZXNzOiAzMyU7CiAgICAgICAgcG9zaXRpb246IHN0aWNreTsKICAgICAgICB0b3A6IDA7CiAgICAgICAgei1pbmRleDogMTAwMDsKICAgICAgICBiYWNrZ3JvdW5kOiAjZmZmZmZmOwogICAgICAgIGJvcmRlci1ib3R0b206IDFweCBzb2xpZCAjZTVlN2ViOwogICAgICAgIHBhZGRpbmc6IDEycHggMTZweDsKICAgICAgICBmb250LWZhbWlseTogc3lzdGVtLXVpLCAtYXBwbGUtc3lzdGVtLCBTZWdvZSBVSSwgUm9ib3RvLCBIZWx2ZXRpY2EsIEFyaWFsLCAiQXBwbGUgQ29sb3IgRW1vamkiLCAiU2Vnb2UgVUkgRW1vamkiOwogICAgICB9CiAgICAgIC5wcm9ncmVzc19pbmRpY2F0b3ItLXJvdyB7IGRpc3BsYXk6IGZsZXg7IGp1c3RpZnktY29udGVudDogc3BhY2UtYmV0d2VlbjsgYWxpZ24taXRlbXM6IGNlbnRlcjsgZ2FwOiAxMnB4OyBtYXJnaW4tYm90dG9tOiA4cHg7IH0KICAgICAgLnByb2dyZXNzX2luZGljYXRvci0tbGFiZWwgeyBmb250LXNpemU6IDE0cHg7IGZvbnQtd2VpZ2h0OiA2MDA7IGNvbG9yOiAjMTExODI3OyB9CiAgICAgIC5wcm9ncmVzc19pbmRpY2F0b3ItLXN0ZXBzIHsgZm9udC1zaXplOiAxMnB4OyBjb2xvcjogIzZiNzI4MDsgfQogICAgICAucHJvZ3Jlc3NfaW5kaWNhdG9yLS10cmFjayB7IGhlaWdodDogNnB4OyBiYWNrZ3JvdW5kOiAjZjNmNGY2OyBib3JkZXItcmFkaXVzOiA5OTlweDsgb3ZlcmZsb3c6IGhpZGRlbjsgfQogICAgICAucHJvZ3Jlc3NfaW5kaWNhdG9yLS1iYXIgeyBoZWlnaHQ6IDEwMCU7IHdpZHRoOiB2YXIoLS1wcm9ncmVzcyk7IGJhY2tncm91bmQ6ICM4NzNiZmY7IGJvcmRlci1yYWRpdXM6IDk5OXB4OyB0cmFuc2l0aW9uOiB3aWR0aCAuMjVzIGVhc2U7IH0KICAgIDwvc3R5bGU+CiAgICA8ZGl2IGNsYXNzPSJjb250YWluZXIiPgogICAgICA8aGVhZGVyPgogICAgICAgIDxoMT5XaGljaCBwbGFuIHdvdWxkIHlvdSBsaWtlPzwvaDE+CiAgICAgICAgPHAgY2xhc3M9ImxlYWQiPlBpY2sgdGhlIG9wdGlvbiB0aGF0IGZpdHMgeW91ciB0ZWFtIHRvZGF5LiBZb3UgY2FuIGNoYW5nZSBhbnl0aW1lLjwvcD4KICAgICAgPC9oZWFkZXI+CgogICAgICA8c2VjdGlvbiBjbGFzcz0iZ3JpZCIgYXJpYS1sYWJlbD0iUHJpY2luZyBvcHRpb25zIj4KICAgICAgICA8IS0tIFBlcnNvbmFsIChGcmVlKSAtLT4KICAgICAgICA8bGFiZWwgY2xhc3M9ImNhcmQgcGxhbiIgYXJpYS1sYWJlbGxlZGJ5PSJwZXJzb25hbC10aXRsZSI+CiAgICAgICAgICA8aW5wdXQgdHlwZT0icmFkaW8iIG5hbWU9InBsYW4iIHZhbHVlPSJwZXJzb25hbCIgY2hlY2tlZCAvPgogICAgICAgICAgPGRpdiBjbGFzcz0iY29udGVudCI+CiAgICAgICAgICAgIDxoMiBpZD0icGVyc29uYWwtdGl0bGUiIGNsYXNzPSJ0aXRsZSI+UGVyc29uYWwgKEZyZWUpPC9oMj4KICAgICAgICAgICAgPGRpdiBjbGFzcz0icHJpY2UiPiQwIDxzcGFuIGNsYXNzPSJub3RlIj4vbW9udGggZm9yZXZlcjwvc3Bhbj48L2Rpdj4KICAgICAgICAgICAgPHVsIGNsYXNzPSJmZWF0dXJlcyI+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPlVwIHRvIDEwIHRlYW0gbWVtYmVyczwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjUgYWN0aXZlIHByb2plY3RzPC9saT4KICAgICAgICAgICAgICA8bGkgY2xhc3M9ImxpIj48c3ZnIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0yMCA2TDkgMTdMNCAxMiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+QmFzaWMgdGFzayBtYW5hZ2VtZW50PC9saT4KICAgICAgICAgICAgICA8bGkgY2xhc3M9ImxpIj48c3ZnIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0yMCA2TDkgMTdMNCAxMiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+QUkgdGFzayBzdWdnZXN0aW9ucyAoMTAvZGF5KTwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPkJhc2ljIGFuYWx5dGljczwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPkJhc2ljIHRpbWUgdHJhY2tpbmcgKHBlcnNvbmFsIHRyYWNraW5nIG9ubHkpPC9saT4KICAgICAgICAgICAgICA8bGkgY2xhc3M9ImxpIj48c3ZnIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0yMCA2TDkgMTdMNCAxMiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+MUdCIGZpbGUgc3RvcmFnZTwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSIgc3R5bGU9Im1hcmdpbi10b3A6NnB4OyBmb250LXdlaWdodDo2MDA7Ij5GdWxsIGludGVncmF0aW9ucyB3aXRoOjwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSIgc3R5bGU9Im1hcmdpbi1sZWZ0OjI4cHg7Ij5TbGFjazwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSIgc3R5bGU9Im1hcmdpbi1sZWZ0OjI4cHg7Ij5KaXJhPC9saT4KICAgICAgICAgICAgICA8bGkgY2xhc3M9ImxpIiBzdHlsZT0ibWFyZ2luLWxlZnQ6MjhweDsiPkdvb2dsZSBXb3Jrc3BhY2UgKERvY3MsIFNoZWV0cywgQ2FsZW5kYXIsIE1lZXQpPC9saT4KICAgICAgICAgICAgICA8bGkgY2xhc3M9ImxpIiBzdHlsZT0ibWFyZ2luLWxlZnQ6MjhweDsiPk1pY3Jvc29mdCBUZWFtczwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPlB1YmxpYyBzaGFyaW5nL2VtYmVkZGluZyAod2l0aCAiUG93ZXJlZCBieSBUaGVHcmlkSHViIik8L2xpPgogICAgICAgICAgICAgIDxsaSBjbGFzcz0ibGkiPjxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDZMOSAxN0w0IDEyIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz5FbWFpbCBzdXBwb3J0PC9saT4KICAgICAgICAgICAgPC91bD4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPHNwYW4gY2xhc3M9ImRvdCIgYXJpYS1oaWRkZW49InRydWUiPjwvc3Bhbj4KICAgICAgICA8L2xhYmVsPgoKICAgICAgICA8IS0tIFBybyAtLT4KICAgICAgICA8bGFiZWwgY2xhc3M9ImNhcmQgcGxhbiIgYXJpYS1sYWJlbGxlZGJ5PSJwcm8tdGl0bGUiPgogICAgICAgICAgPGlucHV0IHR5cGU9InJhZGlvIiBuYW1lPSJwbGFuIiB2YWx1ZT0icHJvIiAvPgogICAgICAgICAgPGRpdiBjbGFzcz0iY29udGVudCI+CiAgICAgICAgICAgIDxoMiBpZD0icHJvLXRpdGxlIiBjbGFzcz0idGl0bGUiPlBybzwvaDI+CiAgICAgICAgICAgIDxkaXYgY2xhc3M9InByaWNlIj4kMjU8c3BhbiBjbGFzcz0ibm90ZSI+L21vbnRoPC9zcGFuPiA8c3BhbiBjbGFzcz0ibm90ZSIgc3R5bGU9Im1hcmdpbi1sZWZ0OjZweDsiPm9yICQyMC9tb250aCAoYmlsbGVkIHllYXJseSAtIHNhdmUgMjAlKTwvc3Bhbj48L2Rpdj4KICAgICAgICAgICAgPHVsIGNsYXNzPSJmZWF0dXJlcyI+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPlVubGltaXRlZCB0ZWFtIG1lbWJlcnMgKHNjYWxlIGJleW9uZCAxMCk8L2xpPgogICAgICAgICAgICAgIDxsaSBjbGFzcz0ibGkiPjxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDZMOSAxN0w0IDEyIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz5VbmxpbWl0ZWQgcHJvamVjdHMgKHZzIDUgb24gZnJlZSk8L2xpPgogICAgICAgICAgICAgIDxsaSBjbGFzcz0ibGkiPjxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDZMOSAxN0w0IDEyIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz5BZHZhbmNlZCB0YXNrIG1hbmFnZW1lbnQ8L2xpPgogICAgICAgICAgICAgIDxsaSBjbGFzcz0ibGkiPjxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDZMOSAxN0w0IDEyIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz5VbmxpbWl0ZWQgQUkgc3VnZ2VzdGlvbnMgKHZzIDEwL2RheSk8L2xpPgogICAgICAgICAgICAgIDxsaSBjbGFzcz0ibGkiPjxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDZMOSAxN0w0IDEyIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz5BZHZhbmNlZCBhbmFseXRpY3MgJiByZXBvcnRzPC9saT4KICAgICAgICAgICAgICA8bGkgY2xhc3M9ImxpIj48c3ZnIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0yMCA2TDkgMTdMNCAxMiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+VGVhbSB0aW1lIHRyYWNraW5nIHdpdGggcmVwb3J0czwvbGk+CiAgICAgICAgICAgICAgPGxpIGNsYXNzPSJsaSI+PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgNkw5IDE3TDQgMTIiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPlByaW9yaXR5IHN1cHBvcnQ8L2xpPgogICAgICAgICAgICAgIDxsaSBjbGFzcz0ibGkiPjxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDZMOSAxN0w0IDEyIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz5XaGl0ZS1sYWJlbCBzaGFyaW5nIChyZW1vdmUgIlBvd2VyZWQgYnk")</script>
+
+    <!-- Step templates -->
+    <template id="step-1">
+      <h1 class="page">What’s your name?</h1>
+      <p class="lead">It’s a pleasure having you onboard — let’s get to know each other more!</p>
+      <div class="stack">
+        <div class="field">
+          <label class="label" for="firstName">First name</label>
+          <input class="input" id="firstName" name="firstName" type="text" placeholder="Alex" autocomplete="given-name" required />
+          <div class="error" id="err-firstName" style="display:none"></div>
+        </div>
+        <div class="field">
+          <label class="label" for="lastName">Last name</label>
+          <input class="input" id="lastName" name="lastName" type="text" placeholder="Morgan" autocomplete="family-name" required />
+          <div class="error" id="err-lastName" style="display:none"></div>
+        </div>
+        <label class="optin">
+          <input class="checkbox" type="checkbox" id="optin" name="optin" />
+          <span class="optin-label">Subscribe to TheGridHub for news and updates</span>
+        </label>
+        <p class="small">By continuing you agree to the <a href="#">TheGridHub TOS</a>.</p>
+      </div>
+    </template>
+
+    <template id="step-2">
+      <h1 class="page">How do you plan to use TheGridHub?</h1>
+      <p class="lead">If you’ll use TheGridHub for a few reasons, pick the main one.</p>
+      <form onsubmit="event.preventDefault();">
+        <div class="options" role="radiogroup" aria-label="Primary use">
+          <input class="chip-input" type="radio" name="usecase" id="startup" value="startup" />
+          <label class="chip" for="startup">Startup team</label>
+
+          <input class="chip-input" type="radio" name="usecase" id="product" value="product" />
+          <label class="chip" for="product">Product / design team</label>
+
+          <input class="chip-input" type="radio" name="usecase" id="clientwork" value="clientwork" />
+          <label class="chip" for="clientwork">Client work (agency/freelance)</label>
+
+          <input class="chip-input" type="radio" name="usecase" id="engineering" value="engineering" />
+          <label class="chip" for="engineering">Engineering / delivery</label>
+
+          <input class="chip-input" type="radio" name="usecase" id="personal" value="personal" />
+          <label class="chip" for="personal">Personal project</label>
+
+          <input class="chip-input" type="radio" name="usecase" id="education" value="education" />
+          <label class="chip" for="education">Education / training</label>
+
+          <input class="chip-input" type="radio" name="usecase" id="otherUse" value="other" />
+          <label class="chip" for="otherUse">Something else</label>
+        </div>
+        <div class="error" id="err-usecase" style="display:none"></div>
+      </form>
+    </template>
+
+    <template id="step-3">
+      <h1 class="page">Which role best describes you?</h1>
+      <p class="lead">If you’re multi‑talented, pick what you do most often.</p>
+      <form onsubmit="event.preventDefault();">
+        <div class="options" role="radiogroup" aria-label="Role">
+          <input class="chip-input" type="radio" name="role" id="founder" value="founder" />
+          <label class="chip" for="founder">Founder / Operations</label>
+
+          <input class="chip-input" type="radio" name="role" id="productRole" value="product" />
+          <label class="chip" for="productRole">Product management</label>
+
+          <input class="chip-input" type="radio" name="role" id="project" value="project" />
+          <label class="chip" for="project">Project management</label>
+
+          <input class="chip-input" type="radio" name="role" id="engineeringRole" value="engineering" />
+          <label class="chip" for="engineeringRole">Engineering / Development</label>
+
+          <input class="chip-input" type="radio" name="role" id="design" value="design" />
+          <label class="chip" for="design">Design (UX/UI)</label>
+
+          <input class="chip-input" type="radio" name="role" id="marketing" value="marketing" />
+          <label class="chip" for="marketing">Marketing / Growth</label>
+
+          <input class="chip-input" type="radio" name="role" id="sales" value="sales" />
+          <label class="chip" for="sales">Sales / Customer success</label>
+
+          <input class="chip-input" type="radio" name="role" id="data" value="data" />
+          <label class="chip" for="data">Data / Analytics</label>
+
+          <input class="chip-input" type="radio" name="role" id="research" value="research" />
+          <label class="chip" for="research">Research</label>
+
+          <input class="chip-input" type="radio" name="role" id="student" value="student" />
+          <label class="chip" for="student">Student</label>
+
+          <input class="chip-input" type="radio" name="role" id="otherRole" value="other" />
+          <label class="chip" for="otherRole">Other</label>
+        </div>
+        <input class="input" id="roleFreeText" name="roleFreeText" type="text" placeholder="Ex: Art direction" />
+        <div class="error" id="err-role" style="display:none"></div>
+      </form>
+    </template>
+
+    <template id="step-4">
+      <h1 class="page">Will anyone else be joining you?</h1>
+      <p class="lead">You can invite others to jam, design, and build things with you.</p>
+      <form onsubmit="event.preventDefault();">
+        <div class="stack">
+          <label for="email1" class="sr-only" aria-hidden="true">Email 1</label>
+          <input class="input" id="email1" name="email1" type="email" autocomplete="email" placeholder="sneha@example.com" />
+
+          <label for="email2" class="sr-only" aria-hidden="true">Email 2</label>
+          <input class="input" id="email2" name="email2" type="email" autocomplete="email" placeholder="oscar@example.com" />
+
+          <label for="email3" class="sr-only" aria-hidden="true">Email 3</label>
+          <input class="input" id="email3" name="email3" type="email" autocomplete="email" placeholder="molly@example.com" />
+        </div>
+        <div class="actions" style="margin-top:10px">
+          <a id="copyInvite" href="#" role="button">Copy link to invite</a>
+          <button class="btn" type="button" id="btnSkip">Skip</button>
+        </div>
+        <div class="error" id="err-emails" style="display:none"></div>
+      </form>
+    </template>
+
+    <template id="step-5">
+      <h1 class="page">Pick your plan</h1>
+      <p class="lead">Choose the option that best fits how you'll use TheGridHub. You can change plans anytime.</p>
+      <form onsubmit="event.preventDefault();">
+        <div class="plans" role="radiogroup" aria-label="Plan">
+          <label class="plan-card" tabindex="0">
+            <input class="chip-input" type="radio" name="plan" value="basic" />
+            <div class="plan-title">Basic</div>
+            <div class="plan-price">Free • For individuals getting started</div>
+            <ul class="plan-features">
+              <li>Up to 3 projects</li>
+              <li>Community support</li>
+            </ul>
+          </label>
+          <label class="plan-card" tabindex="0">
+            <input class="chip-input" type="radio" name="plan" value="pro" />
+            <div class="plan-title">Pro</div>
+            <div class="plan-price">$12/mo • For growing teams</div>
+            <ul class="plan-features">
+              <li>Unlimited projects</li>
+              <li>Team collaboration</li>
+              <li>Priority support</li>
+            </ul>
+          </label>
+          <label class="plan-card" tabindex="0">
+            <input class="chip-input" type="radio" name="plan" value="enterprise" />
+            <div class="plan-title">Enterprise</div>
+            <div class="plan-price">Contact us • For advanced needs</div>
+            <ul class="plan-features">
+              <li>SSO and advanced security</li>
+              <li>Custom SLAs</li>
+              <li>Dedicated success manager</li>
+            </ul>
+          </label>
+        </div>
+        <div class="small" style="margin-top:8px">You can finish without selecting a plan. We'll set Basic by default.</div>
+      </form>
+    </template>
+
+    <script>
+      // Simple in-memory state
+      const state = {
+        firstName: '',
+        lastName: '',
+        optin: false,
+        usecase: '',
+        role: '',
+        roleFreeText: '',
+        emails: [],
+        plan: ''
+      };
+
+      const TOTAL_STEPS = 5;
+      let currentStep = 1;
+
+      const content = document.getElementById('content');
+      const btnBack = document.getElementById('btnBack');
+      const btnNext = document.getElementById('btnNext');
+      const progressSteps = document.getElementById('progress-steps');
+      const progressBar = document.getElementById('progress-bar');
+      const rightPane = document.getElementById('rightPane');
+      const lottieHost = document.getElementById('lottieHost');
+
+      function setProgress(step) {
+        progressSteps.textContent = `Step ${step} of ${TOTAL_STEPS}`;
+        const percent = Math.round((step - 1) / (TOTAL_STEPS - 1) * 100);
+        progressBar.style.width = percent + '%';
+      }
+
+      function ensureLottiePlayer() {
+        if (customElements && customElements.get('lottie-player')) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js';
+          s.async = true;
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      async function mountLottie(candidates, cdnUrl) {
+        if (!lottieHost) return;
+        // Try local candidates first
+        for (const url of candidates) {
+          try {
+            const res = await fetch(url, { cache: 'no-store' });
+            if (res.ok) {
+              await ensureLottiePlayer();
+              lottieHost.innerHTML = '';
+              const el = document.createElement('lottie-player');
+              el.setAttribute('src', url);
+              el.setAttribute('background', 'transparent');
+              el.setAttribute('speed', '1');
+              el.setAttribute('loop', '');
+              el.setAttribute('autoplay', '');
+              el.setAttribute('aria-label', 'Onboarding animation');
+              el.style.width = '100%';
+              el.style.height = '100%';
+              lottieHost.appendChild(el);
+              return;
+            }
+          } catch (_) {}
+        }
+        // Fallback to CDN
+        try {
+          const resCdn = await fetch(cdnUrl, { cache: 'no-store' });
+          if (resCdn.ok) {
+            await ensureLottiePlayer();
+            lottieHost.innerHTML = '';
+            const el = document.createElement('lottie-player');
+            el.setAttribute('src', cdnUrl);
+            el.setAttribute('background', 'transparent');
+            el.setAttribute('speed', '1');
+            el.setAttribute('loop', '');
+            el.setAttribute('autoplay', '');
+            el.setAttribute('aria-label', 'Onboarding animation');
+            el.style.width = '100%';
+            el.style.height = '100%';
+            lottieHost.appendChild(el);
+          } else {
+            lottieHost.innerHTML = '';
+          }
+        } catch (_) {
+          lottieHost.innerHTML = '';
+        }
+      }
+
+      function showStep(step) {
+        currentStep = step;
+        setProgress(step);
+        btnBack.disabled = (step === 1);
+        btnNext.textContent = (step === TOTAL_STEPS) ? 'Finish' : 'Continue';
+
+        // Render content (not for step 5 overlay)
+        content.innerHTML = '';
+        if (step !== 5) {
+          const tpl = document.getElementById(`step-${step}`);
+          if (tpl) content.appendChild(tpl.content.cloneNode(true));
+        }
+
+        // Step visuals and Step 5 overlay behavior
+        const shellEl = document.querySelector('.shell');
+        const overlayEl = document.getElementById('step5-overlay');
+
+        if (step === 5) {
+          // Hide the shell and show the Step 5 overlay (render inline Step 5)
+          if (shellEl) shellEl.style.display = 'none';
+          if (overlayEl) overlayEl.style.display = 'block';
+          const host = document.getElementById('step5-host');
+          if (host && !host.shadowRoot) {
+            const raw = document.getElementById('step5_raw')?.textContent || '';
+            const shadow = host.attachShadow({ mode: 'open' });
+            // Extract <style> blocks and <body> inner HTML from raw
+            const styleRegex = /<style[^>]*>[\s\S]*?<\/style>/gi;
+            const styles = (raw.match(styleRegex) || []).join('\n');
+            const bodyMatch = raw.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+            const bodyHtml = bodyMatch ? bodyMatch[1] : raw;
+            shadow.innerHTML = `${styles}\n<div>${bodyHtml}</div>`;
+          }
+        } else {
+          // Show the shell and hide the overlay
+          if (overlayEl) overlayEl.style.display = 'none';
+          if (shellEl) shellEl.style.display = '';
+
+          rightPane.style.display = '';
+          // Step-specific animations (local-first candidates + CDN)
+          if (step === 1) {
+            mountLottie([
+              '/animations/typing-computer.lottie', '/animations/typing-computer.json',
+              '../../TheGridHub/public/animations/typing-computer.lottie', '../../TheGridHub/public/animations/typing-computer.json'
+            ], 'https://assets9.lottiefiles.com/packages/lf20_touohxv0.json');
+          } else if (step === 2) {
+            mountLottie([
+              '/animations/planning.lottie', '/animations/planning.json',
+              '../../TheGridHub/public/animations/planning.lottie', '../../TheGridHub/public/animations/planning.json'
+            ], 'https://assets9.lottiefiles.com/packages/lf20_0fhlytwe.json');
+          } else if (step === 3) {
+            mountLottie([
+              '/animations/technology landing page.lottie', '/animations/technology landing page.json',
+              '../../TheGridHub/public/animations/technology landing page.lottie', '../../TheGridHub/public/animations/technology landing page.json'
+            ], 'https://assets9.lottiefiles.com/packages/lf20_touohxv0.json');
+          } else if (step === 4) {
+            mountLottie([
+              '/animations/team.lottie', '/animations/team.json',
+              '../../TheGridHub/public/animations/team.lottie', '../../TheGridHub/public/animations/team.json'
+            ], 'https://assets9.lottiefiles.com/packages/lf20_touohxv0.json');
+          }
+        }
+
+        // Rehydrate state into the UI
+        if (step === 1) {
+          const fn = document.getElementById('firstName');
+          const ln = document.getElementById('lastName');
+          const op = document.getElementById('optin');
+          if (state.firstName) fn.value = state.firstName;
+          if (state.lastName) ln.value = state.lastName;
+          op.checked = !!state.optin;
+        } else if (step === 2) {
+          if (state.usecase) {
+            const el = document.querySelector(`input[name="usecase"][value="${state.usecase}"]`);
+            if (el) el.checked = true;
+          }
+        } else if (step === 3) {
+          if (state.role) {
+            const el = document.querySelector(`input[name="role"][value="${state.role}"]`);
+            if (el) el.checked = true;
+          }
+          const free = document.getElementById('roleFreeText');
+          free.value = state.roleFreeText || '';
+        } else if (step === 4) {
+          const [e1,e2,e3] = state.emails || [];
+          if (e1) document.getElementById('email1').value = e1;
+          if (e2) document.getElementById('email2').value = e2;
+          if (e3) document.getElementById('email3').value = e3;
+          // Copy invite handler
+          const copyBtn = document.getElementById('copyInvite');
+          copyBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            const url = window.location.origin + '/invite';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(url).then(function(){ console.log('Invite link copied'); });
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = url; document.body.appendChild(ta); ta.select();
+              try { document.execCommand('copy'); console.log('Invite link copied'); } catch(err) {}
+              document.body.removeChild(ta);
+            }
+          });
+          // Skip
+          document.getElementById('btnSkip').addEventListener('click', function(){
+            nextStep(true);
+          });
+        } else if (step === 5) {
+          // Preselect if exists
+          if (state.plan) {
+            const el = document.querySelector(`input[name="plan"][value="${state.plan}"]`);
+            if (el) el.checked = true;
+          }
+        }
+
+        // Step-specific behaviors
+        if (step === 3) {
+          const other = document.getElementById('otherRole');
+          const free = document.getElementById('roleFreeText');
+          const radios = document.querySelectorAll('input[name="role"]');
+          function sync() {
+            const isOther = other && other.checked;
+            free.disabled = !isOther;
+            free.style.opacity = isOther ? '1' : '0.6';
+          }
+          radios.forEach(r => r.addEventListener('change', sync));
+          sync();
+        } else if (step === 5) {
+          const planInputs = document.querySelectorAll('input[name="plan"]');
+          const cards = document.querySelectorAll('.plan-card');
+          function syncPlans() {
+            cards.forEach(c => c.classList.remove('selected'));
+            const sel = document.querySelector('input[name="plan"]:checked');
+            if (sel) {
+              const card = sel.closest('.plan-card');
+              if (card) card.classList.add('selected');
+            }
+          }
+          planInputs.forEach(i => i.addEventListener('change', () => { state.plan = i.value; syncPlans(); }));
+          cards.forEach(c => c.addEventListener('click', () => {
+            const input = c.querySelector('input[name=\"plan\"]');
+            if (input) { input.checked = true; state.plan = input.value; syncPlans(); }
+          }));
+          // Restore previous selection if any
+          if (state.plan) {
+            const el = document.querySelector(`input[name=\"plan\"][value=\"${state.plan}\"]`);
+            if (el) el.checked = true;
+          }
+          syncPlans();
+        }
+      }
+
+      function validateStep(step) {
+        // Clear errors
+        const hide = (id) => { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+        hide('err-firstName'); hide('err-lastName'); hide('err-usecase'); hide('err-role'); hide('err-emails'); hide('err-plan');
+
+        if (step === 1) {
+          const fn = document.getElementById('firstName').value.trim();
+          const ln = document.getElementById('lastName').value.trim();
+          let ok = true;
+          if (!fn) { const e = document.getElementById('err-firstName'); e.textContent = 'First name is required.'; e.style.display = 'block'; ok = false; }
+          if (!ln) { const e = document.getElementById('err-lastName'); e.textContent = 'Last name is required.'; e.style.display = 'block'; ok = false; }
+          return ok;
+        }
+        if (step === 2) {
+          const sel = document.querySelector('input[name="usecase"]:checked');
+          if (!sel) { const e = document.getElementById('err-usecase'); e.textContent = 'Please select an option.'; e.style.display = 'block'; return false; }
+          return true;
+        }
+        if (step === 3) {
+          const sel = document.querySelector('input[name="role"]:checked');
+          if (!sel) { const e = document.getElementById('err-role'); e.textContent = 'Please select a role.'; e.style.display = 'block'; return false; }
+          return true;
+        }
+        if (step === 4) {
+          const emails = [
+            document.getElementById('email1').value.trim(),
+            document.getElementById('email2').value.trim(),
+            document.getElementById('email3').value.trim()
+          ].filter(v => v.length > 0);
+          const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+          const invalid = emails.filter(e => !isValidEmail(e));
+          if (invalid.length) { const e = document.getElementById('err-emails'); e.textContent = 'Please check these emails: ' + invalid.join(', '); e.style.display = 'block'; return false; }
+          return true; // emails are optional but must be valid if provided
+        }
+        if (step === 5) {
+          // Embedded page handles its own UI; allow finishing without validation here
+          return true;
+        }
+        return true;
+      }
+
+      function saveStep(step) {
+        if (step === 1) {
+          state.firstName = document.getElementById('firstName').value.trim();
+          state.lastName = document.getElementById('lastName').value.trim();
+          state.optin = document.getElementById('optin').checked;
+        }
+        if (step === 2) {
+          const sel = document.querySelector('input[name="usecase"]:checked');
+          state.usecase = sel ? sel.value : '';
+        }
+        if (step === 3) {
+          const sel = document.querySelector('input[name="role"]:checked');
+          state.role = sel ? sel.value : '';
+          state.roleFreeText = document.getElementById('roleFreeText').value.trim();
+        }
+        if (step === 4) {
+          state.emails = [
+            document.getElementById('email1').value.trim(),
+            document.getElementById('email2').value.trim(),
+            document.getElementById('email3').value.trim()
+          ].filter(v => v.length > 0);
+        }
+        if (step === 5) {
+          const sel = document.querySelector('input[name="plan"]:checked');
+          state.plan = sel ? sel.value : (state.plan || 'basic');
+        }
+      }
+
+      function nextStep(skipValidation = false) {
+        if (!skipValidation) {
+          if (!validateStep(currentStep)) return;
+        }
+        saveStep(currentStep);
+        if (currentStep < TOTAL_STEPS) {
+          showStep(currentStep + 1);
+        } else {
+          // Finish
+          console.log('Onboarding complete:', JSON.stringify(state, null, 2));
+          alert('Thanks! Onboarding complete. Check the console for captured data.');
+        }
+      }
+
+      function prevStep() {
+        if (currentStep > 1) {
+          saveStep(currentStep);
+          showStep(currentStep - 1);
+        }
+      }
+
+      btnBack.addEventListener('click', prevStep);
+      btnNext.addEventListener('click', () => nextStep(false));
+
+      // Listen for messages from Step 5 iframe/shadow DOM
+      window.addEventListener('message', function(event) {
+        if (event.data && event.data.action === 'back') {
+          prevStep();
+        }
+      });
+
+      // Initialize
+      showStep(1);
+    </script>
+  </body>
+</html>
+

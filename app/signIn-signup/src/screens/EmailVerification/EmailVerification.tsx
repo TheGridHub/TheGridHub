@@ -70,10 +70,10 @@ export const EmailVerification = (): JSX.Element => {
 
   return (
     <div
-      className="flex flex-col h-[832px] items-center justify-center gap-[21px] p-6 relative bg-colors-dark-1000"
+      className="flex flex-col h-[832px] items-center justify-center gap-[21px] p-6 relative bg-white"
       data-model-id="16:1672"
     >
-      <div className="flex flex-col min-w-80 max-w-[520px] items-center gap-[var(--collection-spacing-xl)] pt-[var(--collection-spacing-xl)] pr-[var(--collection-spacing-xxl)] pb-[var(--collection-spacing-xl)] pl-[var(--collection-spacing-xxl)] relative w-full rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex flex-col min-w-80 max-w-[520px] items-center gap-[var(--collection-spacing-xl)] pt-[var(--collection-spacing-xl)] pr-[var(--collection-spacing-xxl)] pb-[var(--collection-spacing-xl)] pl-[var(--collection-spacing-xxl)] relative w-full flex-[0_0_auto] rounded-3xl">
         <div className="flex flex-col items-center gap-2 relative self-stretch w-full flex-[0_0_auto]">
           <div className="flex w-11 h-11 items-center justify-center gap-2 p-2.5 relative bg-colors-primary-100 rounded-lg">
             <InputIcons8 className="!relative !w-6 !h-6" color="#C5E152" />

@@ -8,8 +8,8 @@ export const PasswordReset = (): JSX.Element => {
 className="flex flex-col min-h-screen gap-[21px] p-6 bg-white items-center justify-center relative"
       data-model-id="18:2166"
     >
-      <div className="flex justify-center w-full">
-        <div className="flex-col min-w-80 max-w-[480px] gap-[var(--collection-spacing-xl)] pt-[var(--collection-spacing-xl)] pr-[var(--collection-spacing-xxl)] pb-[var(--collection-spacing-xl)] pl-[var(--collection-spacing-xxl)] rounded-2xl border border-gray-200 bg-white shadow-sm flex items-center relative w-full">
+      <div className="justify-around gap-[21px] self-stretch w-full flex items-center relative flex-1 grow">
+        <div className="flex-col min-w-80 max-w-[480px] gap-[var(--collection-spacing-xl)] pt-[var(--collection-spacing-xl)] pr-[var(--collection-spacing-xxl)] pb-[var(--collection-spacing-xl)] pl-[var(--collection-spacing-xxl)] rounded-3xl flex items-center relative flex-1 grow">
           <div className="flex flex-col items-center gap-2 relative self-stretch w-full flex-[0_0_auto]">
             <div className="flex w-11 h-11 items-center justify-center gap-2 p-2.5 relative bg-colors-primary-100 rounded-lg">
               <Property1SmileSizeBig

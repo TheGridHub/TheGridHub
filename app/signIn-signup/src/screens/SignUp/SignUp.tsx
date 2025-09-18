@@ -192,7 +192,7 @@ className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6
               />
             </div>
 
-            <div className="flex flex-wrap items-start gap-[12px_12px] relative self-stretch w-full flex-[0_0_auto]">
+            <div className="flex flex-wrap items-center justify-center gap-3 relative self-stretch w-full flex-[0_0_auto]">
               <Button
                 label="Gmail"
                 size="big"

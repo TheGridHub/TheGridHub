@@ -67,15 +67,18 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Bridge signIn-signup utility classes to their original color variables */
-.bg-colors-primary-1000 { background-color: var(--colors-primary-1000) !important; }
-.bg-colors-primary-500 { background-color: var(--colors-primary-500) !important; }
-.bg-colors-light-100 { background-color: var(--colors-light-100) !important; }
-.text-colors-dark-1000 { color: var(--colors-dark-1000) !important; }
-.text-colors-light-1000 { color: var(--colors-light-1000) !important; }
-.text-colors-light-500 { color: var(--colors-light-500) !important; }
-.border-colors-light-100 { border-color: var(--colors-light-100) !important; }
-.border-colors-light-250 { border-color: var(--colors-light-250) !important; }
+/* Bridge signIn-signup utility classes for white background + purple CTA */
+/* Buttons -> purple to match homepage CTA */
+.bg-colors-primary-1000 { background-color: #873bff !important; }
+.bg-colors-primary-500 { background-color: #7a35e6 !important; }
+/* Light text tokens -> dark so content is visible on white */
+.text-colors-dark-1000 { color: #111827 !important; }
+.text-colors-light-1000 { color: #111827 !important; }
+.text-colors-light-500 { color: #6b7280 !important; }
+/* Borders/background helpers */
+.bg-colors-light-100 { background-color: #f3f4f6 !important; }
+.border-colors-light-100 { border-color: #f3f4f6 !important; }
+.border-colors-light-250 { border-color: #e5e7eb !important; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

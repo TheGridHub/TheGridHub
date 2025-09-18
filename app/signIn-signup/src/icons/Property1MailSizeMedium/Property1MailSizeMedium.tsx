@@ -21,7 +21,7 @@ export const Property1MailSizeMedium = ({ className }: Props): JSX.Element => {
     >
       <path
         d="M16.5 4.5C16.5 3.675 15.825 3 15 3H3C2.175 3 1.5 3.675 1.5 4.5M16.5 4.5V13.5C16.5 14.325 15.825 15 15 15H3C2.175 15 1.5 14.325 1.5 13.5V4.5M16.5 4.5L9 9.75L1.5 4.5"
-        stroke="white"
+        stroke="#873bff"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeOpacity="0.5"

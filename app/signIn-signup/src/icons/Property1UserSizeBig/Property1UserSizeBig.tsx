@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const Property1UserSizeBig = ({
-  color = "white",
+  color = "#873bff",
   opacity = "unset",
   className,
 }: Props): JSX.Element => {

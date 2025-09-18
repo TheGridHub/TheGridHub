@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const InputIcons8 = ({
-  color = "#C5E152",
+  color = "#873bff",
   opacity = "unset",
   className,
 }: Props): JSX.Element => {

@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import SignIn/SignUp screen CSS variables and utilities */
+@import './signIn-signup/src/tailwind.css';
+
 /* Blob animation for glassmorphic backgrounds */
 @keyframes blob {
   0% {
@@ -64,33 +67,15 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Sign-in/Sign-up theme tokens mapped to homepage palette */
-:root {
-  /* Primary color matches homepage CTA purple */
-  --tg-primary-1000: #873bff;
-  --tg-primary-500: #7a35e6;
-  --tg-dark-1000: #111827;
-  --tg-light-1000: #ffffff;
-  --tg-light-500: #9aa0a6;
-  --tg-light-250: #e5e7eb;
-  --tg-light-100: #f3f4f6;
-}
-
-/* Bridge existing signIn-signup utility tokens to the homepage palette */
-.bg-colors-primary-1000 { background-color: var(--tg-primary-1000) !important; }
-.bg-colors-primary-500 { background-color: var(--tg-primary-500) !important; }
-.text-colors-dark-1000 { color: var(--tg-dark-1000) !important; }
-.text-colors-light-1000 { color: var(--tg-dark-1000) !important; }
-.text-colors-light-500 { color: var(--tg-light-500) !important; }
-.border-colors-light-100 { border-color: var(--tg-light-100) !important; }
-.border-colors-light-250 { border-color: var(--tg-light-250) !important; }
-.bg-colors-light-100 { background-color: var(--tg-light-100) !important; }
-
-/* Page backgrounds aligned with homepage light surfaces */
-.bg-colors-dark-1000 { background-color: #2c2c2c !important; }
-
-/* Ensure buttons inherit font/theme from homepage */
-button, input, select, textarea { font-family: 'Inter', sans-serif; }
+/* Bridge signIn-signup utility classes to their original color variables */
+.bg-colors-primary-1000 { background-color: var(--colors-primary-1000) !important; }
+.bg-colors-primary-500 { background-color: var(--colors-primary-500) !important; }
+.bg-colors-light-100 { background-color: var(--colors-light-100) !important; }
+.text-colors-dark-1000 { color: var(--colors-dark-1000) !important; }
+.text-colors-light-1000 { color: var(--colors-light-1000) !important; }
+.text-colors-light-500 { color: var(--colors-light-500) !important; }
+.border-colors-light-100 { border-color: var(--colors-light-100) !important; }
+.border-colors-light-250 { border-color: var(--colors-light-250) !important; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

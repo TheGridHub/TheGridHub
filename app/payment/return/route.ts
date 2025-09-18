@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createMiddlewareClient } from '@/lib/supabase/server'
-import { getProfileServer } from '@/lib/profile'
 
 export async function GET(request: NextRequest) {
   // This route can be hit by Stripe webhook redirect after success or by the user

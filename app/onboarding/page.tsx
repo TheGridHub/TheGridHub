@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getProfileClient, setOnboardingCompleteClient, setPlanClient, setSubscriptionStatusClient } from "@/lib/profile";
+import { getProfileClient, setOnboardingCompleteClient, setPlanClient, setSubscriptionStatusClient } from "@/lib/profile.client";
 
 // React Lottie player (client-only)
 const Player = dynamic(async () => (await import("@lottiefiles/react-lottie-player")).Player, { ssr: false });

@@ -76,8 +76,14 @@ export const SignUp = (): JSX.Element => {
 className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-white"
       data-model-id="13:369"
     >
-      <div className="flex justify-center w-full">
-        <div className="flex-col min-w-80 max-w-[520px] gap-[var(--collection-spacing-xl)] pt-[var(--collection-spacing-xl)] pr-[var(--collection-spacing-xxl)] pb-[var(--collection-spacing-xl)] pl-[var(--collection-spacing-xxl)] w-full rounded-2xl border border-gray-200 bg-white shadow-sm flex items-center relative">
+      <div className="flex-wrap justify-between gap-[21px_21px] flex-1 self-stretch w-full grow flex items-center relative">
+        <img
+          className="relative flex-1 min-w-80 grow h-[784px] object-cover rounded-[var(--collection-corner-radius-xl)]"
+          alt="Image placeholder"
+          src="https://c.animaapp.com/mfa3eag73a5fU0/img/image-placeholder.png"
+        />
+
+        <div className="flex-col min-w-80 max-w-[520px] gap-[var(--collection-spacing-xl)] pt-[var(--collection-spacing-xl)] pr-[var(--collection-spacing-xxl)] pb-[var(--collection-spacing-xl)] pl-[var(--collection-spacing-xxl)] flex-1 grow rounded-3xl flex items-center relative">
           <div className="flex-col gap-2 self-stretch w-full flex-[0_0_auto] flex items-center relative">
             <div className="flex w-11 h-11 items-center justify-center gap-2 p-2.5 relative bg-colors-primary-100 rounded-lg">
               <div className="relative w-6 h-6">
@@ -172,10 +178,18 @@ className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6
           </p>
 
           <div className="flex flex-col items-center gap-4 relative self-stretch w-full flex-[0_0_auto]">
-            <div className="flex items-center gap-4 self-stretch w-full">
-              <div className="flex-1 h-px bg-gray-200" />
-              <div className="text-sm text-gray-600">Or sign up with</div>
-              <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex items-center gap-4 relative self-stretch w-full flex-[0_0_auto]">
+              <img
+                className="relative flex-1 grow h-px object-cover"
+                alt="Line"
+                src="https://c.animaapp.com/mfa3eag73a5fU0/img/line-608.svg"
+              />
+              <div className="relative w-fit mt-[-1.00px] font-body-small-reguler font-[number:var(--body-small-reguler-font-weight)] text-colors-light-1000 text-[length:var(--body-small-reguler-font-size)] tracking-[var(--body-small-reguler-letter-spacing)] leading-[var(--body-small-reguler-line-height)] whitespace-nowrap [font-style:var(--body-small-reguler-font-style)]">Or sign up with:</div>
+              <img
+                className="relative flex-1 grow h-px object-cover"
+                alt="Line"
+                src="https://c.animaapp.com/mfa3eag73a5fU0/img/line-608.svg"
+              />
             </div>
 
             <div className="flex flex-wrap items-start gap-[12px_12px] relative self-stretch w-full flex-[0_0_auto]">

@@ -34,7 +34,7 @@ export const PasswordResetScreen = (): JSX.Element => {
 
   return (
     <div
-      className="flex flex-col min-h-screen gap-[21px] p-6 bg-[#2c2c2c] items-center justify-center relative"
+className="flex flex-col min-h-screen gap-[21px] p-6 bg-white items-center justify-center relative"
       data-model-id="18:1993"
     >
       <div className="justify-around gap-[21px] self-stretch w-full flex items-center relative flex-1 grow">

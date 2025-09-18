@@ -5,7 +5,7 @@ import { Property1SmileSizeBig } from "../../icons/Property1SmileSizeBig";
 export const PasswordReset = (): JSX.Element => {
   return (
     <div
-      className="flex flex-col min-h-screen gap-[21px] p-6 bg-[#2c2c2c] items-center justify-center relative"
+className="flex flex-col min-h-screen gap-[21px] p-6 bg-white items-center justify-center relative"
       data-model-id="18:2166"
     >
       <div className="justify-around gap-[21px] self-stretch w-full flex items-center relative flex-1 grow">

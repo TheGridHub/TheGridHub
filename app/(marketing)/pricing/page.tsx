@@ -140,7 +140,7 @@ export default function PricingPage() {
           <h2 className="text-3xl font-semibold">Built for the New Generation of Makers</h2>
           <p className="mt-3 text-white/90 text-lg">TheGridHub is a modern project management and team collaboration platform for builders and small teams.</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/admin-internal/login" className="rounded-md bg-white text-black px-5 py-2 font-medium hover:bg-gray-100">Get Started</Link>
+            <Link href="/sign-up" className="rounded-md bg-white text-black px-5 py-2 font-medium hover:bg-gray-100">Get Started</Link>
             <a href="mailto:hello@thegridhub.co" className="rounded-md border border-white/40 px-5 py-2 font-medium hover:bg-white/10">Request a Demo</a>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const CallToActionSection = (): JSX.Element => {
   return (
@@ -23,10 +24,10 @@ export const CallToActionSection = (): JSX.Element => {
         </div>
 
         <div className="inline-flex items-start gap-3 justify-center relative flex-[0_0_auto] translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:600ms]">
-          <Button className="gap-2 px-[18px] py-3 bg-white inline-flex items-center justify-center relative flex-[0_0_auto] rounded h-auto hover:bg-gray-100 transition-colors">
-            <span className="w-[102px] h-6 mt-[-0.50px] text-black text-[length:var(--body-extra-large-medium-font-size)] leading-[var(--body-extra-large-medium-line-height)] font-body-extra-large-medium font-[number:var(--body-extra-large-medium-font-weight)] tracking-[var(--body-extra-large-medium-letter-spacing)] whitespace-nowrap [font-style:var(--body-extra-large-medium-font-style)]">
+          <Button asChild className="gap-2 px-[18px] py-3 bg-white inline-flex items-center justify-center relative flex-[0_0_auto] rounded h-auto hover:bg-gray-100 transition-colors">
+            <Link href="/sign-up" className="w-[102px] h-6 mt-[-0.50px] text-black text-[length:var(--body-extra-large-medium-font-size)] leading-[var(--body-extra-large-medium-line-height)] font-body-extra-large-medium font-[number:var(--body-extra-large-medium-font-weight)] tracking-[var(--body-extra-large-medium-letter-spacing)] whitespace-nowrap [font-style:var(--body-extra-large-medium-font-style)]">
               Get Started
-            </span>
+            </Link>
           </Button>
 
           <Button

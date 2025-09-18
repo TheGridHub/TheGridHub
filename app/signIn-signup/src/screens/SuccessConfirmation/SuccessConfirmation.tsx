@@ -14,7 +14,7 @@ export const SuccessConfirmation = (): JSX.Element => {
 
   return (
     <div
-      className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-[#2c2c2c]"
+className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-white"
       data-model-id="24:180"
     >
       <div className="justify-around gap-[21px] self-stretch w-full flex items-center relative flex-1 grow">

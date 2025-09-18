@@ -1,6 +1,7 @@
 import { GlobeIcon } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const HeroSection = (): JSX.Element => {
   return (
@@ -53,10 +54,10 @@ export const HeroSection = (): JSX.Element => {
 
         <div className="flex flex-col items-start gap-5 relative self-stretch w-full flex-[0_0_auto]">
           <div className="inline-flex items-start justify-center gap-4 relative flex-[0_0_auto] translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms]">
-            <Button className="gap-2 px-[18px] py-3 bg-[#873bff] overflow-hidden border-[none] shadow-[0px_0px_0px_4px_#0000000a,inset_0px_10px_12px_#ffffff42] inline-flex items-center justify-center relative flex-[0_0_auto] rounded before:content-[''] before:absolute before:inset-0 before:p-px before:rounded before:[background:linear-gradient(180deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.07)_100%)] before:[-webkit-mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[-webkit-mask-composite:xor] before:[mask-composite:exclude] before:z-[1] before:pointer-events-none hover:bg-[#7a35e6] transition-colors h-auto">
-              <span className="w-[102px] h-6 mt-[-1.00px] text-white text-[length:var(--body-extra-large-medium-font-size)] leading-[var(--body-extra-large-medium-line-height)] relative font-body-extra-large-medium font-[number:var(--body-extra-large-medium-font-weight)] tracking-[var(--body-extra-large-medium-letter-spacing)] whitespace-nowrap [font-style:var(--body-extra-large-medium-font-style)]">
+            <Button asChild className="gap-2 px-[18px] py-3 bg-[#873bff] overflow-hidden border-[none] shadow-[0px_0px_0px_4px_#0000000a,inset_0px_10px_12px_#ffffff42] inline-flex items-center justify-center relative flex-[0_0_auto] rounded before:content-[''] before:absolute before:inset-0 before:p-px before:rounded before:[background:linear-gradient(180deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.07)_100%)] before:[-webkit-mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[-webkit-mask-composite:xor] before:[mask-composite:exclude] before:z-[1] before:pointer-events-none hover:bg-[#7a35e6] transition-colors h-auto">
+              <Link href="/sign-up" className="w-[102px] h-6 mt-[-1.00px] text-white text-[length:var(--body-extra-large-medium-font-size)] leading-[var(--body-extra-large-medium-line-height)] relative font-body-extra-large-medium font-[number:var(--body-extra-large-medium-font-weight)] tracking-[var(--body-extra-large-medium-letter-spacing)] whitespace-nowrap [font-style:var(--body-extra-large-medium-font-style)]">
                 Get Started
-              </span>
+              </Link>
             </Button>
 
             <Button

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Choose your plan</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #873bff;
+        --primary-dark: #7a35e6;
+        --border: #e5e7eb;
+        --card: #ffffff;
+        --ok: #10b981;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container { 
+        max-width: 1000px; 
+        margin: 0 auto; 
+        padding: 24px 24px 32px;
+      }
+      header { 
+        text-align: center; 
+        padding: 16px 0 12px;
+        margin-bottom: 4px;
+      }
+      h1 { margin: 0 0 6px; font-size: 28px; font-weight: 700; }
+      .lead { margin: 0; color: var(--muted); font-size: 15px; }
+
+      .grid { 
+        display: flex;
+        justify-content: center;
+        gap: 20px; 
+        margin-top: 24px;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      @media (max-width: 900px) { 
+        .grid { 
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+          margin-top: 32px;
+        }
+        .card {
+          width: 100%;
+          max-width: 400px;
+        }
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        transition: all .2s ease;
+        cursor: pointer;
+        width: 280px;
+        display: flex;
+        flex-direction: column;
+      }
+      .card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 24px rgba(135,59,255,.08); 
+        border-color: rgba(135,59,255,.2); 
+      }
+
+      .pill { display:inline-block; font-size:12px; padding:4px 10px; border-radius:999px; background:#f3f1ff; color:#5222c9; font-weight:600; }
+      .title { 
+        margin: 0 0 6px; 
+        font-size: 18px; 
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .price { 
+        margin: 0 0 12px; 
+        font-size: 20px; 
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .note { color: var(--muted); font-size: 12px; }
+
+      .features { 
+        list-style: none; 
+        padding: 0; 
+        margin: 12px 0 0;
+        display: grid; 
+        gap: 6px;
+      }
+      .li { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 8px;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+      .li svg { 
+        margin-top: 1px; 
+        color: var(--ok);
+        flex-shrink: 0;
+        width: 14px;
+        height: 14px;
+      }
+
+      .btns { display:flex; gap:10px; flex-wrap: wrap; }
+      .btn { cursor:pointer; padding:10px 16px; border-radius:10px; font-weight:600; font-size:14px; border:1px solid #000; background:#fff; }
+      .btn:hover { background:#f6f6f6; }
+      .btn-primary { color:#fff; background: var(--primary); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--primary-dark); }
+
+      .footer { text-align:center; color:#9aa0a6; font-size:12px; margin: 32px 0 10px; }
+
+      /* Additional dark UI and plan picker styles */
+      body { background: var(--bg); color: var(--text); }
+      .container { padding-bottom: 80px; }
+      header h1 { letter-spacing: -0.01em; }
+      .card { background: var(--card); border-color: var(--border); }
+      .card .title { color: var(--text); }
+      .note { color: var(--muted); }
+
+      /* Plan radio affordance */
+      .plan { 
+        position: relative; 
+        display: block; 
+        cursor: pointer; 
+      }
+      .plan input[type="radio"] { 
+        position: absolute; 
+        inset: 0; 
+        opacity: 0; 
+        cursor: pointer; 
+        z-index: 10;
+      }
+      .plan .dot { 
+        position: absolute; 
+        top: 20px; 
+        right: 20px; 
+        width: 18px; 
+        height: 18px; 
+        border-radius: 50%; 
+        border: 2px solid #d1d5db; 
+        background: #fff;
+        z-index: 5;
+        transition: all .2s ease; 
+      }
+      .plan input[type="radio"]:checked ~ .dot { 
+        border-color: var(--primary); 
+        background: var(--primary);
+        box-shadow: inset 0 0 0 2px #fff;
+      }
+      .plan input[type="radio"]:checked ~ .content .card,
+      .plan.selected .card { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 1px var(--primary), 0 4px 12px rgba(135,59,255,.1); 
+        background: var(--card);
+      }
+      .plan input[type="radio"]:checked ~ .content .card:hover,
+      .plan.selected .card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 0 0 1px var(--primary), 0 8px 20px rgba(135,59,255,.15); 
+      }
+
+      /* Seats table */
+      .seats { margin: 12px 0 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+      .row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); }
+      .row + .row { margin-top: 4px; }
+
+      /* Actions area */
+      .actions { 
+        display: flex; 
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+      .btn { background:#ffffff; color: #111827; border-color:#000; }
+      .btn:hover { background:#f6f6f6; }
+      .btn-primary { color:#fff; background: var(--primary); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--primary-dark); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Which plan would you like?</h1>
+        <p class="lead">Pick the option that fits your team today. You can change anytime.</p>
+      </header>
+
+      <section class="grid" aria-label="Pricing options">
+        <!-- Personal (Free) -->
+        <label class="card plan" aria-labelledby="personal-title">
+          <input type="radio" name="plan" value="personal" checked />
+          <div class="content">
+            <h2 id="personal-title" class="title">Personal (Free)</h2>
+            <div class="price">$0 <span class="note">/month forever</span></div>
+            <ul class="features">
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 10 team members</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>5 active projects</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic task management</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>AI task suggestions (10/day)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic analytics</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic time tracking (personal tracking only)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>1GB file storage</li>
+              <li class="li" style="margin-top:6px; font-weight:600;">Full integrations with:</li>
+              <li class="li" style="margin-left:28px;">Slack</li>
+              <li class="li" style="margin-left:28px;">Jira</li>
+              <li class="li" style="margin-left:28px;">Google Workspace (Docs, Sheets, Calendar, Meet)</li>
+              <li class="li" style="margin-left:28px;">Microsoft Teams</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Public sharing/embedding (with "Powered by TheGridHub")</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Email support</li>
+            </ul>
+          </div>
+          <span class="dot" aria-hidden="true"></span>
+        </label>
+
+        <!-- Pro -->
+        <label class="card plan" aria-labelledby="pro-title">
+          <input type="radio" name="plan" value="pro" />
+          <div class="content">
+            <h2 id="pro-title" class="title">Pro</h2>
+            <div class="price">$25<span class="note">/month</span> <span class="note" style="margin-left:6px;">or $20/month (billed yearly - save 20%)</span></div>
+            <ul class="features">
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited team members (scale beyond 10)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited projects (vs 5 on free)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced task management</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited AI suggestions (vs 10/day)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced analytics & reports</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Team time tracking with reports</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited file storage (vs 1GB)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom fields and tags</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Automation rules (e.g., \"When task done → Slack notification\")</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Guest users (clients/contractors don't count toward limit)</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom workflows</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Priority support</li>
+              <li class="li"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>White-label sharing (remove \"Powered by\")</li>
+            </ul>
+          </div>
+          <span class="dot" aria-hidden="true"></span>
+        </label>
+      </section>
+
+      <div class="actions">
+        <button class="btn" type="button" onclick="window.parent.postMessage({action: 'back'}, '*')">Back</button>
+        <button class="btn btn-primary" type="button">Continue</button>
+      </div>
+
+      <div class="footer">© 2025 TheGridHub</div>
+    </div>
+  </body>
+</html>
+

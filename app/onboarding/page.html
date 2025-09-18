@@ -648,9 +648,9 @@
         });
       }
 
-      async function mountLottie(candidates, cdnUrl) {
+      async function mountLottie(candidates) {
         if (!lottieHost) return;
-        // Try local candidates first
+        // Try local candidates in order
         for (const url of candidates) {
           try {
             const res = await fetch(url, { cache: 'no-store' });
@@ -671,28 +671,8 @@
             }
           } catch (_) {}
         }
-        // Fallback to CDN
-        try {
-          const resCdn = await fetch(cdnUrl, { cache: 'no-store' });
-          if (resCdn.ok) {
-            await ensureLottiePlayer();
-            lottieHost.innerHTML = '';
-            const el = document.createElement('lottie-player');
-            el.setAttribute('src', cdnUrl);
-            el.setAttribute('background', 'transparent');
-            el.setAttribute('speed', '1');
-            el.setAttribute('loop', '');
-            el.setAttribute('autoplay', '');
-            el.setAttribute('aria-label', 'Onboarding animation');
-            el.style.width = '100%';
-            el.style.height = '100%';
-            lottieHost.appendChild(el);
-          } else {
-            lottieHost.innerHTML = '';
-          }
-        } catch (_) {
-          lottieHost.innerHTML = '';
-        }
+        // No valid local animation found; clear host
+        lottieHost.innerHTML = '';
       }
 
       function showStep(step) {
@@ -736,24 +716,24 @@
           // Step-specific animations (local-first candidates + CDN)
           if (step === 1) {
             mountLottie([
-              '/animations/typing-computer.lottie', '/animations/typing-computer.json',
-              '../../TheGridHub/public/animations/typing-computer.lottie', '../../TheGridHub/public/animations/typing-computer.json'
-            ], 'https://assets9.lottiefiles.com/packages/lf20_touohxv0.json');
+              '/animations/man-waiving-hand.json',
+              '../../TheGridHub/public/animations/man-waiving-hand.json'
+            ]);
           } else if (step === 2) {
             mountLottie([
-              '/animations/planning.lottie', '/animations/planning.json',
-              '../../TheGridHub/public/animations/planning.lottie', '../../TheGridHub/public/animations/planning.json'
-            ], 'https://assets9.lottiefiles.com/packages/lf20_0fhlytwe.json');
+              '/animations/Creating Application.json',
+              '../../TheGridHub/public/animations/Creating Application.json'
+            ]);
           } else if (step === 3) {
             mountLottie([
-              '/animations/technology landing page.lottie', '/animations/technology landing page.json',
-              '../../TheGridHub/public/animations/technology landing page.lottie', '../../TheGridHub/public/animations/technology landing page.json'
-            ], 'https://assets9.lottiefiles.com/packages/lf20_touohxv0.json');
+              '/animations/Assignees.json',
+              '../../TheGridHub/public/animations/Assignees.json'
+            ]);
           } else if (step === 4) {
             mountLottie([
-              '/animations/team.lottie', '/animations/team.json',
-              '../../TheGridHub/public/animations/team.lottie', '../../TheGridHub/public/animations/team.json'
-            ], 'https://assets9.lottiefiles.com/packages/lf20_touohxv0.json');
+              '/animations/team.lottie',
+              '../../TheGridHub/public/animations/team.lottie'
+            ]);
           }
         }
 

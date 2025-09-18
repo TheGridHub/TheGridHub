@@ -44,17 +44,35 @@ export const SignIn = (): JSX.Element => {
            formData.password.trim() !== '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sign in form submitted with data:", formData, "Remember me:", rememberMe);
-    // Form validation would go here
-    // If valid, navigate to success page
-    navigate("/success-confirmation-page");
+    try {
+      const supabase = (await import('@/lib/supabase/client')).createClient()
+      const { data, error } = await supabase.auth.signInWithPassword({ email: formData.email, password: formData.password })
+      if (error) {
+        alert(error.message)
+        return
+      }
+      // Check onboarding status
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('user_id', data.user?.id)
+        .maybeSingle()
+      if (profile?.onboarding_complete) {
+        window.location.href = '/dashboard'
+      } else {
+        window.location.href = '/onboarding'
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Unable to sign in')
+    }
   };
 
   return (
     <div
-      className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-colors-dark-1000"
+className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-white"
       data-model-id="15:554"
     >
       <div className="justify-between flex-1 self-stretch w-full grow flex items-center relative">

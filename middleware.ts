@@ -1,27 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createMiddlewareClient } from '@/lib/supabase/server'
 
-// Minimal set of public routes now that marketing/site pages are removed.
-// - Admin internal (has its own credential guard)
-// - Auth callback routes
+// Public routes (no auth required)
 const publicRoutes = [
   '/',
   '/pricing',
-  '/admin-internal',
-  '/internal-admin',
+  '/sign-in',
+  '/sign-up',
   '/auth',
 ]
 
 // Routes that should bypass onboarding checks (but still require auth)
-// Keep payment/API paths here if reintroduced in the future.
+// e.g., payment return endpoints
 const onboardingBypassPrefixes = [
   '/stripe',
   '/checkout',
   '/api/stripe',
+  '/payment/return',
 ]
-
-// Admin path prefixes for clarity
-const adminPrefixes = ['/admin-internal', '/internal-admin']
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
@@ -42,23 +38,38 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Check if user is authenticated (use getUser for verified auth)
+  // Check if user is authenticated
   const { data: { user } } = await supabase.auth.getUser()
-
-  // If not authenticated, block access by returning 401 instead of redirecting to a removed login page
   if (!user) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    // redirect to sign-in for protected pages
+    return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
-  // Skip onboarding guard for admin paths and onboarding-bypass prefixes
-  const isAdminPath = adminPrefixes.some(p => pathname === p || pathname.startsWith(`${p}/`))
+  // Skip onboarding guard for bypass prefixes
   const isBypassPath = onboardingBypassPrefixes.some(p => pathname === p || pathname.startsWith(`${p}/`))
-  if (isAdminPath || isBypassPath) {
+  if (isBypassPath) {
     return response
   }
 
-  // Onboarding guard: if user authenticated but hasn't completed onboarding,
-  // Previously redirected to /onboarding (now removed). For non-admin pages, simply allow.
+  // Fetch profile to decide routing
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_complete')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const onboardingComplete = !!profile?.onboarding_complete
+
+  // If not on onboarding and onboarding is incomplete, redirect
+  if (!onboardingComplete && pathname !== '/onboarding' && !pathname.startsWith('/onboarding/')) {
+    return NextResponse.redirect(new URL('/onboarding', request.url))
+  }
+
+  // If onboarding is complete and user hits /onboarding, send to dashboard
+  if (onboardingComplete && (pathname === '/onboarding' || pathname.startsWith('/onboarding/'))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   return response
 }
 

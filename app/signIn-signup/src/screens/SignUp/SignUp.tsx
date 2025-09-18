@@ -48,20 +48,33 @@ export const SignUp = (): JSX.Element => {
            formData.password.length >= 8;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with data:", formData);
-    // If valid, navigate to email verification
-    if (isFormValid()) {
-      localStorage.setItem('userEmailForVerification', formData.email);
-      localStorage.setItem('registeredUsername', formData.username); // Store username
-      window.location.href = "/email-verification";
+    if (!isFormValid()) return;
+    try {
+      const supabase = (await import('@/lib/supabase/client')).createClient()
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: { data: { full_name: formData.username } }
+      })
+      if (error) {
+        alert(error.message)
+        return
+      }
+      // Ensure profile row exists (RLS insert will work if you have trigger; otherwise upsert client-side)
+      await supabase.from('profiles').upsert({ user_id: data.user?.id, plan: 'free', onboarding_complete: false, subscription_status: 'pending' })
+      // Redirect to onboarding for newly registered users
+      window.location.href = '/onboarding'
+    } catch (err) {
+      console.error(err)
+      alert('Unable to sign up')
     }
   };
 
   return (
     <div
-      className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-[#2c2c2c]"
+className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6 relative bg-white"
       data-model-id="13:369"
     >
       <div className="flex-wrap justify-between gap-[21px_21px] flex-1 self-stretch w-full grow flex items-center relative">

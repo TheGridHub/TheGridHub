@@ -17,7 +17,9 @@ import {
   TrendingUpIcon,
   UsersIcon,
 } from "lucide-react";
-import React from "react";
+import React, { memo, useEffect, useMemo, useState, useCallback } from "react";
+import { createClient } from '@/lib/supabase/client'
+import { getProfileClient } from '@/lib/profile.client'
 import {
   Avatar,
   AvatarFallback,
@@ -259,6 +261,36 @@ interface DashboardSectionProps {
 }
 
 export const DashboardSection = ({ isSidebarCollapsed, onToggleSidebar, onToggleMobileSidebar }: DashboardSectionProps): JSX.Element => {
+  const supabase = useMemo(() => createClient(), [])
+  const [workspaceName, setWorkspaceName] = useState<string | null>(null)
+  const [headerLoading, setHeaderLoading] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { profile } = await getProfileClient()
+        setWorkspaceName(profile?.team_name ?? null)
+      } finally {
+        setHeaderLoading(false)
+      }
+    })()
+  }, [])
+
+  // memoized lists (placeholder for real pagination / data)
+  const metrics = useMemo(() => keyMetrics, [])
+  const projectsPageSize = 2
+  const [projectPage, setProjectPage] = useState(1)
+  const pagedProjects = useMemo(() => projects.slice(0, projectPage * projectsPageSize), [projectPage])
+  const canLoadMoreProjects = pagedProjects.length < projects.length
+
+  const tasksPageSize = 3
+  const [tasksPage, setTasksPage] = useState(1)
+  const pagedTasks = useMemo(() => myTasks.slice(0, tasksPage * tasksPageSize), [tasksPage])
+  const canLoadMoreTasks = pagedTasks.length < myTasks.length
+
+  const onLoadMoreProjects = useCallback(() => setProjectPage(p => p + 1), [])
+  const onLoadMoreTasks = useCallback(() => setTasksPage(p => p + 1), [])
+
   return (
     <div className="flex flex-col w-full translate-y-[-1rem] animate-fade-in opacity-0">
       {/* Header */}
@@ -335,9 +367,9 @@ export const DashboardSection = ({ isSidebarCollapsed, onToggleSidebar, onToggle
       <div className="flex w-full items-center justify-between px-4 lg:px-8 py-4 min-h-[69px] bg-white border-b border-[#e4e4e4]">
         <div className="flex flex-col">
           <h1 className="font-heading-desktop-h5 font-[number:var(--heading-desktop-h5-font-weight)] text-black text-lg lg:text-[length:var(--heading-desktop-h5-font-size)] tracking-[var(--heading-desktop-h5-letter-spacing)] leading-[var(--heading-desktop-h5-line-height)] [font-style:var(--heading-desktop-h5-font-style)]">
-            Good morning, Brian! 👋
+            {headerLoading ? 'Loading workspace…' : (workspaceName || 'Set your workspace name')}
           </h1>
-          <p className="text-sm text-gray-600">Here's your Friday overview</p>
+          <p className="text-sm text-gray-600">Welcome back 👋</p>
         </div>
         <div className="flex items-center gap-2 lg:gap-3">
           <Button variant="outline" className="gap-2 text-xs lg:text-sm px-2 lg:px-4">
@@ -356,7 +388,7 @@ export const DashboardSection = ({ isSidebarCollapsed, onToggleSidebar, onToggle
       <main className="flex flex-col w-full items-start gap-4 lg:gap-6 p-4 lg:p-8">
         {/* Key Metrics Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 w-full translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
-          {keyMetrics.map((metric, index) => (
+          {metrics.map((metric, index) => (
             <Card key={index} className="border-[#e4e4e4]">
               <CardContent className="flex flex-col items-start justify-center gap-3 p-5">
                 <div className="flex items-center justify-between w-full">
@@ -394,8 +426,8 @@ export const DashboardSection = ({ isSidebarCollapsed, onToggleSidebar, onToggle
                   <CardTitle className="font-heading-desktop-h6 font-[number:var(--heading-desktop-h6-font-weight)] text-black text-[length:var(--heading-desktop-h6-font-size)] tracking-[var(--heading-desktop-h6-letter-spacing)] leading-[var(--heading-desktop-h6-line-height)] [font-style:var(--heading-desktop-h6-font-style)]">
                     📈 Project Overview
                   </CardTitle>
-                  <Button variant="ghost" size="sm">
-                    View All
+                  <Button variant="ghost" size="sm" onClick={onLoadMoreProjects} disabled={!canLoadMoreProjects}>
+                    {canLoadMoreProjects ? 'Load more' : 'All loaded'}
                   </Button>
                 </div>
               </CardHeader>
@@ -471,7 +503,7 @@ export const DashboardSection = ({ isSidebarCollapsed, onToggleSidebar, onToggle
               </CardHeader>
               <CardContent className="p-5 pt-0">
                 <div className="space-y-3">
-                  {myTasks.map((task) => (
+          {pagedTasks.map((task) => (
                     <div
                       key={task.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${

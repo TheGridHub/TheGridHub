@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getProfileClient, setOnboardingCompleteClient, setPlanClient, setSubscriptionStatusClient } from "@/lib/profile.client";
+import { getProfileClient, setOnboardingCompleteClient, setPlanClient, setSubscriptionStatusClient, setPreferencesClient } from "@/lib/profile.client";
 
 // React Lottie player (client-only)
 const Player = dynamic(async () => (await import("@lottiefiles/react-lottie-player")).Player, { ssr: false });
@@ -131,6 +131,17 @@ export default function OnboardingPage() {
     if (step < TOTAL_STEPS) setStep(step + 1);
     else {
       // Finish (should only be reachable when conditions are met)
+      try {
+        await setPreferencesClient({
+          first_name: state.firstName,
+          last_name: state.lastName,
+          optin: state.optin,
+          usecase: state.usecase,
+          role: state.role,
+          role_free_text: state.roleFreeText,
+          invited_emails: state.emails,
+        })
+      } catch {}
       await setOnboardingCompleteClient(true);
       router.replace('/dashboard');
     }

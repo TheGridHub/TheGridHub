@@ -1,13 +1,7 @@
-"use client"
+export const dynamic = 'force-dynamic'
 
-import React from 'react'
-import IntegrationSettings from '@/components/IntegrationSettings'
+import SettingsClient from './Client'
 
 export default function SettingsPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Settings</h1>
-      <IntegrationSettings />
-    </div>
-  )
+  return <SettingsClient />
 }

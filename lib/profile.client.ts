@@ -5,6 +5,8 @@ export type Profile = {
   plan: 'free' | 'pro'
   onboarding_complete: boolean
   subscription_status: 'active' | 'pending' | 'canceled'
+  team_name?: string | null
+  preferences?: Record<string, any> | null
 }
 
 export async function getProfileClient() {
@@ -27,6 +29,14 @@ export async function upsertProfileClient(partial: Partial<Profile>) {
   const { data, error } = await supabase.from('profiles').upsert(row, { onConflict: 'user_id' }).select('*').single()
   if (error) throw error
   return data as Profile
+}
+
+export async function setTeamNameClient(team_name: string) {
+  return upsertProfileClient({ team_name })
+}
+
+export async function setPreferencesClient(preferences: Record<string, any>) {
+  return upsertProfileClient({ preferences })
 }
 
 export async function setPlanClient(plan: 'free' | 'pro') {

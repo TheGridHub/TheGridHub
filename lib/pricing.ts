@@ -22,15 +22,15 @@ export const SUBSCRIPTION_PLANS = {
     stripeProductId: null,
     stripePriceId: null,
     features: {
-      maxProjects: 3,
-      maxTasks: 50,
-      maxTeamMembers: 1,
-      aiSuggestions: 5, // per month
-      storage: '100MB',
-      integrations: false,
+      maxProjects: 5,
+      maxTasks: 1000,
+      maxTeamMembers: 10,
+      aiSuggestions: 10, // per day
+      storage: '1GB',
+      integrations: true,
       analytics: false,
       customFields: false,
-      timeTracking: false,
+      timeTracking: 'personal' as any,
       advancedReporting: false,
       prioritySupport: false,
       automation: false,
@@ -70,17 +70,17 @@ export const SUBSCRIPTION_PLANS = {
     id: 'pro',
     name: 'Pro',
     description: 'For small teams and growing businesses',
-    price: 12.99,
-    originalPrice: 15.99,
+    price: 25,
+    originalPrice: 25,
     billingPeriod: 'month',
     stripeProductId: 'prod_pro', // Replace with actual Stripe product ID
     stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY', 'price_pro_monthly'), // env-configured
     features: {
-      maxProjects: 100,
-      maxTasks: 10000,
-      maxTeamMembers: 10,
-      aiSuggestions: 500, // per month
-      storage: '50GB',
+      maxProjects: -1,
+      maxTasks: -1,
+      maxTeamMembers: -1,
+      aiSuggestions: -1, // unlimited
+      storage: 'Unlimited',
       integrations: true,
       analytics: true,
       customFields: true,
@@ -170,11 +170,11 @@ export const ANNUAL_PRICING = {
   },
   PRO: {
     ...SUBSCRIPTION_PLANS.PRO,
-    price: 10.39, // 20% off monthly
-    originalPrice: 12.79,
+    price: 20, // yearly billed price per month
+    originalPrice: 25,
     billingPeriod: 'year',
     stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY', 'price_pro_yearly'),
-    annualSavings: 31.20
+    annualSavings: 60.00
   },
   BUSINESS: {
     ...SUBSCRIPTION_PLANS.BUSINESS,

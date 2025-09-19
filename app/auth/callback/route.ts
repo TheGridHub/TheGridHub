@@ -63,6 +63,21 @@ export async function GET(request: NextRequest) {
     }
   } catch {}
 
+  // Ensure a profiles row exists for the Supabase auth user (used by middleware and onboarding)
+  try {
+    const prof = await service
+      .from('profiles')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!prof.data?.user_id) {
+      await service
+        .from('profiles')
+        .insert({ user_id: user.id, plan: 'free', onboarding_complete: false, subscription_status: 'pending' })
+    }
+  } catch {}
+
   // If not onboarded, send to Welcome (which flows to Onboarding). Otherwise, respect redirect param
   if (internalUserId) {
     try {

@@ -384,7 +384,7 @@ export default function OnboardingPage() {
                       Continue
                     </button>
                   )}
-                  {state.plan === 'pro' && (
+{state.plan === 'pro' && (
                     subscriptionStatus === 'active' ? (
                       <button className="btn btn-primary" onClick={async () => {
                         await setOnboardingCompleteClient(true)
@@ -392,10 +392,19 @@ export default function OnboardingPage() {
                       }}>Continue</button>
                     ) : (
                       <button className="btn btn-primary" onClick={async () => {
-                        await setPlanClient('pro')
-                        await setSubscriptionStatusClient('pending')
-                        const checkoutUrl = process.env.NEXT_PUBLIC_PRO_CHECKOUT_URL || '/pricing'
-                        window.open(checkoutUrl, '_blank', 'noopener')
+                        try {
+                          await setPlanClient('pro')
+                          await setSubscriptionStatusClient('pending')
+                          const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'monthly' }) })
+                          const data = await res.json()
+                          if (data.url) {
+                            window.location.href = data.url
+                          } else {
+                            alert('Unable to start checkout. Please try again.')
+                          }
+                        } catch {
+                          alert('Unable to start checkout. Please try again.')
+                        }
                       }}>Go to payment</button>
                     )
                   )}

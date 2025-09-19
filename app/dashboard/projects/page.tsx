@@ -11,6 +11,7 @@ export default function ProjectsPage() {
   const [name, setName] = useState('')
   const [creating, setCreating] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [files, setFiles] = useState<Record<string, Attachment[]>>({})
   const [filesLoading, setFilesLoading] = useState<Record<string, boolean>>({})
@@ -35,7 +36,9 @@ export default function ProjectsPage() {
     if (res.ok && data.project) {
       setItems([data.project, ...items])
       setName('')
+      setUpgradeRequired(false)
     } else if (data.upgradeRequired) {
+      setUpgradeRequired(true)
       setMessage(data.reason || 'Upgrade required to create more projects.')
     } else if (data.error) {
       setMessage(data.error)
@@ -71,7 +74,17 @@ export default function ProjectsPage() {
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Project name" className="flex-1 border border-gray-300 rounded-md px-3 py-2" />
         <button onClick={create} disabled={creating || !name.trim()} className="px-4 py-2 rounded-md bg-black text-white disabled:opacity-50">{creating ? 'Adding…' : 'Add'}</button>
       </div>
-      {message && <div className="mb-3 text-sm text-amber-600">{message}</div>}
+      {message && (
+        <div className="mb-3 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 flex items-center justify-between">
+          <span>{message}</span>
+          {upgradeRequired && (
+            <button
+              onClick={async()=>{ const r=await fetch('/api/stripe/create-checkout-session',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ interval:'monthly' })}); const j=await r.json(); if (j.url) window.location.href=j.url; }}
+              className="px-3 py-1.5 rounded bg-black text-white hover:bg-black/90"
+            >Upgrade to Pro</button>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div>Loading…</div>

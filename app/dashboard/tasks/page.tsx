@@ -91,7 +91,17 @@ export default function TasksPage() {
         <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Task title" className="flex-1 border border-gray-300 rounded-md px-3 py-2" />
         <button onClick={create} disabled={creating || !title.trim()} className="px-4 py-2 rounded-md bg-black text-white disabled:opacity-50">{creating ? 'Adding…' : 'Add'}</button>
       </div>
-      {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
+      {error && (
+        <div className="mb-3 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 flex items-center justify-between">
+          <span>{error}</span>
+          {error?.toLowerCase().includes('upgrade') && (
+            <button
+              onClick={async()=>{ const r=await fetch('/api/stripe/create-checkout-session',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ interval:'monthly' })}); const j=await r.json(); if (j.url) window.location.href=j.url; }}
+              className="px-3 py-1.5 rounded bg-black text-white hover:bg-black/90"
+            >Upgrade to Pro</button>
+          )}
+        </div>
+      )}
 
       <div className="mb-4">
         <button onClick={suggest} disabled={suggesting} className="px-3 py-2 rounded-md bg-purple-600 text-white disabled:opacity-50">

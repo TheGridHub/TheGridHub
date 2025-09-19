@@ -9,9 +9,6 @@ const baseConfig = {
   // React strict mode for better development
   reactStrictMode: true,
   
-  // SWC minification (faster than terser)
-  swcMinify: true,
-  
   // Compiler optimizations
   compiler: {
     // Remove console.log in production
@@ -48,6 +45,7 @@ const baseConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'thegridhub.co', '*.thegridhub.co'],
+      bodySizeLimit: '2mb',
     },
     // Optimize CSS loading
     optimizeCss: true,
@@ -55,52 +53,70 @@ const baseConfig = {
   
   // Webpack optimizations
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Fix Edge Runtime issues with Supabase
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      }
+    }
+
+    // Ignore Node.js APIs in Edge Runtime for Supabase
+    config.module = {
+      ...config.module,
+      rules: [
+        ...config.module.rules,
+        {
+          test: /node_modules\/@supabase\/.*\.(js|ts)$/,
+          use: {
+            loader: 'next/dist/build/webpack/loaders/next-swc-loader.js',
+            options: {
+              isServer: isServer,
+              development: dev,
+            },
+          },
+        },
+      ],
+    }
+
     // Optimize bundle splitting
     if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          ...config.optimization.splitChunks?.cacheGroups,
-          // Vendor chunk for third-party libraries
-          vendor: {
-            test: /[\/]node_modules[\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-          },
-          // Common chunk for shared code
-          common: {
-            name: 'common',
-            chunks: 'all',
-            minChunks: 2,
-            priority: 5,
-            reuseExistingChunk: true,
-          },
-          // UI library chunk
-          ui: {
-            test: /[\/]node_modules[\/](@radix-ui|lucide-react|framer-motion)[\/]/,
-            name: 'ui-lib',
-            chunks: 'all',
-            priority: 15,
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\/]node_modules[\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            common: {
+              name: 'common',
+              chunks: 'all',
+              minChunks: 2,
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+            ui: {
+              test: /[\/]node_modules[\/](@radix-ui|lucide-react|framer-motion)[\/]/,
+              name: 'ui-lib',
+              chunks: 'all',
+              priority: 15,
+            },
           },
         },
       }
     }
 
-    // Tree shaking optimizations
-    config.optimization.usedExports = true
-    config.optimization.sideEffects = false
-
     // Resolve alias for smaller bundle size
     config.resolve.alias = {
       ...config.resolve.alias,
-      // Use lightweight alternatives where possible
       'lodash': 'lodash-es',
-    }
-
-    // Ignore source maps in production for smaller bundles
-    if (!dev) {
-      config.devtool = false
     }
 
     return config
@@ -140,6 +156,9 @@ const baseConfig = {
   },
   // Remove X-Powered-By header for security
   poweredByHeader: false,
+  
+  // External packages for server components
+  serverExternalPackages: ['@supabase/supabase-js', '@supabase/ssr', '@prisma/client'],
 }
 
 // Optional bundle analyzer support

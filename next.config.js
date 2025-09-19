@@ -6,6 +6,20 @@ const baseConfig = {
   output: 'standalone',
   outputFileTracingRoot: __dirname,
   
+  // React strict mode for better development
+  reactStrictMode: true,
+  
+  // SWC minification (faster than terser)
+  swcMinify: true,
+  
+  // Compiler optimizations
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
+  },
+  
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -13,18 +27,83 @@ const baseConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['images.clerk.dev'],
+    // Enable image optimization
+    unoptimized: false,
+    domains: ['images.clerk.dev', 'localhost', 'thegridhub.co'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.clerk.dev',
       },
     ],
+    // Supported formats for better performance
+    formats: ['image/webp', 'image/avif'],
+    // Device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    // Image sizes for responsive images
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Minimize layout shift
+    minimumCacheTTL: 86400, // 1 day
   },
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'thegridhub.co', '*.thegridhub.co'],
     },
+    // Optimize CSS loading
+    optimizeCss: true,
+  },
+  
+  // Webpack optimizations
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Optimize bundle splitting
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks?.cacheGroups,
+          // Vendor chunk for third-party libraries
+          vendor: {
+            test: /[\/]node_modules[\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 10,
+          },
+          // Common chunk for shared code
+          common: {
+            name: 'common',
+            chunks: 'all',
+            minChunks: 2,
+            priority: 5,
+            reuseExistingChunk: true,
+          },
+          // UI library chunk
+          ui: {
+            test: /[\/]node_modules[\/](@radix-ui|lucide-react|framer-motion)[\/]/,
+            name: 'ui-lib',
+            chunks: 'all',
+            priority: 15,
+          },
+        },
+      }
+    }
+
+    // Tree shaking optimizations
+    config.optimization.usedExports = true
+    config.optimization.sideEffects = false
+
+    // Resolve alias for smaller bundle size
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Use lightweight alternatives where possible
+      'lodash': 'lodash-es',
+    }
+
+    // Ignore source maps in production for smaller bundles
+    if (!dev) {
+      config.devtool = false
+    }
+
+    return config
   },
   // Security headers
   async headers() {

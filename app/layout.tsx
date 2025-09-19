@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import { Metadata } from 'next'
 import Script from 'next/script'
 import SupabaseProvider from '@/components/providers/SupabaseProvider'
+import { Providers } from '@/lib/providers'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Analytics } from '@vercel/analytics/react'
 
 // Make this layout dynamic to avoid static generation issues with SupabaseProvider
@@ -31,9 +33,13 @@ export default function RootLayout({
         {/* Removed Puter.js - causing authentication conflicts */}
       </head>
       <body className={inter.className}>
-        <SupabaseProvider>
-          {children}
-        </SupabaseProvider>
+        <Providers>
+          <ErrorBoundary>
+            <SupabaseProvider>
+              {children}
+            </SupabaseProvider>
+          </ErrorBoundary>
+        </Providers>
         <Analytics />
       </body>
     </html>

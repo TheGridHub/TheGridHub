@@ -104,7 +104,7 @@ export const EmailVerification = (): JSX.Element => {
               {verificationCode.map((digit, index) => (
                 <div key={index} className="flex w-11 h-11 items-center justify-center gap-2 p-2.5 relative rounded-lg border border-solid border-colors-light-100">
                   <input
-                    ref={el => inputRefs.current[index] = el}
+                    ref={el => { if (el) inputRefs.current[index] = el }}
                     type="text"
                     value={digit}
                     onChange={(e) => handleCodeChange(index, e.target.value)}

@@ -14,7 +14,7 @@ BEGIN
       WHERE t.relname = 'user_onboarding' AND c.conname = 'user_onboarding_user_unique'
     ) THEN
       ALTER TABLE public.user_onboarding
-      ADD CONSTRAINT user_onboarding_user_unique UNIQUE (userId);
+      ADD CONSTRAINT user_onboarding_user_unique UNIQUE ("userId");
     END IF;
   END IF;
 END $$;

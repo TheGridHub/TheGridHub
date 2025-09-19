@@ -85,7 +85,93 @@ export default function AdminUsersPage() {
                 <td className="px-4 py-2">{u.email || '—'}</td>
                 <td className="px-4 py-2">{u.name || '—'}</td>
                 <td className="px-4 py-2 text-xs text-slate-500">{u.createdAt ? new Date(u.createdAt).toLocaleString() : '—'}</td>
-                <td className="px-4 py-2 text-right">
+                <td className="px-4 py-2 text-right space-x-2">
+                  <button
+                    onClick={async()=>{
+                      setBusy(u.id)
+                      try {
+                        const res = await fetch(`/api/admin-internal/users/${u.id}/reset-password`, { method: 'POST' })
+                        const j = await res.json()
+                        if (!res.ok) throw new Error(j?.error || 'Failed')
+                        const link = j.action_link
+                        window.prompt('Password reset link (copy and send to user):', link)
+                      } catch (e:any) {
+                        alert(e?.message || 'Reset failed')
+                      } finally {
+                        setBusy(null)
+                      }
+                    }}
+                    disabled={busy === u.id}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    title="Generate password reset link"
+                  >
+                    Reset PW
+                  </button>
+                  <button
+                    onClick={async()=>{
+                      setBusy(u.id)
+                      try {
+                        const res = await fetch(`/api/admin-internal/users/${u.id}/billing-portal`, { method: 'POST' })
+                        const j = await res.json()
+                        if (!res.ok) throw new Error(j?.error || 'Failed')
+                        window.open(j.url, '_blank')
+                      } catch (e:any) { alert(e?.message || 'Portal failed') } finally { setBusy(null) }
+                    }}
+                    disabled={busy === u.id}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    title="Open Stripe billing portal"
+                  >
+                    Billing
+                  </button>
+                  <button
+                    onClick={async()=>{
+                      setBusy(u.id)
+                      try {
+                        const res = await fetch(`/api/admin-internal/users/${u.id}/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: 'PRO' }) })
+                        const j = await res.json()
+                        if (!res.ok) throw new Error(j?.error || 'Failed')
+                        window.open(j.url, '_blank')
+                      } catch (e:any) { alert(e?.message || 'Checkout failed') } finally { setBusy(null) }
+                    }}
+                    disabled={busy === u.id}
+                    className="px-3 py-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+                    title="Create checkout for PRO"
+                  >
+                    Checkout (Pro)
+                  </button>
+                  <button
+                    onClick={async()=>{
+                      if (!confirm('Cancel subscription at period end?')) return
+                      setBusy(u.id)
+                      try {
+                        const res = await fetch(`/api/admin-internal/users/${u.id}/subscription`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'cancel' }) })
+                        const j = await res.json()
+                        if (!res.ok) throw new Error(j?.error || 'Failed')
+                        alert('Subscription set to cancel at period end')
+                      } catch (e:any) { alert(e?.message || 'Cancel failed') } finally { setBusy(null) }
+                    }}
+                    disabled={busy === u.id}
+                    className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                    title="Cancel subscription"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async()=>{
+                      setBusy(u.id)
+                      try {
+                        const res = await fetch(`/api/admin-internal/users/${u.id}/subscription`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume' }) })
+                        const j = await res.json()
+                        if (!res.ok) throw new Error(j?.error || 'Failed')
+                        alert('Subscription resumed')
+                      } catch (e:any) { alert(e?.message || 'Resume failed') } finally { setBusy(null) }
+                    }}
+                    disabled={busy === u.id}
+                    className="px-3 py-1.5 rounded-lg border border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
+                    title="Resume subscription"
+                  >
+                    Resume
+                  </button>
                   <button
                     onClick={()=>onDelete(u.id)}
                     disabled={busy === u.id}

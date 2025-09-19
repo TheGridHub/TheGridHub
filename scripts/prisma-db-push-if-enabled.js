@@ -18,7 +18,11 @@ function main() {
     console.log('[prisma-db-push-if-enabled] Using SUPABASE_DB_URL as DATABASE_URL')
   }
 
-  const res = spawnSync('npx', ['--yes', 'prisma', 'db', 'push'], { stdio: 'inherit', shell: true })
+  const args = ['--yes', 'prisma', 'db', 'push']
+  if ((process.env.PRISMA_DB_PUSH_ACCEPT_DATA_LOSS || 'false').toLowerCase() === 'true') {
+    args.push('--accept-data-loss')
+  }
+  const res = spawnSync('npx', args, { stdio: 'inherit', shell: true })
   if (res.status !== 0) {
     const hardFail = (process.env.PRISMA_FAIL_BUILD_ON_PUSH || 'false').toLowerCase() === 'true'
     if (hardFail) {

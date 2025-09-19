@@ -53,6 +53,18 @@ export default function AdminTeamPage() {
         </div>
       </div>
 
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4">
+        <form className="flex items-center gap-2" onSubmit={async(ev)=>{ev.preventDefault(); const userId=(ev.currentTarget.elements.namedItem('uid') as HTMLInputElement).value.trim(); const role=(ev.currentTarget.elements.namedItem('role') as HTMLSelectElement).value; if(!userId||!role) return; const res=await fetch('/api/admin-internal/team',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,role})}); const j=await res.json(); if(!res.ok) alert(j?.error||'Create failed'); else { (ev.currentTarget as any).reset(); fetchMemberships() }}}>
+          <input name="uid" placeholder="userId" className="border rounded px-3 py-2 text-sm" />
+          <select name="role" className="border rounded px-2 py-2 text-sm">
+            <option value="owner">owner</option>
+            <option value="admin">admin</option>
+            <option value="member" selected>member</option>
+          </select>
+          <button className="px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm">Add Membership</button>
+        </form>
+      </div>
+
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50">
@@ -73,7 +85,15 @@ export default function AdminTeamPage() {
               <tr key={m.id}>
                 <td className="px-4 py-2 font-mono text-xs">{m.id}</td>
                 <td className="px-4 py-2 font-mono text-xs">{m.userId}</td>
-                <td className="px-4 py-2">{m.role}</td>
+                <td className="px-4 py-2">
+                  <select className="border rounded px-2 py-1 text-sm" defaultValue={m.role} onChange={async(e)=>{
+                    const res = await fetch('/api/admin-internal/team',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({membershipId: m.id, role: e.target.value})}); const j = await res.json(); if(!res.ok) alert(j?.error||'Update failed')
+                  }}>
+                    <option value="owner">owner</option>
+                    <option value="admin">admin</option>
+                    <option value="member">member</option>
+                  </select>
+                </td>
                 <td className="px-4 py-2 text-xs text-slate-500">{m.createdAt ? new Date(m.createdAt).toLocaleString() : '—'}</td>
                 <td className="px-4 py-2 text-right">
                   <button

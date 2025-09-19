@@ -58,6 +58,21 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
+  // Suspension guard (soft suspend)
+  try {
+    const { data: me } = await supabase
+      .from('users')
+      .select('suspended')
+      .eq('supabaseId', user.id)
+      .maybeSingle()
+    if (me?.suspended) {
+      if (pathname !== '/suspended') {
+        return NextResponse.redirect(new URL('/suspended', request.url))
+      }
+      return response
+    }
+  } catch {}
+
   // Fetch profile to decide routing
   const { data: profile } = await supabase
     .from('profiles')

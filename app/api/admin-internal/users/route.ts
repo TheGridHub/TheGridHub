@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       .range((page-1)*pageSize, (page-1)*pageSize + pageSize - 1)
 
     if (q) {
-      query = query.ilike('email', `%${q}%`)
+      query = query.or(`email.ilike.%${q}%,name.ilike.%${q}%`)
     }
 
     const { data, error } = await query
@@ -30,6 +30,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ users: data || [], page, pageSize })
   } catch (e:any) {
     return NextResponse.json({ error: e?.message || 'Failed to list users' }, { status: 500 })
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const auth = ensureInternalAuth('operator')
+    const body = await req.json().catch(()=>({}))
+    const { userId, suspended, appRole } = body
+    if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+
+    const supa = createServiceClient()
+    const updates: any = {}
+    if (typeof suspended === 'boolean') updates.suspended = suspended
+    if (typeof appRole === 'string') updates.appRole = appRole
+    if (Object.keys(updates).length === 0) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+
+    await supa.from('users').update(updates).eq('id', userId)
+    await adminAuditLog(auth, 'user.update', { userId, updates })
+    return NextResponse.json({ ok: true })
+  } catch (e:any) {
+    return NextResponse.json({ error: e?.message || 'Failed to update user' }, { status: 500 })
   }
 }
 

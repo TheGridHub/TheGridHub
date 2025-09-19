@@ -78,22 +78,20 @@ export async function GET(request: NextRequest) {
     }
   } catch {}
 
-  // If not onboarded, send to Welcome (which flows to Onboarding). Otherwise, respect redirect param
-  if (internalUserId) {
-    try {
-      const { data: onboard } = await supabase
-        .from('user_onboarding')
-        .select('id')
-        .eq('userId', internalUserId)
-        .maybeSingle()
-      const dest = onboard ? redirectParam : '/welcome'
-      return NextResponse.redirect(new URL(dest, request.url))
-    } catch {
-      // On error, fall back to welcome for safety
-      return NextResponse.redirect(new URL('/welcome', request.url))
-    }
-  }
+  // Route based on profiles.onboarding_complete
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_complete')
+      .eq('user_id', user.id)
+      .maybeSingle()
 
-  // Fallback: go to welcome
-  return NextResponse.redirect(new URL('/welcome', request.url))
+    const done = !!profile?.onboarding_complete
+    // If onboarding is done, respect redirect (or send to dashboard). Otherwise go to onboarding.
+    const dest = done ? (redirectParam || '/dashboard') : '/onboarding'
+    return NextResponse.redirect(new URL(dest, request.url))
+  } catch {
+    // On error, default to onboarding to be safe
+    return NextResponse.redirect(new URL('/onboarding', request.url))
+  }
 }

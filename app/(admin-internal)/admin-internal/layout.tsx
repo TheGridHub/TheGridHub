@@ -1,5 +1,8 @@
 import { redirect } from 'next/navigation'
 import { validateSessionCookie } from '@/lib/internal-admin/session'
+import dynamic from 'next/dynamic'
+
+const AdminToaster = dynamic(() => import('@/components/AdminToaster'), { ssr: false })
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -57,6 +60,7 @@ export default function AdminInternalLayout({ children }: { children: React.Reac
         <main className="p-6 max-w-6xl mx-auto">
           {children}
         </main>
+        <AdminToaster />
       </div>
     </div>
   )

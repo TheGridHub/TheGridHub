@@ -7,7 +7,6 @@ import { SocialMediaIcons7 } from "../../icons/SocialMediaIcons7";
 
 export const SignUp = (): JSX.Element => {
   const [formData, setFormData] = useState({
-    username: "",
     email: "",
     password: ""
   });
@@ -40,8 +39,7 @@ export const SignUp = (): JSX.Element => {
 
   // Check if all fields are filled and valid
   const isFormValid = () => {
-    return formData.username.trim() !== '' && 
-           formData.email.trim() !== '' && 
+    return formData.email.trim() !== '' && 
            formData.email.includes('@') &&
            formData.password.trim() !== '' &&
            formData.password.length >= 8;
@@ -54,11 +52,15 @@ export const SignUp = (): JSX.Element => {
       const supabase = (await import('@/lib/supabase/client')).createClient()
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password,
-        options: { data: { full_name: formData.username } }
+        password: formData.password
       })
       if (error) {
-        alert(error.message)
+        const msg = (error as any)?.message || 'Unable to sign up'
+        if (/rate limit/i.test(msg)) {
+          alert('Too many signup emails sent. Please wait a minute and try again.')
+        } else {
+          alert(msg)
+        }
         return
       }
       // Ensure profile row exists (RLS insert will work if you have trigger; otherwise upsert client-side)
@@ -102,18 +104,6 @@ className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6
 
           <form onSubmit={handleSubmit} className="w-full">
             <div className="gap-[var(--collection-spacing-lg)] flex flex-col items-start relative self-stretch w-full flex-[0_0_auto]">
-              <InputField
-                className="!self-stretch !flex-[0_0_auto] !w-full"
-                frameClassName="!gap-2 ![justify-content:unset]"
-                infoMessage={false}
-                label="Username"
-                property1="default"
-                showRightIcon={false}
-                text="Username"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange("username")}
-              />
               <InputField
                 className="!self-stretch !flex-[0_0_auto] !w-full"
                 frameClassName="!gap-2 ![justify-content:unset]"

@@ -6,21 +6,28 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
-  const { data: appUser } = await supabase
-    .from('users')
-    .select('id')
-    .eq('supabaseId', user.id)
-    .maybeSingle()
-
-  if (!appUser?.id) return NextResponse.json({ projects: [] })
-
   const { data: rows, error } = await supabase
     .from('projects')
-    .select('*')
-    .eq('userId', appUser.id)
-    .order('createdAt', { ascending: false })
+    .select(`
+      id,
+      name,
+      description,
+      status,
+      priority,
+      due_date,
+      workspace_id,
+      created_by,
+      created_at,
+      updated_at
+    `)
+    .eq('created_by', user.id)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('Error fetching projects:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
   return NextResponse.json({ projects: rows || [] })
 }
 
@@ -31,36 +38,64 @@ export async function POST(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
     const body = await request.json().catch(() => ({}))
-    const name: string = body.name
-    const description: string | undefined = body.description
-    if (!name) return NextResponse.json({ error: 'name is required' }, { status: 400 })
+    const { 
+      name,
+      description, 
+      status = 'planning',
+      priority = 'medium',
+      due_date,
+      workspace_id
+    } = body
+    
+    if (!name?.trim()) {
+      return NextResponse.json({ error: 'Project name is required' }, { status: 400 })
+    }
 
-    // find internal user id
-    const { data: appUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('supabaseId', user.id)
-      .maybeSingle()
-
-    if (!appUser?.id) return NextResponse.json({ error: 'User record missing' }, { status: 400 })
-
-    // plan limit check using our API
-    const limitRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/subscription/check-limit`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create_project' })
-    })
-    const limit = await limitRes.json()
-    if (!limit.allowed) return NextResponse.json(limit, { status: 200 })
+    // Get user's workspace if not provided
+    let finalWorkspaceId = workspace_id
+    if (!finalWorkspaceId) {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('workspace_id')
+        .eq('user_id', user.id)
+        .single()
+      
+      finalWorkspaceId = profile?.workspace_id
+    }
 
     const { data, error } = await supabase
       .from('projects')
-      .insert({ name, description, userId: appUser.id })
-      .select('*')
+      .insert({
+        name: name.trim(),
+        description: description?.trim() || null,
+        status,
+        priority,
+        due_date: due_date || null,
+        workspace_id: finalWorkspaceId,
+        created_by: user.id
+      })
+      .select(`
+        id,
+        name,
+        description,
+        status,
+        priority,
+        due_date,
+        workspace_id,
+        created_by,
+        created_at,
+        updated_at
+      `)
       .single()
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      
+    if (error) {
+      console.error('Error creating project:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ project: data })
   } catch (e: any) {
+    console.error('Error in POST /api/projects:', e)
     return NextResponse.json({ error: e?.message || 'Failed to create project' }, { status: 500 })
   }
 }

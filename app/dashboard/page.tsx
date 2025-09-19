@@ -21,10 +21,12 @@ import {
   Zap,
   Shield,
   ArrowRight,
+  AlertCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useWorkspace } from '@/hooks/useWorkspace'
+import { useDashboardData, useDashboardSubscriptions } from '@/hooks/useDashboardData'
 import { createClient } from '@/utils/supabase/client'
 import { formatRelativeTime } from '@/lib/utils/format'
 
@@ -101,40 +103,41 @@ function QuickAction({ title, description, icon: Icon, href, color }: QuickActio
 export default function DashboardHome() {
   const { profile, isLoading: profileLoading, isFreePlan } = useUserProfile()
   const { workspace, isLoading: workspaceLoading } = useWorkspace()
-  const [stats, setStats] = useState({
-    projects: 0,
-    tasks: 0,
-    notifications: 0,
-  })
+  const { 
+    dashboardData, 
+    usageStats, 
+    isLoading: dashboardLoading, 
+    error: dashboardError,
+    getDisplayName,
+    getWorkspaceName,
+    hasAnyData,
+    getEmptyState 
+  } = useDashboardData()
   const [recentActivity, setRecentActivity] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const supabase = createClient()
+  
+  // Subscribe to real-time updates
+  useDashboardSubscriptions()
 
+  // Load recent activity when dashboard data is available
   useEffect(() => {
-    const loadDashboardData = async () => {
+    const loadRecentActivity = async () => {
+      if (!dashboardData?.user_id) return
+      
       try {
         setLoading(true)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        // Load stats in parallel
-        const [projectsRes, tasksRes, notificationsRes] = await Promise.all([
-          fetch('/api/projects'),
-          fetch('/api/tasks'),
-          fetch('/api/notifications').catch(() => ({ json: async () => ({ notifications: [] }) }))
+        
+        // Load recent activity from projects and tasks
+        const [projectsRes, tasksRes] = await Promise.all([
+          fetch('/api/projects').catch(() => ({ json: async () => ({ projects: [] }) })),
+          fetch('/api/tasks').catch(() => ({ json: async () => ({ tasks: [] }) }))
         ])
 
-        const [projectsData, tasksData, notificationsData] = await Promise.all([
+        const [projectsData, tasksData] = await Promise.all([
           projectsRes.json(),
-          tasksRes.json(),
-          notificationsRes.json()
+          tasksRes.json()
         ])
-
-        setStats({
-          projects: projectsData.projects?.length || 0,
-          tasks: tasksData.tasks?.length || 0,
-          notifications: notificationsData.notifications?.filter((n: any) => !n.read)?.length || 0,
-        })
 
         // Create recent activity from tasks and projects
         const activities = []
@@ -156,14 +159,14 @@ export default function DashboardHome() {
         }
         setRecentActivity(activities.slice(0, 5))
       } catch (error) {
-        console.error('Error loading dashboard data:', error)
+        console.error('Error loading recent activity:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadDashboardData()
-  }, [])
+    loadRecentActivity()
+  }, [dashboardData?.user_id])
 
   const formatStorageSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`
@@ -175,8 +178,10 @@ export default function DashboardHome() {
     return `${gb.toFixed(2)} GB`
   }
 
-  const storagePercentage = profile ? (profile.storage_used / profile.storage_limit) * 100 : 0
-  const aiRequestsPercentage = profile ? (profile.ai_requests_used / profile.ai_requests_limit) * 100 : 0
+  // Calculate real usage percentages
+  const storagePercentage = usageStats ? (usageStats.storage_used / (1024 * 1024 * 1024)) * 100 : 0 // Convert to GB
+  const aiRequestsPercentage = usageStats && dashboardData ? 
+    (usageStats.ai_requests_count / (isFreePlan ? 10 : 1000)) * 100 : 0
 
   const quickActions = [
     {
@@ -209,12 +214,95 @@ export default function DashboardHome() {
     }
   ]
 
+  // Show error state
+  if (dashboardError) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-lg font-medium text-red-900 mb-2">Failed to load dashboard</h2>
+          <p className="text-red-700 mb-4">We couldn't load your dashboard data. Please try refreshing the page.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show empty state for new users
+  if (dashboardData && !dashboardLoading && !hasAnyData()) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Welcome Section for New Users */}
+        <div className="text-center py-12">
+          <div className="w-24 h-24 bg-gradient-to-br from-[#873bff] to-[#7a35e6] rounded-full flex items-center justify-center mx-auto mb-6">
+            <Zap className="w-12 h-12 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Welcome to TheGridHub, {getDisplayName()}!
+          </h1>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            You're all set up! Let's help you get started by creating your first project, task, or adding a contact.
+          </p>
+          
+          {/* Quick Start Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {quickActions.slice(0, 3).map((action) => (
+              <Link
+                key={action.title}
+                href={action.href}
+                className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-[#873bff] hover:shadow-lg transition-all group"
+              >
+                <div className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center mx-auto mb-4`}>
+                  <action.icon className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2 group-hover:text-[#873bff]">
+                  {action.title}
+                </h3>
+                <p className="text-gray-600">{action.description}</p>
+              </Link>
+            ))}
+          </div>
+          
+          {/* Features Preview */}
+          <div className="mt-12 p-8 bg-gray-50 rounded-2xl">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">What you can do with TheGridHub</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+              <div className="flex items-center gap-2 text-gray-700">
+                <CheckSquare className="w-4 h-4 text-green-600" />
+                Manage tasks and projects
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Users className="w-4 h-4 text-blue-600" />
+                Collaborate with your team
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                AI-powered assistance
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Activity className="w-4 h-4 text-orange-600" />
+                Track progress and analytics
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {profileLoading ? 'loading...' : (profile?.full_name || profile?.email?.split('@')[0] || 'there')}!
+          Welcome back, {dashboardLoading ? 'loading...' : getDisplayName()}!
         </h1>
         <p className="text-gray-600">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -225,31 +313,31 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Total Projects"
-          value={stats.projects}
+          value={usageStats?.projects_count || 0}
           icon={Briefcase}
           href="/dashboard/projects"
-          loading={loading}
+          loading={dashboardLoading}
         />
         <StatCard
           title="Active Tasks"
-          value={stats.tasks}
+          value={usageStats?.tasks_count || 0}
           icon={CheckSquare}
           href="/dashboard/tasks"
-          loading={loading}
+          loading={dashboardLoading}
         />
         <StatCard
-          title="Team Members"
-          value={workspace?.member_count || 1}
+          title="Contacts"
+          value={usageStats?.contacts_count || 0}
           icon={Users}
-          href="/dashboard/teams"
-          loading={workspaceLoading}
+          href="/dashboard/contacts"
+          loading={dashboardLoading}
         />
         <StatCard
-          title="Notifications"
-          value={stats.notifications}
-          icon={Bell}
-          href="/dashboard/notifications"
-          loading={loading}
+          title="AI Requests"
+          value={usageStats?.ai_requests_count || 0}
+          icon={Sparkles}
+          href="/dashboard/tasks"
+          loading={dashboardLoading}
         />
       </div>
 
@@ -270,18 +358,13 @@ export default function DashboardHome() {
                   <span className="text-sm font-medium text-gray-700">AI Requests</span>
                 </div>
                 <span className="text-sm text-gray-600">
-                  {profile?.ai_requests_used || 0} / {profile?.ai_requests_limit || 10}
+                  {usageStats?.ai_requests_count || 0} / {isFreePlan ? 'Unlimited' : 'Unlimited'}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-[#873bff] to-[#7a35e6] h-2 rounded-full transition-all"
-                  style={{ width: `${Math.min(aiRequestsPercentage, 100)}%` }}
-                />
+                <div className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full" style={{ width: '100%' }} />
               </div>
-              {isFreePlan && aiRequestsPercentage > 80 && (
-                <p className="text-xs text-amber-600 mt-1">Running low on AI requests</p>
-              )}
+              <p className="text-xs text-green-600 mt-1">✨ Unlimited AI requests for all users!</p>
             </div>
 
             {/* Storage */}
@@ -292,7 +375,7 @@ export default function DashboardHome() {
                   <span className="text-sm font-medium text-gray-700">Storage</span>
                 </div>
                 <span className="text-sm text-gray-600">
-                  {formatStorageSize(profile?.storage_used || 0)} / {formatStorageSize(profile?.storage_limit || 1073741824)}
+                  {formatStorageSize(usageStats?.storage_used || 0)} / {formatStorageSize(isFreePlan ? 1073741824 : 107374182400)}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -309,13 +392,13 @@ export default function DashboardHome() {
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Projects</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {stats.projects} / {isFreePlan ? '5' : 'Unlimited'}
+                    {usageStats?.projects_count || 0} / {isFreePlan ? '5' : 'Unlimited'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Team Members</p>
+                  <p className="text-xs text-gray-500 mb-1">Contacts</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {workspace?.member_count || 1} / {isFreePlan ? '10' : 'Unlimited'}
+                    {usageStats?.contacts_count || 0} / {isFreePlan ? '100' : 'Unlimited'}
                   </p>
                 </div>
               </div>
@@ -420,11 +503,11 @@ export default function DashboardHome() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="flex items-start gap-3">
               <div className="p-1.5 bg-[#873bff]/10 rounded">
-                <Sparkles className="w-4 h-4 text-[#873bff]" />
+                <Briefcase className="w-4 h-4 text-[#873bff]" />
               </div>
               <div>
-                <p className="font-medium text-gray-900 text-sm">Unlimited AI Requests</p>
-                <p className="text-xs text-gray-600 mt-0.5">No daily limits on AI assistance</p>
+                <p className="font-medium text-gray-900 text-sm">Unlimited Projects</p>
+                <p className="text-xs text-gray-600 mt-0.5">Create as many projects as you need</p>
               </div>
             </div>
             <div className="flex items-start gap-3">

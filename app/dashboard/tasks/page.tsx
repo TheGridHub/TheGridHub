@@ -27,10 +27,13 @@ import {
   StarOff,
   Copy,
   Archive,
+  Bot,
+  MessageSquare,
 } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useWorkspace } from '@/hooks/useWorkspace'
 import { generateTaskSuggestions } from '@/lib/ai'
+import { TasksChatbot } from '@/components/ai/TasksChatbot'
 
 interface Task { 
   id: string
@@ -125,6 +128,7 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [suggesting, setSuggesting] = useState(false)
+  const [showChatbot, setShowChatbot] = useState(false)
   const [newTask, setNewTask] = useState<CreateTaskData>({
     title: '',
     description: '',
@@ -290,34 +294,53 @@ export default function TasksPage() {
     setSuggesting(true)
     setError(null)
     try {
-      // Check plan limits
-      if (isFreePlan) {
-        const chk = await fetch('/api/subscription/check-limit', { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify({ action: 'use_ai' }) 
-        })
-        const ok = await chk.json()
-        if (!ok.allowed) {
-          setError(ok.reason || 'AI suggestions not available on free plan')
-          setSuggesting(false)
-          return
-        }
-      }
-
       const gen = await generateTaskSuggestions('General productivity improvements', tasks.map(t => t.title))
       setSuggestions(gen || [])
-
-      // Track usage (1 per generation request)
-      await fetch('/api/ai/usage', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ amount: 1 }) 
-      })
     } catch (e: any) {
       setError(e?.message || 'Failed to generate suggestions')
     } finally {
       setSuggesting(false)
+    }
+  }
+
+  // Handle tasks created by AI chatbot
+  const handleChatbotTaskCreate = async (aiTasks: any[]) => {
+    try {
+      const createdTasks = []
+      
+      for (const aiTask of aiTasks) {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: aiTask.title,
+            description: aiTask.description || '',
+            priority: aiTask.priority || 'medium',
+            status: 'todo'
+          })
+        })
+        
+        const data = await res.json()
+        if (data.task) {
+          const enhancedTask: Task = {
+            ...data.task,
+            status: 'todo',
+            priority: aiTask.priority || 'medium',
+            tags: [],
+            starred: false,
+            assignedTo: profile?.id,
+            dueDate: null,
+          }
+          createdTasks.push(enhancedTask)
+        }
+      }
+      
+      // Add all created tasks to the beginning of the tasks list
+      if (createdTasks.length > 0) {
+        setTasks([...createdTasks, ...tasks])
+      }
+    } catch (error) {
+      setError('Failed to create AI-suggested tasks')
     }
   }
 
@@ -346,7 +369,10 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="flex h-screen bg-gray-50">
+      {/* Main Content */}
+      <div className={`flex-1 transition-all duration-300 ${showChatbot ? 'mr-96' : ''}`}>
+        <div className="p-6 max-w-6xl mx-auto h-full overflow-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -358,6 +384,19 @@ export default function TasksPage() {
           </div>
           
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowChatbot(!showChatbot)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                showChatbot 
+                  ? 'bg-[#873bff] text-white' 
+                  : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              AI Assistant
+              {showChatbot && <X className="w-4 h-4 ml-1" />}
+            </button>
+            
             <button
               onClick={generateSuggestions}
               disabled={suggesting}
@@ -835,6 +874,18 @@ export default function TasksPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+        </div>
+      </div>
+      
+      {/* AI Chatbot Panel */}
+      {showChatbot && (
+        <div className="fixed right-0 top-0 w-96 h-full bg-white border-l border-gray-200 shadow-xl z-40">
+          <TasksChatbot 
+            className="h-full" 
+            onTaskCreate={handleChatbotTaskCreate}
+          />
         </div>
       )}
     </div>

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useDashboardData } from '@/hooks/useDashboardData'
+import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   CreditCard,
   Crown,
@@ -101,10 +103,11 @@ interface PricingPlan {
 }
 
 export default function BillingPage() {
+  const { profile, isFreePlan } = useUserProfile()
+  const { dashboardData, usageStats, isLoading: dashboardLoading } = useDashboardData()
+  
   // State
-  const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [upgrading, setUpgrading] = useState(false)
@@ -112,6 +115,7 @@ export default function BillingPage() {
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly')
   const [error, setError] = useState<string | null>(null)
   const [currency, setCurrency] = useState('USD')
+  const [loading, setLoading] = useState(false)
 
   // Pricing plans
   const pricingPlans: PricingPlan[] = [
@@ -124,74 +128,92 @@ export default function BillingPage() {
       currency: 'USD',
       features: [
         'Up to 3 team members',
-        '10 AI requests per month',
-        '1 GB storage',
+        'Unlimited AI requests',
+        '1 GB storage', 
         'Basic integrations',
         '5 projects',
-        '100 emails per month',
-        'Community support'
+        'Email support'
       ],
       limits: {
-        aiRequests: 10,
+        aiRequests: -1, // unlimited
         storage: 1,
         teamMembers: 3,
         integrations: 3,
         projects: 5,
-        emailsPerMonth: 100
+        emailsPerMonth: -1 // unlimited
       }
     },
     {
       id: 'pro',
       name: 'Pro',
       description: 'For growing teams and businesses',
-      monthlyPrice: 29,
-      yearlyPrice: 290, // $24.17/month
+      monthlyPrice: 25,
+      yearlyPrice: 200, // $16.67/month
       currency: 'USD',
       features: [
         'Unlimited team members',
-        '1,000 AI requests per month',
+        'Unlimited AI requests',
         '100 GB storage',
         'All integrations',
         'Unlimited projects',
-        '10,000 emails per month',
         'Advanced analytics',
         'Priority support',
         'Custom branding',
         'API access'
       ],
       limits: {
-        aiRequests: 1000,
+        aiRequests: -1, // unlimited
         storage: 100,
         teamMembers: -1, // unlimited
         integrations: -1,
         projects: -1,
-        emailsPerMonth: 10000
+        emailsPerMonth: -1 // unlimited
       },
       isPopular: true
     }
   ]
 
   // Mock data
-  const mockSubscription: Subscription = {
-    id: 'sub_1234567890',
-    plan: 'free',
+  // Create real subscription data from profile
+  const realSubscription: Subscription | null = dashboardData ? {
+    id: `sub_${dashboardData.user_id}`,
+    plan: dashboardData.plan_type || 'free',
     status: 'active',
     currentPeriodStart: new Date(),
     currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     interval: 'monthly',
-    amount: 0,
+    amount: dashboardData.plan_type === 'pro' ? 25 : 0,
     currency: 'USD',
     cancelAtPeriodEnd: false
-  }
+  } : null
 
-  const mockUsage: Usage = {
-    aiRequests: { used: 7, limit: 10 },
-    storage: { used: 0.3, limit: 1 },
-    teamMembers: { used: 2, limit: 3 },
-    integrations: { used: 2, limit: 3 },
-    projects: { used: 3, limit: 5 },
-    emailsPerMonth: { used: 45, limit: 100 }
-  }
+  // Create real usage data from dashboard stats
+  const usage: Usage | null = usageStats && dashboardData ? {
+    aiRequests: { 
+      used: usageStats.ai_requests_count, 
+      limit: -1 // AI is unlimited for all users now
+    },
+    storage: { 
+      used: Math.round((usageStats.storage_used / (1024 * 1024 * 1024)) * 100) / 100, // Convert to GB
+      limit: isFreePlan ? 1 : 100 
+    },
+    teamMembers: { 
+      used: 1, // TODO: Get real team member count 
+      limit: isFreePlan ? 3 : -1 
+    },
+    integrations: { 
+      used: 0, // TODO: Get real integrations count
+      limit: isFreePlan ? 3 : -1 
+    },
+    projects: { 
+      used: usageStats.projects_count, 
+      limit: isFreePlan ? 5 : -1 
+    },
+    emailsPerMonth: { 
+      used: 0, // TODO: Get real email usage
+      limit: -1 // Emails are unlimited for all users
+    }
+  } : null
 
   const mockPaymentMethods: PaymentMethod[] = [
     {
@@ -230,16 +252,20 @@ export default function BillingPage() {
 
   // Load data
   useEffect(() => {
+    if (realSubscription) {
+      setSubscription(realSubscription)
+    }
+  }, [realSubscription])
+
+  useEffect(() => {
     loadBillingData()
   }, [])
 
   const loadBillingData = async () => {
     setLoading(true)
     try {
-      // Simulate API calls
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setSubscription(mockSubscription)
-      setUsage(mockUsage)
+      // Load payment methods and invoices (mock for now)
+      await new Promise(resolve => setTimeout(resolve, 500))
       setPaymentMethods(mockPaymentMethods)
       setInvoices(mockInvoices)
     } catch (error) {
@@ -317,7 +343,8 @@ export default function BillingPage() {
 
   const currentPlan = pricingPlans.find(plan => plan.id === subscription?.plan) || pricingPlans[0]
   const isOnFreePlan = subscription?.plan === 'free'
-  const yearlyDiscount = Math.round(((29 * 12 - 290) / (29 * 12)) * 100)
+  const yearlyDiscount = Math.round(((25 * 12 - 200) / (25 * 12)) * 100)
+  const isLoading = dashboardLoading || loading
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -360,7 +387,7 @@ export default function BillingPage() {
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex items-center justify-center p-12">
           <Loader2 className="w-8 h-8 animate-spin text-[#873bff]" />
           <span className="ml-3 text-gray-600">Loading billing information...</span>

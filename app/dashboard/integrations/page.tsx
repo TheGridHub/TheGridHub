@@ -1,12 +1,7 @@
-"use client"
+export const dynamic = 'force-dynamic'
 
-import IntegrationSettings from '@/components/IntegrationSettings'
+import IntegrationsClient from './Client'
 
 export default function IntegrationsPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Integrations</h1>
-      <IntegrationSettings />
-    </div>
-  )
+  return <IntegrationsClient />
 }

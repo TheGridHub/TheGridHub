@@ -12,15 +12,15 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
--- If the table exists but missing PK, attempt to add (ignore errors)
+-- If the table exists but missing PK, add it only when there is no PRIMARY KEY
 DO $$
 BEGIN
-  BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_schema='public' AND table_name='profiles' AND constraint_type='PRIMARY KEY'
+  ) THEN
     ALTER TABLE public.profiles ADD CONSTRAINT profiles_pkey PRIMARY KEY (user_id);
-  EXCEPTION WHEN duplicate_object THEN
-    -- ignore
-    NULL;
-  END;
+  END IF;
 END $$;
 
 -- Try to reference auth.users for cascade; ignore if auth schema is unavailable in build context

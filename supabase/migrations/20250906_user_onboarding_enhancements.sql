@@ -41,6 +41,6 @@ BEGIN
 END $$;
 
 -- 4) Helpful index (already exists in earlier migration, keep idempotent)
-CREATE INDEX IF NOT EXISTS user_onboarding_user_idx ON public.user_onboarding (userId);
+CREATE INDEX IF NOT EXISTS user_onboarding_user_idx ON public.user_onboarding ("userId");
 CREATE INDEX IF NOT EXISTS user_onboarding_lang_idx ON public.user_onboarding (language);
 

@@ -1,10 +1,14 @@
-export const dynamic = 'force-dynamic'
+"use client"
 
-import IntegrationsClient from './Client'
+import { useEffect, useState } from 'react'
 
-export default function AdminIntegrationsPage() {
-  return <IntegrationsClient />
-}
+export default function IntegrationsClient() {
+  const [status, setStatus] = useState<string>('')
+  const [userEmail, setUserEmail] = useState<string>('')
+  const [hasUserSession, setHasUserSession] = useState<boolean>(false)
+  const [impersonateEmail, setImpersonateEmail] = useState<string>('')
+
+  async function checkUser() {
     try {
       const r = await fetch('/api/profile', { cache: 'no-store' })
       if (r.ok) {

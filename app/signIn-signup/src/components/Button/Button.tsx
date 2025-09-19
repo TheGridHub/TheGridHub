@@ -9,20 +9,21 @@ import { Link } from "react-router-dom";
 import { SocialMediaIcons4 } from "../../icons/SocialMediaIcons4";
 
 interface Props {
-  showIcon: boolean;
-  label: string;
-  type: "primary" | "secondary" | "tertiary";
-  stateProp: "hover" | "default";
-  size: "small" | "big";
-  typeSecondaryStateClassName: any;
-  socialMediaIcons4Color: string;
-  socialMediaIcons4Fill: string;
-  socialMediaIcons4Color1: string;
-  socialMediaIcons4Color2: string;
-  icon: JSX.Element;
-  divClassName: any;
-  to: string;
-  to1: string;
+  showIcon?: boolean;
+  label?: string;
+  type?: "primary" | "secondary" | "tertiary";
+  stateProp?: "hover" | "default";
+  size?: "small" | "big";
+  typeSecondaryStateClassName?: any;
+  socialMediaIcons4Color?: string;
+  socialMediaIcons4Fill?: string;
+  socialMediaIcons4Color1?: string;
+  socialMediaIcons4Color2?: string;
+  icon?: JSX.Element;
+  divClassName?: any;
+  to?: string;
+  to1?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export const Button = ({
@@ -48,6 +49,7 @@ export const Button = ({
   divClassName,
   to,
   to1,
+  onClick,
 }: Props): JSX.Element => {
   const [state, dispatch] = useReducer(reducer, {
     type: type || "secondary",
@@ -58,7 +60,15 @@ export const Button = ({
   });
 
   return (
-    <Link to={to || to1 || "#"}>
+    <Link
+      to={to || to1 || "#"}
+      onClick={(e) => {
+        if (onClick) {
+          e.preventDefault();
+          onClick(e);
+        }
+      }}
+    >
       <button
         className={`all-[unset] box-border inline-flex items-center relative gap-[var(--collection-spacing-sm)] justify-center ${state.state === "default" && state.type === "secondary" ? "border-colors-light-100" : (state.type === "secondary" && state.state === "hover") ? "border-colors-light-250" : ""} ${state.size === "big" ? "pr-[var(--collection-spacing-xxl)] pl-[var(--collection-spacing-xxl)] py-2.5" : ""} ${state.size === "small" ? "rounded-lg" : "rounded-[var(--collection-corner-radius-sm)]"} ${state.type === "secondary" ? "bg-colors-light-100" : (state.state === "default" && state.type === "primary") ? "bg-colors-primary-1000" : state.type === "primary" && state.state === "hover" ? "bg-colors-primary-500" : ""} ${state.type === "secondary" ? "border border-solid" : ""} ${state.size === "big" ? "min-w-[140px]" : ""} ${state.size === "big" ? "h-11" : ""} ${typeSecondaryStateClassName}`}
         onMouseEnter={() => {

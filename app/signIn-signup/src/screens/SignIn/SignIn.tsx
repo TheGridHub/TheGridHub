@@ -20,6 +20,23 @@ export const SignIn = (): JSX.Element => {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
+  const handleOAuth = async (provider: 'google' | 'github') => {
+    try {
+      const supabase = (await import('@/lib/supabase/client')).createClient()
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${appUrl}/auth/callback`
+        }
+      })
+      if (error) alert(error.message)
+    } catch (err) {
+      console.error(err)
+      alert('Unable to start OAuth flow')
+    }
+  }
+
   const handleInputChange = (field: string) => (value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -201,6 +218,8 @@ className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6
                 stateProp="default"
                 type="secondary"
                 typeSecondaryStateClassName="!flex-1 !flex !grow"
+                to="#"
+                onClick={() => handleOAuth('google')}
               />
               <Button
                 icon={
@@ -211,6 +230,8 @@ className="flex flex-col min-h-screen items-center justify-center gap-[21px] p-6
                 stateProp="default"
                 type="secondary"
                 typeSecondaryStateClassName="!flex-1 !flex !grow"
+                to="#"
+                onClick={() => handleOAuth('github')}
               />
             </div>
           </div>

@@ -127,7 +127,11 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     const message = e?.message || 'Migration apply failed'
     const code = (e?.cause && e.cause.code) || e?.code
-    return NextResponse.json({ error: message, code }, { status: 500 })
+    let hint: string | undefined
+    if (code === 'ENOTFOUND') {
+      hint = 'DNS resolution failed for your database host. Verify DATABASE_URL/DIRECT_URL is correct (db.<project-ref>.supabase.co), that the project ref matches your Supabase project, and that your runtime/network can resolve external DNS. If running locally, check VPN/Firewall/DNS settings. On Vercel, ensure env vars are set on the deployment.'
+    }
+    return NextResponse.json({ error: message, code, hint }, { status: 500 })
   }
 }
 

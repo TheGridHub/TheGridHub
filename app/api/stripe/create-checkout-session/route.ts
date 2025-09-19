@@ -10,12 +10,22 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}))
     const interval: 'monthly' | 'yearly' = body.interval === 'yearly' ? 'yearly' : 'monthly'
+    const preferredCurrency: string | undefined = (body.currency || '').toUpperCase() || undefined
 
-    const priceId = interval === 'yearly'
-      ? process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY
-      : process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY
+    // Infer currency from headers if not provided
+    let currency = preferredCurrency
+    if (!currency) {
+      const acceptLanguage = request.headers.get('accept-language') || ''
+      // Simplistic mapping example; can be extended
+      if (/gb|en-GB/i.test(acceptLanguage)) currency = 'GBP'
+      else if (/de|fr|es|it|nl|pt|eu/i.test(acceptLanguage)) currency = 'EUR'
+      else if (/in|hi|en-IN/i.test(acceptLanguage)) currency = 'INR'
+      else currency = 'USD'
+    }
 
-    if (!priceId) return NextResponse.json({ error: 'Stripe price not configured' }, { status: 500 })
+    const { pickPriceId } = await import('@/lib/pricing')
+    const priceId = pickPriceId('PRO', interval, currency!)
+    if (!priceId) return NextResponse.json({ error: 'Stripe price not configured for currency', currency }, { status: 500 })
 
     // Ensure user has a stripeCustomerId
     let stripeCustomerId: string | null = null

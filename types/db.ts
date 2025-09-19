@@ -128,3 +128,60 @@ export type ProjectRow = ProjectsRow
 export type GoalRow = GoalsRow
 export type NotificationRow = NotificationsRow
 
+// New CRM/Notes/Analytics tables
+export interface CompaniesRow {
+  id: string
+  userId: string
+  name: string
+  domain: string | null
+  website: string | null
+  industry: string | null
+  size: string | null
+  tags: string[]
+  description: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ContactsRow {
+  id: string
+  userId: string
+  companyId: string | null
+  firstName: string | null
+  lastName: string | null
+  email: string | null
+  phone: string | null
+  title: string | null
+  status: string // 'lead' | 'active' | 'customer' | 'archived'
+  tags: string[]
+  avatarUrl: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NotesRow {
+  id: string
+  userId: string
+  entityType: string // 'contact' | 'company' | 'project' | 'task'
+  entityId: string
+  content: string
+  pinned: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ActivityEventsRow {
+  id: string
+  userId: string
+  type: string // 'created' | 'updated' | 'deleted' | 'completed' | 'note_added' | ...
+  targetType: string // 'project' | 'task' | 'contact' | 'company' | 'note' | ...
+  targetId: string | null
+  metadata: Record<string, unknown>
+  createdAt: string
+}
+
+export type CompanyRow = CompaniesRow
+export type ContactRow = ContactsRow
+export type NoteRow = NotesRow
+export type ActivityEventRow = ActivityEventsRow
+

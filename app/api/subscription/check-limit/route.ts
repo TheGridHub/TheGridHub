@@ -32,21 +32,30 @@ export async function POST(request: NextRequest) {
         maxTeamMembers: 10,
         aiSuggestions: 10, // per day (UI will enforce daily; here we only gate count when provided)
         storageMB: 1024,
+        maxCompanies: Number(process.env.FREE_MAX_COMPANIES || 25),
+        maxContacts: Number(process.env.FREE_MAX_CONTACTS || 250),
+        maxNotes: Number(process.env.FREE_MAX_NOTES || 1000),
       },
       PRO: {
         maxProjects: -1,
         maxTeamMembers: -1,
         aiSuggestions: -1,
         storageMB: -1,
+        maxCompanies: -1,
+        maxContacts: -1,
+        maxNotes: -1,
       }
     } as const
 
     const limits = (LIMITS as any)[plan] || LIMITS.FREE
 
     // Current usage
-    const [projectsCountRes, membersCountRes] = await Promise.all([
+    const [projectsCountRes, membersCountRes, companiesCountRes, contactsCountRes, notesCountRes] = await Promise.all([
       supabase.from('projects').select('id', { count: 'exact', head: true }).eq('userId', user.id),
       supabase.from('team_memberships').select('id', { count: 'exact', head: true }).eq('userId', user.id),
+      supabase.from('companies').select('id', { count: 'exact', head: true }).eq('userId', user.id),
+      supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('userId', user.id),
+      supabase.from('notes').select('id', { count: 'exact', head: true }).eq('userId', user.id),
     ])
 
     // Storage usage from project_files via RPC
@@ -61,6 +70,9 @@ export async function POST(request: NextRequest) {
       teamMembers: membersCountRes.count || 0,
       aiSuggestions: 0,
       storageMB,
+      companies: companiesCountRes.count || 0,
+      contacts: contactsCountRes.count || 0,
+      notes: notesCountRes.count || 0,
     }
 
     function deny(reason: string) {
@@ -92,6 +104,24 @@ export async function POST(request: NextRequest) {
           if (usage.storageMB + sizeMB > limits.storageMB) {
             return deny(`This would exceed your storage limit (${limits.storageMB} MB).`)
           }
+        }
+        break
+      }
+      case 'create_company': {
+        if (limits.maxCompanies !== -1 && usage.companies >= limits.maxCompanies) {
+          return deny(`You've reached your companies limit (${limits.maxCompanies}).`)
+        }
+        break
+      }
+      case 'create_contact': {
+        if (limits.maxContacts !== -1 && usage.contacts >= limits.maxContacts) {
+          return deny(`You've reached your contacts limit (${limits.maxContacts}).`)
+        }
+        break
+      }
+      case 'create_note': {
+        if (limits.maxNotes !== -1 && usage.notes >= limits.maxNotes) {
+          return deny(`You've reached your notes limit (${limits.maxNotes}).`)
         }
         break
       }

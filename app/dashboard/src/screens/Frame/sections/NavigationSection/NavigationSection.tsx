@@ -333,7 +333,7 @@ export const NavigationSection = ({ isCollapsed, onToggle, isMobile, onMobileTog
           </button>
         ) : (
           <button
-            onClick={async()=>{ const r=await fetch('/api/stripe/create-checkout-session',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ interval:'monthly' })}); const j=await r.json(); if (j.url) window.location.href=j.url; }}
+onClick={async()=>{ const r=await fetch('/api/stripe/create-checkout-session',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ interval:'monthly', currency: (window as any).__selectedCurrency })}); const j=await r.json(); if (j.url) window.location.href=j.url; }}
             className="w-full bg-black text-white hover:bg-black/90 h-auto py-2 rounded"
           >
             Upgrade to Pro

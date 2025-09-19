@@ -11,6 +11,11 @@ interface PricingModalProps {
 }
 
 export default function PricingModal({ isOpen, onClose, feature }: PricingModalProps) {
+  // Expose currency selection globally to let checkout respect manual override
+  useEffect(() => {
+    // If a previously selected currency exists, keep it
+    try { (window as any).__selectedCurrency = (window as any).__selectedCurrency || 'USD' } catch {}
+  }, [])
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [userCurrency, setUserCurrency] = useState('USD')
   const [convertedPrices, setConvertedPrices] = useState({

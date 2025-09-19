@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import CurrencyConverter from '@/components/CurrencyConverter'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,17 @@ function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function PricingPage() {
+  // Try to preselect currency for UI rendering
+  // Note: client-side detection is handled by CurrencyConverter; this is just a baseline.
+  if (typeof window !== 'undefined' && !(window as any).__selectedCurrency) {
+    try {
+      const lang = navigator.language || ''
+      if (/gb|en-GB/i.test(lang)) (window as any).__selectedCurrency = 'GBP'
+      else if (/in|hi|en-IN/i.test(lang)) (window as any).__selectedCurrency = 'INR'
+      else if (/de|fr|es|it|nl|pt|eu/i.test(lang)) (window as any).__selectedCurrency = 'EUR'
+      else (window as any).__selectedCurrency = 'USD'
+    } catch {}
+  }
   const [billing, setBilling] = useState<'monthly' | 'annually'>('monthly')
 
   const plans = [
@@ -79,7 +91,7 @@ export default function PricingPage() {
       </header>
 
       {/* Billing Toggle */}
-      <section className="flex items-center justify-center py-10">
+      <section className="flex flex-col items-center justify-center gap-4 py-10">
         <div className="inline-flex items-center gap-2 p-1 bg-white rounded-lg border border-gray-200">
           <button
             onClick={() => setBilling('monthly')}
@@ -91,9 +103,10 @@ export default function PricingPage() {
             onClick={() => setBilling('annually')}
             className={`px-4 py-2 rounded-md text-sm transition ${billing === 'annually' ? 'bg-[#873bff] text-white shadow' : 'text-black hover:bg-gray-50'}`}
           >
-            Billed Annually <span className="ml-1 text-xs opacity-80">(Save 20%)</span>
+            Billed Annually <span className="ml-1 text-xs opacity-80">(Save vs $25/mo)</span>
           </button>
         </div>
+        <CurrencyConverter basePrices={{ personal: 0, pro: 25, enterprise: 50 }} />
       </section>
 
       {/* Plans */}
@@ -108,7 +121,10 @@ export default function PricingPage() {
                   <div className="text-4xl font-bold text-black group-hover:text-white">
                     ${plan.price[billing]}
                   </div>
-                  <div className="text-gray-500 group-hover:text-white/80 text-sm">{plan.price[billing] === 0 ? 'forever' : 'per month'}{billing === 'annually' && plan.price[billing] !== 0 ? ', billed yearly' : ''}</div>
+                  <div className="text-gray-500 group-hover:text-white/80 text-sm">
+                    {plan.price[billing] === 0 ? 'forever' : 'per month'}
+                    {billing === 'annually' && plan.price[billing] !== 0 ? (plan.name.includes('Pro') ? ', billed $200/yr' : ', billed yearly') : ''}
+                  </div>
                 </div>
               </div>
 

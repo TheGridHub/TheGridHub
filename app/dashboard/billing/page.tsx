@@ -30,7 +30,7 @@ export default function BillingPage() {
           </button>
           <button
             onClick={async () => {
-              const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'monthly' }) })
+const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'monthly', currency: (window as any).__selectedCurrency }) })
               const data = await res.json()
               if (data.url) window.location.href = data.url
             }}
@@ -40,7 +40,7 @@ export default function BillingPage() {
           </button>
           <button
             onClick={async () => {
-              const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'yearly' }) })
+const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'yearly', currency: (window as any).__selectedCurrency }) })
               const data = await res.json()
               if (data.url) window.location.href = data.url
             }}

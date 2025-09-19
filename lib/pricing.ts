@@ -12,6 +12,66 @@ const env = (key: string, fallback: string | null = null) => {
   return (process.env as any)[key] ?? fallback
 }
 
+// Central mapping of Stripe Price IDs by currency for each plan & billing period
+// Configure via environment variables. Example vars for PRO:
+// NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_USD, NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_GBP, NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_EUR, NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_INR
+// NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_USD, NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_GBP, NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_EUR, NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_INR
+
+export const PRICE_ID_MAP = {
+  PRO: {
+    monthly: {
+      USD: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_USD,
+      GBP: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_GBP,
+      EUR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_EUR,
+      INR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY_INR,
+    },
+    yearly: {
+      USD: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_USD,
+      GBP: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_GBP,
+      EUR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_EUR,
+      INR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY_INR,
+    }
+  },
+  PERSONAL: {
+    monthly: {
+      USD: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY_USD,
+      GBP: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY_GBP,
+      EUR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY_EUR,
+      INR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_MONTHLY_INR,
+    },
+    yearly: {
+      USD: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY_USD,
+      GBP: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY_GBP,
+      EUR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY_EUR,
+      INR: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY_INR,
+    }
+  },
+  ENTERPRISE: {
+    monthly: {
+      USD: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY_USD,
+      GBP: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY_GBP,
+      EUR: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY_EUR,
+      INR: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY_INR,
+    },
+    yearly: {
+      USD: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY_USD,
+      GBP: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY_GBP,
+      EUR: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY_EUR,
+      INR: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_YEARLY_INR,
+    }
+  }
+} as const
+
+export function pickPriceId(
+  plan: keyof typeof PRICE_ID_MAP,
+  interval: 'monthly' | 'yearly',
+  currency: string
+): string | undefined {
+  const cur = (currency || 'USD').toUpperCase()
+  const map = PRICE_ID_MAP[plan]?.[interval] as Record<string, string | undefined>
+  return map?.[cur] || map?.USD
+}
+
 export const SUBSCRIPTION_PLANS = {
   FREE: {
     id: 'free',
@@ -170,11 +230,13 @@ export const ANNUAL_PRICING = {
   },
   PRO: {
     ...SUBSCRIPTION_PLANS.PRO,
-    price: 20, // yearly billed price per month
+    price: 20, // display price per month when billed annually
     originalPrice: 25,
     billingPeriod: 'year',
     stripePriceId: env('NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY', 'price_pro_yearly'),
-    annualSavings: 60.00
+    annualSavings: 100.00, // vs monthly $25 * 12 = $300; $200/yr -> $100 savings
+    // Total billed annually (authoritative charge). UI may display price: 20/mo, billed $200/yr.
+    annualTotal: 200
   },
   BUSINESS: {
     ...SUBSCRIPTION_PLANS.BUSINESS,
@@ -325,12 +387,24 @@ export const FEATURE_DESCRIPTIONS = {
 
 // Stripe configuration
 export const STRIPE_CONFIG = {
+  // Default currency to display when detection fails
+  defaultCurrency: (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'USD').toUpperCase(),
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
   secretKey: process.env.STRIPE_SECRET_KEY!,
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
   successUrl: process.env.NEXT_PUBLIC_APP_URL + '/payment/success',
   cancelUrl: process.env.NEXT_PUBLIC_APP_URL + '/pricing',
   customerPortalUrl: process.env.NEXT_PUBLIC_APP_URL + '/billing'
+}
+
+// Helper to infer currency from Accept-Language (best-effort)
+export function inferCurrencyFromHeaders(headers: Headers | Record<string, string | null | undefined>): string {
+  const get = (k: string) => (headers instanceof Headers ? headers.get(k) : (headers[k] as any)) || ''
+  const acceptLanguage = String(get('accept-language') || '')
+  if (/gb|en-GB/i.test(acceptLanguage)) return 'GBP'
+  if (/in|hi|en-IN/i.test(acceptLanguage)) return 'INR'
+  if (/de|fr|es|it|nl|pt|eu/i.test(acceptLanguage)) return 'EUR'
+  return 'USD'
 }
 
 // Plan upgrade/downgrade rules

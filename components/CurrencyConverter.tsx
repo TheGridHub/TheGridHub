@@ -20,6 +20,8 @@ interface CurrencyConverterProps {
 }
 
 export default function CurrencyConverter({ basePrices, onCurrencyChange }: CurrencyConverterProps) {
+  // Expose selected currency globally for checkout override via window (simple integration)
+  // Consumers can also use onCurrencyChange to capture currency in state and pass to checkout calls.
   const [userLocation, setUserLocation] = useState<LocationData | null>(null)
   const [selectedCurrency, setSelectedCurrency] = useState('USD')
   const [convertedPrices, setConvertedPrices] = useState(basePrices)
@@ -81,6 +83,7 @@ export default function CurrencyConverter({ basePrices, onCurrencyChange }: Curr
   }, [selectedCurrency, basePrices, onCurrencyChange])
 
   const handleCurrencyChange = (currencyCode: string) => {
+    try { (window as any).__selectedCurrency = currencyCode } catch {}
     setSelectedCurrency(currencyCode)
     setIsDropdownOpen(false)
   }

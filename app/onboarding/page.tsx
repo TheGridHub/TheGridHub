@@ -429,7 +429,7 @@ export default function OnboardingPage() {
                         try {
                           await setPlanClient('pro')
                           await setSubscriptionStatusClient('pending')
-                          const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'monthly' }) })
+const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: 'monthly', currency: (window as any).__selectedCurrency }) })
                           const data = await res.json()
                           if (data.url) {
                             window.location.href = data.url

@@ -9,12 +9,12 @@ alter table if exists public.users enable row level security;
 drop policy if exists users_select_self on public.users;
 drop policy if exists users_modify_self on public.users;
 create policy users_select_self on public.users for select using (
-  supabaseId = auth.uid()
+  "supabaseId" = auth.uid()
 );
 create policy users_modify_self on public.users for all using (
-  supabaseId = auth.uid()
+  "supabaseId" = auth.uid()
 ) with check (
-  supabaseId = auth.uid()
+  "supabaseId" = auth.uid()
 );
 
 -- USER_ONBOARDING

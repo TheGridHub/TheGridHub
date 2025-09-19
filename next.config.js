@@ -64,24 +64,6 @@ const baseConfig = {
       }
     }
 
-    // Ignore Node.js APIs in Edge Runtime for Supabase
-    config.module = {
-      ...config.module,
-      rules: [
-        ...config.module.rules,
-        {
-          test: /node_modules\/@supabase\/.*\.(js|ts)$/,
-          use: {
-            loader: 'next/dist/build/webpack/loaders/next-swc-loader.js',
-            options: {
-              isServer: isServer,
-              development: dev,
-            },
-          },
-        },
-      ],
-    }
-
     // Optimize bundle splitting
     if (!dev && !isServer) {
       config.optimization = {

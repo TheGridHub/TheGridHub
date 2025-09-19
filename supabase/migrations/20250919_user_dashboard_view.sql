@@ -22,11 +22,10 @@ SELECT
   -- AI usage this month
   COALESCE(ai_count.count, 0) as ai_requests_this_month
 
-FROM user_profiles p
+FROM profiles p
 
--- Join with workspace (first workspace user belongs to)
-LEFT JOIN workspace_members wm ON wm.user_id = p.user_id AND wm.role IN ('owner', 'admin', 'member')
-LEFT JOIN workspaces w ON w.id = wm.workspace_id
+-- Join with workspace through team_id
+LEFT JOIN workspaces w ON w.id = p.team_id
 
 -- Count projects
 LEFT JOIN (

@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy initialize OpenAI client
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    return null // Return null if no API key is configured
+  }
+  
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+}
 
 const SYSTEM_PROMPTS = {
   tasks: `You are an AI task management assistant for TheGridHub, a project management platform. Your role is to help users create, organize, and manage their tasks effectively. This service is completely free for all users with unlimited usage.
@@ -99,17 +105,31 @@ export async function POST(request: NextRequest) {
     ]
 
     // Get chat completion from OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
-      max_tokens: 1000,
-      temperature: 0.7,
-      presence_penalty: 0.1,
-      frequency_penalty: 0.1,
-    })
+    const openai = getOpenAIClient()
+    let assistantMessage: string
+    let tokensUsed = 0
+    
+    if (!openai) {
+      // Fallback response when OpenAI is not configured
+      assistantMessage = `I'm currently unavailable as the OpenAI service is not configured. However, I can help you organize your work! Here are some suggestions based on your message:\n\n• Break down "${message}" into smaller, actionable tasks\n• Set priorities and deadlines for your work\n• Use the Tasks page to track your progress\n• Try the project management features to stay organized`
+    } else {
+      try {
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-3.5-turbo',
+          messages,
+          max_tokens: 1000,
+          temperature: 0.7,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1,
+        })
 
-    const assistantMessage = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
-    const tokensUsed = completion.usage?.total_tokens || 0
+        assistantMessage = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
+        tokensUsed = completion.usage?.total_tokens || 0
+      } catch (error) {
+        console.error('OpenAI API error:', error)
+        assistantMessage = `I'm experiencing some technical difficulties. However, I can still help you organize your work! Try using the project management features to break down "${message}" into manageable tasks.`
+      }
+    }
 
     // Check if the message seems to be requesting task creation
     const isTaskCreation = /create|make|generate|build|add|list.*task|break.*down|organize/i.test(message)

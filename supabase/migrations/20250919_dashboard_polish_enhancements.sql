@@ -383,40 +383,8 @@ LEFT JOIN workspaces w ON p.team_id = w.id;
 GRANT SELECT ON user_dashboard TO authenticated;
 
 -- =====================================================
--- 10. UPDATE EXISTING DATA
+-- 10. COMMENTS FOR DOCUMENTATION
 -- =====================================================
-
--- Update any existing profiles without first_name/last_name from full_name
-UPDATE profiles 
-SET 
-    first_name = SPLIT_PART(full_name, ' ', 1),
-    last_name = CASE 
-        WHEN array_length(string_to_array(full_name, ' '), 1) > 1 
-        THEN array_to_string(string_to_array(full_name, ' ')[2:], ' ')
-        ELSE ''
-    END
-WHERE first_name IS NULL 
-  AND last_name IS NULL 
-  AND full_name IS NOT NULL 
-  AND full_name != '';
-
--- Create default workspace for users who don't have one
-INSERT INTO workspaces (name, owner_id, plan_type)
-SELECT 
-    COALESCE(p.workspace_name, p.first_name || '''s Workspace', 'My Workspace'),
-    p.user_id,
-    p.plan_type
-FROM profiles p
-WHERE p.team_id IS NULL
-  AND NOT EXISTS (SELECT 1 FROM workspaces w WHERE w.owner_id = p.user_id)
-ON CONFLICT (owner_id) DO NOTHING;
-
--- Link profiles to their default workspaces
-UPDATE profiles 
-SET team_id = w.id
-FROM workspaces w
-WHERE profiles.user_id = w.owner_id 
-  AND profiles.team_id IS NULL;
 
 COMMENT ON TABLE ai_chats IS 'Stores AI chat conversations for the dashboard chatbot';
 COMMENT ON TABLE usage_tracking IS 'Tracks resource usage for billing and analytics';

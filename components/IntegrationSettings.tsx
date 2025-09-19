@@ -23,14 +23,7 @@ interface Integration {
   status: 'connected' | 'disconnected' | 'error'
   connectedAt?: string
   userEmail?: string
-  features: {
-    calendar?: boolean
-    email?: boolean
-    storage?: boolean
-    chat?: boolean
-    tasks?: boolean
-    sheets?: boolean
-  }
+  features: any
   lastSync?: string
 }
 
@@ -85,6 +78,8 @@ export default function IntegrationSettings() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [slackChannels, setSlackChannels] = useState<Array<{id: string, name: string}>>([])
   const [selectedSlackChannel, setSelectedSlackChannel] = useState<string>("")
+  const [googleCalendars, setGoogleCalendars] = useState<Array<{id:string, summary:string}>>([])
+  const [o365Calendars, setO365Calendars] = useState<Array<{id:string, summary:string}>>([])
 
   useEffect(() => {
     if (user) {
@@ -168,6 +163,19 @@ export default function IntegrationSettings() {
       await fetchIntegrations()
     } catch (error) {
       console.error('Failed to toggle feature:', error)
+    }
+  }
+
+  const setFeatureValue = async (integrationId: string, feature: string, value: any) => {
+    try {
+      await fetch(`/api/integrations/${integrationId}/features`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feature, value })
+      })
+      await fetchIntegrations()
+    } catch (error) {
+      console.error('Failed to set feature value:', error)
     }
   }
 
@@ -324,6 +332,33 @@ export default function IntegrationSettings() {
                             >
                               Test Calendar
                             </button>
+                            <button
+                              onClick={async () => {
+                                setActionLoading('google-load-cals')
+                                try {
+                                  const res = await fetch('/api/integrations/google/calendars')
+                                  const data = await res.json()
+                                  setGoogleCalendars(data.calendars || [])
+                                } finally {
+                                  setActionLoading(null)
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                              title="Load calendars"
+                            >
+                              Load Calendars
+                            </button>
+                            {googleCalendars.length > 0 && (
+                              <select
+                                className="border border-slate-300 rounded-lg px-2 py-1 text-sm"
+                                value={integration.features?.defaultCalendarId || 'primary'}
+                                onChange={(e)=> setFeatureValue(integration.id, 'defaultCalendarId', e.target.value)}
+                              >
+                                {googleCalendars.map((c) => (
+                                  <option key={c.id} value={c.id}>{c.summary}</option>
+                                ))}
+                              </select>
+                            )}
                           </>
                         )}
                         {/* Office365 specific actions */}
@@ -357,6 +392,34 @@ export default function IntegrationSettings() {
                             >
                               Test Calendar
                             </button>
+                            <button
+                              onClick={async () => {
+                                setActionLoading('o365-load-cals')
+                                try {
+                                  const res = await fetch('/api/integrations/office365/calendars')
+                                  const data = await res.json()
+                                  setO365Calendars(data.calendars || [])
+                                } finally {
+                                  setActionLoading(null)
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors hover:bg-${config.color}-100 text-${config.color}-600`}
+                              title="Load calendars"
+                            >
+                              Load Calendars
+                            </button>
+                            {o365Calendars.length > 0 && (
+                              <select
+                                className="border border-slate-300 rounded-lg px-2 py-1 text-sm"
+                                value={integration.features?.defaultCalendarId || ''}
+                                onChange={(e)=> setFeatureValue(integration.id, 'defaultCalendarId', e.target.value)}
+                              >
+                                <option value="">Default (Primary)</option>
+                                {o365Calendars.map((c) => (
+                                  <option key={c.id} value={c.id}>{c.summary}</option>
+                                ))}
+                              </select>
+                            )}
                           </>
                         )}
                         {/* Jira specific actions */}
@@ -484,6 +547,71 @@ export default function IntegrationSettings() {
                       )
                     })}
                   </div>
+
+                  {/* Calendar selection (optional) */}
+                  {isConnected && (type === 'google' || type === 'office365') && (
+                    <div className="flex items-center gap-3 pt-2">
+                      <span className="text-sm text-slate-600">Default calendar:</span>
+                      {type === 'google' ? (
+                        googleCalendars.length > 0 ? (
+                          <select
+                            className="border border-slate-300 rounded-lg px-2 py-1 text-sm"
+                            value={integration?.features?.defaultCalendarId || 'primary'}
+                            onChange={(e)=> setFeatureValue(integration!.id, 'defaultCalendarId', e.target.value)}
+                          >
+                            {googleCalendars.map((c) => (
+                              <option key={c.id} value={c.id}>{c.summary}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <button
+                            onClick={async ()=>{
+                              setActionLoading('google-load-cals')
+                              try {
+                                const res = await fetch('/api/integrations/google/calendars')
+                                const data = await res.json()
+                                setGoogleCalendars(data.calendars || [])
+                              } finally {
+                                setActionLoading(null)
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-lg border text-sm hover:bg-${config.color}-100 border-slate-300`}
+                          >
+                            Load Calendars
+                          </button>
+                        )
+                      ) : (
+                        o365Calendars.length > 0 ? (
+                          <select
+                            className="border border-slate-300 rounded-lg px-2 py-1 text-sm"
+                            value={integration?.features?.defaultCalendarId || ''}
+                            onChange={(e)=> setFeatureValue(integration!.id, 'defaultCalendarId', e.target.value)}
+                          >
+                            <option value="">Default (Primary)</option>
+                            {o365Calendars.map((c) => (
+                              <option key={c.id} value={c.id}>{c.summary}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <button
+                            onClick={async ()=>{
+                              setActionLoading('o365-load-cals')
+                              try {
+                                const res = await fetch('/api/integrations/office365/calendars')
+                                const data = await res.json()
+                                setO365Calendars(data.calendars || [])
+                              } finally {
+                                setActionLoading(null)
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-lg border text-sm hover:bg-${config.color}-100 border-slate-300`}
+                          >
+                            Load Calendars
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Security Notice */}
@@ -529,4 +657,3 @@ export default function IntegrationSettings() {
     </div>
   )
 }
-

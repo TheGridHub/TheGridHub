@@ -8,6 +8,8 @@ const publicRoutes = [
   '/sign-in',
   '/sign-up',
   '/auth',
+  // Internal admin login page should be reachable without Supabase auth
+  '/admin-internal/login',
 ]
 
 // Routes that should bypass onboarding checks (but still require auth)
@@ -26,6 +28,11 @@ export async function middleware(request: NextRequest) {
 
   // Skip middleware for API routes (let API handlers enforce auth & return JSON)
   if (pathname.startsWith('/api/')) {
+    return response
+  }
+
+  // Bypass Supabase auth for internal admin console (it has its own auth)
+  if (pathname === '/admin-internal' || pathname.startsWith('/admin-internal/')) {
     return response
   }
 

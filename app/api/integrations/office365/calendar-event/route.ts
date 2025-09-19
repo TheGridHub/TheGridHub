@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createOrUpdateO365Event } from '@/lib/integrations/calendar'
+import { maybeRefreshMsToken } from '@/lib/integrations/tokens'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     const { data: integ } = await supabase
       .from('integrations')
-      .select('accessToken, features')
+      .select('id, accessToken, refreshToken, features, expiresAt')
       .eq('type', 'office365')
       .eq('status', 'connected')
       .limit(1)
@@ -21,12 +22,25 @@ export async function POST(request: NextRequest) {
 
     if (!integ?.accessToken) return NextResponse.json({ error: 'Office365 not connected' }, { status: 400 })
 
+    const refreshed = await maybeRefreshMsToken({
+      accessToken: (integ as any).accessToken,
+      refreshToken: (integ as any).refreshToken,
+      expiresAt: (integ as any).expiresAt || null,
+    })
+
+    if (refreshed.accessToken !== (integ as any).accessToken || refreshed.expiresAt !== (integ as any).expiresAt) {
+      await supabase
+        .from('integrations')
+        .update({ accessToken: refreshed.accessToken, expiresAt: refreshed.expiresAt })
+        .eq('id', (integ as any).id)
+    }
+
     const features = (integ as any).features || {}
     if (features.syncTasksToCalendar === false) return NextResponse.json({ skipped: true })
 
     const calendarId = features.defaultCalendarId // may be undefined → /me/events
     const eventId = await createOrUpdateO365Event({
-      accessToken: (integ as any).accessToken,
+      accessToken: refreshed.accessToken,
       calendarId,
       eventId: null,
       title,

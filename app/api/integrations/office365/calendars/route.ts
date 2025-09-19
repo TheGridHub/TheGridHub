@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { maybeRefreshMsToken } from '@/lib/integrations/tokens'
 
-export async function POST(_req: NextRequest) {
+export async function GET() {
   try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -17,7 +17,7 @@ export async function POST(_req: NextRequest) {
 
     const { data: integ } = await supabase
       .from('integrations')
-      .select('id, accessToken, refreshToken, userEmail, expiresAt')
+      .select('id, accessToken, refreshToken, expiresAt')
       .eq('userId', appUser.id)
       .eq('type', 'office365')
       .eq('status', 'connected')
@@ -37,30 +37,16 @@ export async function POST(_req: NextRequest) {
         .eq('id', (integ as any).id)
     }
 
-    const recipient = (integ as any).userEmail
-    if (!recipient) return NextResponse.json({ error: 'Missing userEmail on integration' }, { status: 400 })
-
-    const message = {
-      message: {
-        subject: 'TheGridHub: Test Email ✅',
-        body: { contentType: 'Text', content: 'This is a test email from TheGridHub.' },
-        toRecipients: [{ emailAddress: { address: recipient } }]
-      }
-    }
-
-    const res = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(recipient)}/sendMail`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${refreshed.accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(message)
+    const res = await fetch('https://graph.microsoft.com/v1.0/me/calendars', {
+      headers: { Authorization: `Bearer ${refreshed.accessToken}` }
     })
+    const data = await res.json()
+    if (!res.ok) return NextResponse.json({ error: 'Failed to list calendars', details: data }, { status: 500 })
 
-    if (!res.ok) {
-      const err = await res.text()
-      return NextResponse.json({ error: 'Failed to send email', details: err }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true })
+    const calendars = (data.value || []).map((c: any) => ({ id: c.id, summary: c.name }))
+    return NextResponse.json({ calendars })
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Failed to send test email' }, { status: 500 })
+    return NextResponse.json({ error: e?.message || 'Failed to list calendars' }, { status: 500 })
   }
 }
+

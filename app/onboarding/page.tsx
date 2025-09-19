@@ -105,13 +105,36 @@ export default function OnboardingPage() {
 
   const onNext = useCallback(async () => {
     if (!validate()) return;
+
+    try {
+      // Persist step-specific data into Supabase user metadata for later analysis
+      if (step === 1) {
+        await supabase.auth.updateUser({
+          data: {
+            first_name: state.firstName,
+            last_name: state.lastName,
+            optin: state.optin,
+          },
+        })
+      }
+      if (step === 2) {
+        await supabase.auth.updateUser({ data: { usecase: state.usecase } })
+      }
+      if (step === 3) {
+        await supabase.auth.updateUser({ data: { role: state.role, role_free_text: state.roleFreeText } })
+      }
+      if (step === 4) {
+        await supabase.auth.updateUser({ data: { invited_emails: state.emails } })
+      }
+    } catch {}
+
     if (step < TOTAL_STEPS) setStep(step + 1);
     else {
       // Finish (should only be reachable when conditions are met)
       await setOnboardingCompleteClient(true);
       router.replace('/dashboard');
     }
-  }, [router, step, validate]);
+  }, [router, step, validate, state, supabase]);
 
   const onBack = useCallback(() => {
     if (canGoBack) setStep(step - 1);

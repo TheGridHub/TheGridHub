@@ -1,7 +1,7 @@
 'use client'
 
 import React, { Suspense, lazy } from 'react'
-import { SkeletonLoader } from './skeleton-loader'
+import { SkeletonLoader } from './SkeletonLoaders'
 
 /**
  * Generic lazy wrapper that takes a component factory function
@@ -59,51 +59,7 @@ export function createLazyComponent<T extends React.ComponentType<any>>(
   })
 }
 
-/**
- * Lazy load heavy dashboard components
- */
-export const LazyAnalyticsChart = createLazyComponent(
-  () => import('../charts/AnalyticsChart'),
-  { className: "h-64 w-full" }
-)
-
-export const LazyTaskBoard = createLazyComponent(
-  () => import('../tasks/TaskBoard'),
-  { className: "h-96 w-full" }
-)
-
-export const LazyProjectGallery = createLazyComponent(
-  () => import('../projects/ProjectGallery'),
-  { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" }
-)
-
-export const LazyContactsTable = createLazyComponent(
-  () => import('../contacts/ContactsTable'),
-  { className: "h-64 w-full" }
-)
-
-export const LazyCalendarView = createLazyComponent(
-  () => import('../calendar/CalendarView'),
-  { className: "h-96 w-full" }
-)
-
-/**
- * Lazy load modals and heavy forms
- */
-export const LazyProjectModal = createLazyComponent(
-  () => import('../modals/ProjectModal'),
-  { className: "w-full h-32" }
-)
-
-export const LazyTaskModal = createLazyComponent(
-  () => import('../modals/TaskModal'),
-  { className: "w-full h-32" }
-)
-
-export const LazyFileUploadModal = createLazyComponent(
-  () => import('../modals/FileUploadModal'),
-  { className: "w-full h-32" }
-)
+// Note: Specific lazy components can be added as needed when the actual components exist
 
 /**
  * Hook to preload components on user interaction or route change
@@ -111,25 +67,8 @@ export const LazyFileUploadModal = createLazyComponent(
 export function useComponentPreloader() {
   const preload = React.useCallback((componentPath: string) => {
     // Preload component when user hovers or focuses on a trigger
-    switch (componentPath) {
-      case 'analytics':
-        import('../charts/AnalyticsChart')
-        break
-      case 'tasks':
-        import('../tasks/TaskBoard')
-        break
-      case 'projects':
-        import('../projects/ProjectGallery')
-        break
-      case 'contacts':
-        import('../contacts/ContactsTable')
-        break
-      case 'calendar':
-        import('../calendar/CalendarView')
-        break
-      default:
-        break
-    }
+    // Components can be added here as they are created
+    console.log(`Preloading ${componentPath} (component not yet implemented)`)
   }, [])
 
   return { preload }

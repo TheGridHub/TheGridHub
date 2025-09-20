@@ -32,7 +32,8 @@ import {
 } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useWorkspace } from '@/hooks/useWorkspace'
-import { LazyViewportWrapper, useComponentPreloader } from '@/components/ui/lazy-wrapper'
+// Lazy loading components will be added as needed
+// import { LazyViewportWrapper, useComponentPreloader } from '@/components/ui/lazy-wrapper'
 
 interface Project { 
   id: string
@@ -80,7 +81,7 @@ const priorityColors = {
 export default function ProjectsPage() {
   const { profile, isFreePlan } = useUserProfile()
   const { workspace } = useWorkspace()
-  const { preload } = useComponentPreloader()
+  // const { preload } = useComponentPreloader() // Will be enabled when needed
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)

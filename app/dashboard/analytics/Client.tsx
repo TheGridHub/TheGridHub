@@ -26,7 +26,8 @@ import {
 } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useWorkspace } from '@/hooks/useWorkspace'
-import { LazyViewportWrapper } from '@/components/ui/lazy-wrapper'
+// Lazy loading will be added as needed
+// import { LazyViewportWrapper } from '@/components/ui/lazy-wrapper'
 
 interface TimeseriesPoint { date: string; count: number }
 interface Summary {
@@ -357,7 +358,7 @@ export default function AnalyticsClient() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Tasks Created */}
-        <LazyViewportWrapper className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Tasks Created</h2>
@@ -376,10 +377,10 @@ export default function AnalyticsClient() {
               <p className="text-sm">No data available</p>
             </div>
           )}
-        </LazyViewportWrapper>
+        </div>
 
         {/* Tasks Completed */}
-        <LazyViewportWrapper className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Tasks Completed</h2>
@@ -398,10 +399,10 @@ export default function AnalyticsClient() {
               <p className="text-sm">No data available</p>
             </div>
           )}
-        </LazyViewportWrapper>
+        </div>
 
         {/* Task Completion Rate */}
-        <LazyViewportWrapper className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Task Completion Rate</h2>
             <Target className="w-5 h-5 text-gray-400" />
@@ -418,7 +419,7 @@ export default function AnalyticsClient() {
               <p className="text-sm">No data available</p>
             </div>
           )}
-        </LazyViewportWrapper>
+        </div>
 
         {/* Productivity Insights */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">

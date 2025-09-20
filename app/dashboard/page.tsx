@@ -309,7 +309,7 @@ export default function DashboardHome() {
         </p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Primary Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Total Projects"
@@ -341,7 +341,7 @@ export default function DashboardHome() {
         />
       </div>
       
-      {/* Additional Stats Grid */}
+      {/* Secondary Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Notes"
@@ -358,17 +358,17 @@ export default function DashboardHome() {
           loading={dashboardLoading}
         />
         <StatCard
-          title="Integrations"
-          value={usageStats?.integrations_count || 0}
-          icon={Zap}
-          href="/dashboard/integrations"
+          title="Calendar Events"
+          value={usageStats?.calendar_events_count || 0}
+          icon={Calendar}
+          href="/dashboard/calendars"
           loading={dashboardLoading}
         />
         <StatCard
-          title="Notifications"
-          value={usageStats?.notifications_count || 0}
-          icon={Bell}
-          href="/dashboard/notifications"
+          title="AI Requests"
+          value={usageStats?.ai_requests_this_month || 0}
+          icon={Sparkles}
+          href="/dashboard/tasks"
           loading={dashboardLoading}
         />
       </div>
@@ -448,7 +448,7 @@ export default function DashboardHome() {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-3">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Notes</p>
                   <p className="text-sm font-medium text-gray-900">
@@ -459,6 +459,20 @@ export default function DashboardHome() {
                   <p className="text-xs text-gray-500 mb-1">Emails</p>
                   <p className="text-sm font-medium text-gray-900">
                     {usageStats?.emails_count || 0} / Unlimited
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">AI Requests</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {usageStats?.ai_requests_this_month || 0} / Unlimited
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Calendar Events</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {usageStats?.calendar_events_count || 0} / Unlimited
                   </p>
                 </div>
               </div>

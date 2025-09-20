@@ -21,9 +21,13 @@ export interface DashboardData {
   projects_count: number
   tasks_count: number
   contacts_count: number
-  companies_count?: number
-  notes_count?: number
-  emails_count?: number
+  companies_count: number
+  notes_count: number
+  emails_count: number
+  integrations_count: number
+  notifications_count: number
+  calendar_events_count: number
+  teams_count: number
   ai_requests_this_month: number
   subscription_status?: string
   onboarding_complete?: boolean
@@ -36,14 +40,15 @@ export interface UsageStats {
   projects_count: number
   tasks_count: number
   contacts_count: number
-  companies_count?: number
-  notes_count?: number
-  emails_count?: number
-  integrations_count?: number
-  notifications_count?: number
-  calendar_events_count?: number
-  teams_count?: number
+  companies_count: number
+  notes_count: number
+  emails_count: number
+  integrations_count: number
+  notifications_count: number
+  calendar_events_count: number
+  teams_count: number
   ai_requests_count: number
+  ai_requests_this_month: number
   storage_used: number
   calculated_at: string
 }

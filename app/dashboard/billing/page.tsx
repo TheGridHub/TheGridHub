@@ -215,40 +215,9 @@ export default function BillingPage() {
     }
   } : null
 
-  const mockPaymentMethods: PaymentMethod[] = [
-    {
-      id: 'pm_1234567890',
-      type: 'card',
-      brand: 'visa',
-      last4: '4242',
-      expMonth: 12,
-      expYear: 2025,
-      isDefault: true
-    }
-  ]
-
-  const mockInvoices: Invoice[] = [
-    {
-      id: 'in_1234567890',
-      number: 'INV-001',
-      status: 'paid',
-      amount: 29.00,
-      currency: 'USD',
-      date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      description: 'Pro Plan - Monthly',
-      downloadUrl: '#'
-    },
-    {
-      id: 'in_1234567891',
-      number: 'INV-002',
-      status: 'paid',
-      amount: 29.00,
-      currency: 'USD',
-      date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-      description: 'Pro Plan - Monthly',
-      downloadUrl: '#'
-    }
-  ]
+  // No demo data: initialize empty arrays and rely on Billing Portal for management
+  const mockPaymentMethods: PaymentMethod[] = []
+  const mockInvoices: Invoice[] = []
 
   // Load data
   useEffect(() => {
@@ -264,10 +233,10 @@ export default function BillingPage() {
   const loadBillingData = async () => {
     setLoading(true)
     try {
-      // Load payment methods and invoices (mock for now)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setPaymentMethods(mockPaymentMethods)
-      setInvoices(mockInvoices)
+      // In this version, we do not show demo data.
+      // Encourage users to manage payment methods and invoices via the Stripe Billing Portal.
+      setPaymentMethods([])
+      setInvoices([])
     } catch (error) {
       setError('Failed to load billing data')
     } finally {

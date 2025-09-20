@@ -115,9 +115,9 @@ export function useDashboardData() {
 
         // Get real counts from individual tables
         const countQueries = await Promise.allSettled([
-          supabase.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
-          supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
-          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+          supabase.from('projects').select('*', { count: 'exact', head: true }).eq('userId', profile.user_id),
+          supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('userId', profile.user_id),
+          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('userId', profile.user_id),
         ])
 
         const projectsCount = countQueries[0].status === 'fulfilled' ? countQueries[0].value.count || 0 : 0
@@ -132,8 +132,8 @@ export function useDashboardData() {
           const { count: aiCount } = await supabase
             .from('ai_requests')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', profile.user_id)
-            .gte('created_at', firstOfMonth.toISOString())
+            .eq('userId', profile.user_id)
+            .gte('createdAt', firstOfMonth.toISOString())
           aiRequestsThisMonth = aiCount || 0
         } catch (aiError) {
           console.warn('Could not fetch AI requests count:', aiError)

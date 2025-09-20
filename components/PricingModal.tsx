@@ -214,6 +214,20 @@ export default function PricingModal({ isOpen, onClose, feature }: PricingModalP
                 </div>
 
                 <button
+                  onClick={async () => {
+                    if (plan.current) return
+                    try {
+                      const res = await fetch('/api/stripe/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ interval: billingCycle, currency: userCurrency })
+                      })
+                      const data = await res.json()
+                      if (data?.url) window.location.href = data.url
+                    } catch (e) {
+                      console.error('Upgrade failed', e)
+                    }
+                  }}
                   className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                     plan.current
                       ? 'bg-gray-300 text-gray-600 cursor-not-allowed'

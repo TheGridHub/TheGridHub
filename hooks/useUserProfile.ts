@@ -117,7 +117,7 @@ export function useUserProfile() {
 
       const updates: ProfileUpdate = {
         onboarding_complete: true,
-        ...(teamId && { team_id: teamId })
+        ...(teamId && { team_name: teamId })
       }
 
       const { data, error } = await supabase

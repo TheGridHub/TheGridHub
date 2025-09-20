@@ -333,10 +333,42 @@ export default function DashboardHome() {
           loading={dashboardLoading}
         />
         <StatCard
-          title="AI Requests"
-          value={usageStats?.ai_requests_count || 0}
-          icon={Sparkles}
-          href="/dashboard/tasks"
+          title="Companies"
+          value={usageStats?.companies_count || 0}
+          icon={Building2}
+          href="/dashboard/companies"
+          loading={dashboardLoading}
+        />
+      </div>
+      
+      {/* Additional Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          title="Notes"
+          value={usageStats?.notes_count || 0}
+          icon={FileText}
+          href="/dashboard/notes"
+          loading={dashboardLoading}
+        />
+        <StatCard
+          title="Emails"
+          value={usageStats?.emails_count || 0}
+          icon={Mail}
+          href="/dashboard/emails"
+          loading={dashboardLoading}
+        />
+        <StatCard
+          title="Integrations"
+          value={usageStats?.integrations_count || 0}
+          icon={Zap}
+          href="/dashboard/integrations"
+          loading={dashboardLoading}
+        />
+        <StatCard
+          title="Notifications"
+          value={usageStats?.notifications_count || 0}
+          icon={Bell}
+          href="/dashboard/notifications"
           loading={dashboardLoading}
         />
       </div>
@@ -386,46 +418,53 @@ export default function DashboardHome() {
               </div>
             </div>
 
-            {/* Plan Limits */}
+            {/* Usage Breakdown */}
             <div className="pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-3">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Projects</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {usageStats?.projects_count || 0} / {isFreePlan ? '5' : 'Unlimited'}
+                    {usageStats?.projects_count || 0} / Unlimited
                   </p>
                 </div>
                 <div>
+                  <p className="text-xs text-gray-500 mb-1">Tasks</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {usageStats?.tasks_count || 0} / Unlimited
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div>
                   <p className="text-xs text-gray-500 mb-1">Contacts</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {usageStats?.contacts_count || 0} / {isFreePlan ? '100' : 'Unlimited'}
+                    {usageStats?.contacts_count || 0} / Unlimited
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Companies</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {usageStats?.companies_count || 0} / Unlimited
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Notes</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {usageStats?.notes_count || 0} / Unlimited
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Emails</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {usageStats?.emails_count || 0} / Unlimited
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Upgrade Banner for Free Users */}
-          {isFreePlan && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-[#873bff]/10 to-[#7a35e6]/10 rounded-lg border border-[#873bff]/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Crown className="w-5 h-5 text-[#873bff]" />
-                  <div>
-                    <p className="font-medium text-gray-900">Unlock Premium Features</p>
-                    <p className="text-sm text-gray-600">Get unlimited projects, AI requests, and more</p>
-                  </div>
-                </div>
-                <Link
-                  href="/dashboard/billing"
-                  className="px-4 py-2 bg-gradient-to-r from-[#873bff] to-[#7a35e6] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
-                >
-                  Upgrade Now
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Recent Activity */}
@@ -487,59 +526,6 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Pro Features Showcase for Free Users */}
-      {isFreePlan && (
-        <div className="bg-gradient-to-br from-[#873bff]/5 to-[#7a35e6]/5 rounded-xl border border-[#873bff]/10 p-6">
-          <div className="flex items-start gap-4 mb-6">
-            <div className="p-3 bg-white rounded-lg shadow-sm">
-              <Zap className="w-6 h-6 text-[#873bff]" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Supercharge Your Workflow with Pro</h3>
-              <p className="text-gray-600">Unlock powerful features to boost your team's productivity</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 bg-[#873bff]/10 rounded">
-                <Briefcase className="w-4 h-4 text-[#873bff]" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 text-sm">Unlimited Projects</p>
-                <p className="text-xs text-gray-600 mt-0.5">Create as many projects as you need</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 bg-[#873bff]/10 rounded">
-                <HardDrive className="w-4 h-4 text-[#873bff]" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 text-sm">100GB Storage</p>
-                <p className="text-xs text-gray-600 mt-0.5">100x more space for files</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 bg-[#873bff]/10 rounded">
-                <Shield className="w-4 h-4 text-[#873bff]" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 text-sm">Priority Support</p>
-                <p className="text-xs text-gray-600 mt-0.5">Get help when you need it</p>
-              </div>
-            </div>
-          </div>
-          
-          <Link
-            href="/dashboard/billing"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#873bff] to-[#7a35e6] text-white rounded-lg hover:opacity-90 transition-opacity"
-          >
-            <Crown className="w-4 h-4" />
-            View Pricing Plans
-            <ArrowUpRight className="w-4 h-4" />
-          </Link>
-        </div>
-      )}
     </div>
   )
 }

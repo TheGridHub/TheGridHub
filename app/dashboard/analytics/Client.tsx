@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useWorkspace } from '@/hooks/useWorkspace'
+import { LazyViewportWrapper } from '@/components/ui/lazy-wrapper'
 
 interface TimeseriesPoint { date: string; count: number }
 interface Summary {
@@ -356,7 +357,7 @@ export default function AnalyticsClient() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Tasks Created */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <LazyViewportWrapper className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Tasks Created</h2>
@@ -375,10 +376,10 @@ export default function AnalyticsClient() {
               <p className="text-sm">No data available</p>
             </div>
           )}
-        </div>
+        </LazyViewportWrapper>
 
         {/* Tasks Completed */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <LazyViewportWrapper className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Tasks Completed</h2>
@@ -397,10 +398,10 @@ export default function AnalyticsClient() {
               <p className="text-sm">No data available</p>
             </div>
           )}
-        </div>
+        </LazyViewportWrapper>
 
         {/* Task Completion Rate */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <LazyViewportWrapper className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Task Completion Rate</h2>
             <Target className="w-5 h-5 text-gray-400" />
@@ -417,7 +418,7 @@ export default function AnalyticsClient() {
               <p className="text-sm">No data available</p>
             </div>
           )}
-        </div>
+        </LazyViewportWrapper>
 
         {/* Productivity Insights */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -471,29 +472,6 @@ export default function AnalyticsClient() {
         </div>
       </div>
 
-      {/* Pro Features Banner */}
-      {isFreePlan && (
-        <div className="mt-8 p-6 bg-gradient-to-r from-[#873bff]/10 to-[#7a35e6]/10 rounded-xl border border-[#873bff]/20">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white rounded-lg shadow-sm">
-              <BarChart3 className="w-6 h-6 text-[#873bff]" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Unlock Advanced Analytics</h3>
-              <p className="text-gray-600 mb-4">
-                Get deeper insights with custom reports, team performance metrics, advanced filters, and unlimited data exports.
-              </p>
-              <a
-                href="/dashboard/billing"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#873bff] to-[#7a35e6] text-white rounded-lg hover:opacity-90 transition-opacity"
-              >
-                Upgrade to Pro
-                <ArrowUpRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

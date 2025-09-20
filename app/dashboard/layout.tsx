@@ -251,7 +251,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-900 truncate">
-                  {profileLoading ? 'Loading...' : (profile?.full_name || profile?.email?.split('@')[0] || 'User')}
+                  {profileLoading ? 'Loading...' : (
+                    profile?.first_name ? 
+                      `${profile.first_name}${profile.last_name ? ` ${profile.last_name}` : ''}` :
+                      profile?.full_name || profile?.email?.split('@')[0] || 'User'
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
                   {profile?.email || ''}
@@ -315,7 +319,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#873bff] to-[#7a35e6] text-white text-sm font-semibold">
-                          {profile?.full_name?.charAt(0)?.toUpperCase() || profile?.email?.charAt(0)?.toUpperCase() || 'U'}
+                          {profile?.first_name?.charAt(0)?.toUpperCase() || profile?.full_name?.charAt(0)?.toUpperCase() || profile?.email?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                       )}
                     </div>
@@ -327,7 +331,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <div className="text-sm font-medium text-gray-900">
-                          {profile?.full_name || profile?.email?.split('@')[0] || 'User'}
+                          {profile?.first_name ? 
+                            `${profile.first_name}${profile.last_name ? ` ${profile.last_name}` : ''}` :
+                            profile?.full_name || profile?.email?.split('@')[0] || 'User'
+                          }
                         </div>
                         <div className="text-xs text-gray-500">{profile?.email}</div>
                       </div>

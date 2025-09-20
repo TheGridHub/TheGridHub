@@ -14,20 +14,35 @@ export interface DashboardData {
   email: string
   avatar_url: string | null
   workspace_name: string | null
-  plan_type: 'free' | 'pro' | 'enterprise'
+  plan_type: string
   workspace_id: string | null
   workspace_display_name: string | null
   workspace_settings: any
   projects_count: number
   tasks_count: number
   contacts_count: number
+  companies_count?: number
+  notes_count?: number
+  emails_count?: number
   ai_requests_this_month: number
+  subscription_status?: string
+  onboarding_complete?: boolean
+  last_activity?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface UsageStats {
   projects_count: number
   tasks_count: number
   contacts_count: number
+  companies_count?: number
+  notes_count?: number
+  emails_count?: number
+  integrations_count?: number
+  notifications_count?: number
+  calendar_events_count?: number
+  teams_count?: number
   ai_requests_count: number
   storage_used: number
   calculated_at: string
@@ -47,7 +62,7 @@ export function useDashboardData() {
   const supabase = createClient()
   const queryClient = useQueryClient()
 
-  // Get comprehensive dashboard data
+  // Get comprehensive dashboard data with fallbacks
   const {
     data: dashboardData,
     isLoading: dashboardLoading,
@@ -57,20 +72,101 @@ export function useDashboardData() {
     queryFn: async () => {
       if (!profile?.user_id) return null
 
-      const { data, error } = await supabase
-        .from('user_dashboard')
-        .select('*')
-        .eq('user_id', profile.user_id)
-        .single()
+      try {
+        // First try to get from user_dashboard view
+        const { data, error } = await supabase
+          .from('user_dashboard')
+          .select('*')
+          .eq('user_id', profile.user_id)
+          .single()
 
-      if (error) throw error
-      return data
+        if (!error && data) {
+          return data
+        }
+
+        // Fallback: construct dashboard data from profiles table and auth.users
+        const [profileResult, userResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select(`
+              user_id,
+              plan,
+              team_name,
+              preferences,
+              subscription_status,
+              created_at
+            `)
+            .eq('user_id', profile.user_id)
+            .single(),
+          supabase.auth.getUser()
+        ])
+        
+        const { data: profileData, error: profileError } = profileResult
+        const userData = userResult.data.user
+
+        if (profileError || !profileData) {
+          throw new Error('Unable to load profile data')
+        }
+
+        // Get real counts from individual tables
+        const countQueries = await Promise.allSettled([
+          supabase.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+          supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+        ])
+
+        const projectsCount = countQueries[0].status === 'fulfilled' ? countQueries[0].value.count || 0 : 0
+        const tasksCount = countQueries[1].status === 'fulfilled' ? countQueries[1].value.count || 0 : 0
+        const contactsCount = countQueries[2].status === 'fulfilled' ? countQueries[2].value.count || 0 : 0
+
+        // Try to get AI requests count for this month
+        let aiRequestsThisMonth = 0
+        try {
+          const currentDate = new Date()
+          const firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+          const { count: aiCount } = await supabase
+            .from('ai_requests')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', profile.user_id)
+            .gte('created_at', firstOfMonth.toISOString())
+          aiRequestsThisMonth = aiCount || 0
+        } catch (aiError) {
+          console.warn('Could not fetch AI requests count:', aiError)
+        }
+
+        // Create dashboard data with real counts using actual schema
+        const firstName = userData?.user_metadata?.first_name || userData?.user_metadata?.full_name?.split(' ')[0] || userData?.email?.split('@')[0] || 'User'
+        const lastName = userData?.user_metadata?.last_name || userData?.user_metadata?.full_name?.split(' ').slice(1).join(' ') || ''
+        
+        const fallbackData: DashboardData = {
+          user_id: profileData.user_id,
+          first_name: firstName,
+          last_name: lastName,
+          email: userData?.email || '',
+          avatar_url: userData?.user_metadata?.avatar_url || userData?.user_metadata?.picture || null,
+          workspace_name: profileData.team_name || null,
+          plan_type: profileData.plan || 'free',
+          workspace_id: profileData.user_id, // Use user_id as workspace_id
+          workspace_display_name: profileData.team_name || `${firstName}'s Workspace`,
+          workspace_settings: profileData.preferences || {},
+          projects_count: projectsCount,
+          tasks_count: tasksCount,
+          contacts_count: contactsCount,
+          ai_requests_this_month: aiRequestsThisMonth
+        }
+
+        return fallbackData
+      } catch (error) {
+        console.error('Dashboard data error:', error)
+        throw error
+      }
     },
     enabled: !!profile?.user_id,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1, // Only retry once
   })
 
-  // Get real-time usage stats
+  // Get real-time usage stats with fallbacks
   const {
     data: usageStats,
     isLoading: usageLoading,
@@ -80,17 +176,45 @@ export function useDashboardData() {
     queryFn: async () => {
       if (!profile?.user_id) return null
 
-      const { data, error } = await supabase
-        .rpc('get_usage_stats', {
-          p_user_id: profile.user_id,
-          p_workspace_id: dashboardData?.workspace_id
-        })
+      try {
+        // First try to use the RPC function
+        const { data, error } = await supabase
+          .rpc('get_usage_stats', {
+            p_user_id: profile.user_id,
+            p_workspace_id: dashboardData?.workspace_id
+          })
 
-      if (error) throw error
-      return data
+        if (!error && data) {
+          return data
+        }
+
+        // Fallback: calculate usage stats manually from existing data
+        const fallbackStats: UsageStats = {
+          projects_count: dashboardData?.projects_count || 0,
+          tasks_count: dashboardData?.tasks_count || 0,
+          contacts_count: dashboardData?.contacts_count || 0,
+          ai_requests_count: dashboardData?.ai_requests_this_month || 0,
+          storage_used: 0,
+          calculated_at: new Date().toISOString()
+        }
+
+        return fallbackStats
+      } catch (error) {
+        console.error('Usage stats error:', error)
+        // Return fallback data instead of throwing
+        return {
+          projects_count: dashboardData?.projects_count || 0,
+          tasks_count: dashboardData?.tasks_count || 0,
+          contacts_count: dashboardData?.contacts_count || 0,
+          ai_requests_count: dashboardData?.ai_requests_this_month || 0,
+          storage_used: 0,
+          calculated_at: new Date().toISOString()
+        }
+      }
     },
     enabled: !!profile?.user_id && !!dashboardData,
     staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1, // Only retry once
   })
 
   // Update profile mutation
@@ -230,34 +354,34 @@ export function useDashboardData() {
     )
   }
 
-  // Get plan limits based on plan type
+  // Get plan limits based on plan type (now with unlimited free)
   const getPlanLimits = () => {
     const planType = dashboardData?.plan_type || 'free'
     
     const limits = {
       free: {
-        projects: 5,
-        tasks: 50,
-        contacts: 100,
-        team_members: 3,
-        storage_gb: 1,
-        ai_requests: 10
+        projects: -1, // unlimited
+        tasks: -1, // unlimited
+        contacts: -1, // unlimited
+        team_members: -1, // unlimited
+        storage_gb: -1, // unlimited
+        ai_requests: -1 // unlimited
       },
       pro: {
-        projects: 50,
-        tasks: 1000,
-        contacts: 5000,
-        team_members: 25,
-        storage_gb: 50,
-        ai_requests: 1000
+        projects: -1, // unlimited
+        tasks: -1, // unlimited
+        contacts: -1, // unlimited
+        team_members: -1, // unlimited
+        storage_gb: -1, // unlimited
+        ai_requests: -1 // unlimited
       },
       enterprise: {
         projects: -1, // unlimited
-        tasks: -1,
-        contacts: -1,
-        team_members: -1,
-        storage_gb: 500,
-        ai_requests: -1
+        tasks: -1, // unlimited
+        contacts: -1, // unlimited
+        team_members: -1, // unlimited
+        storage_gb: -1, // unlimited
+        ai_requests: -1 // unlimited
       }
     }
 

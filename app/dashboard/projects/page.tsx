@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { useWorkspace } from '@/hooks/useWorkspace'
+import { LazyViewportWrapper, useComponentPreloader } from '@/components/ui/lazy-wrapper'
 
 interface Project { 
   id: string
@@ -79,6 +80,7 @@ const priorityColors = {
 export default function ProjectsPage() {
   const { profile, isFreePlan } = useUserProfile()
   const { workspace } = useWorkspace()
+  const { preload } = useComponentPreloader()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -137,13 +139,6 @@ export default function ProjectsPage() {
 
   const createProject = async () => {
     if (!newProject.name.trim()) return
-    
-    // Check free plan limits
-    if (isFreePlan && projects.length >= 5) {
-      setUpgradeRequired(true)
-      setMessage('Free plan is limited to 5 projects. Upgrade to Pro for unlimited projects.')
-      return
-    }
 
     setCreating(true)
     setMessage(null)
